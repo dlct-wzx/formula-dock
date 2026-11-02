@@ -31,7 +31,7 @@ test('extension page agent inserts into textarea and contenteditable', { skip: !
           onMessage: {
             addListener(callback) {
               listener = callback
-              window.__latexStudioTestListener = callback
+              window.__formulaDockTestListener = callback
             },
             removeListener(callback) {
               if (listener === callback) listener = null
@@ -50,8 +50,8 @@ test('extension page agent inserts into textarea and contenteditable', { skip: !
         editor.focus()
         editor.setSelectionRange(3, 3)
         document.dispatchEvent(new Event('selectionchange'))
-        window.__latexStudioPageAgentV1.listener(
-          { type: 'LATEX_STUDIO_INSERT_TEXT', text: '$x+y$' },
+        window.__formulaDockPageAgentV1.listener(
+          { type: 'FORMULADOCK_INSERT_TEXT', text: '$x+y$' },
           {},
           resolve,
         )
@@ -72,8 +72,8 @@ test('extension page agent inserts into textarea and contenteditable', { skip: !
         selection.removeAllRanges()
         selection.addRange(range)
         document.dispatchEvent(new Event('selectionchange'))
-        window.__latexStudioPageAgentV1.listener(
-          { type: 'LATEX_STUDIO_INSERT_TEXT', text: 'formula' },
+        window.__formulaDockPageAgentV1.listener(
+          { type: 'FORMULADOCK_INSERT_TEXT', text: 'formula' },
           {},
           resolve,
         )

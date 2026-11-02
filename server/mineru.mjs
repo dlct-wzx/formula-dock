@@ -62,7 +62,7 @@ export async function createMineruTask({ buffer, fileName, token, modelVersion, 
     )
   }
 
-  const dataId = `latexlive-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
+  const dataId = `formuladock-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`
   const createResponse = await fetch(`${MINERU_BASE_URL}/file-urls/batch`, {
     method: 'POST',
     headers: {

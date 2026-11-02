@@ -1,7 +1,7 @@
 {
-  "name": "latexlive-studio",
+  "name": "formuladock",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k \"vite\" \"node server/index.mjs\"",
@@ -43,7 +43,7 @@
     "vite": "^8.3.5"
   },
   "license": "Apache-2.0",
-  "author": "LaTeX Studio contributors",
+  "author": "FormulaDock contributors",
   "engines": {
     "node": ">=24.0.0"
   },
@@ -53,5 +53,6 @@
     "browser-extension",
     "mineru",
     "formula-editor"
-  ]
+  ],
+  "description": "Open-source LaTeX formula workspace and Manifest V3 browser extension with MinerU image recognition."
 }

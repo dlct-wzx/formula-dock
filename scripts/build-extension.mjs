@@ -67,7 +67,7 @@ assert.equal(manifest.side_panel.default_path, 'sidepanel.html')
 
 const files = await collectFiles(outputDir)
 const zip = zipSync(files, { level: 6 })
-const zipPath = path.join(releaseDir, `latexlive-studio-extension-v${manifest.version}.zip`)
+const zipPath = path.join(releaseDir, `formuladock-extension-v${manifest.version}.zip`)
 await fsPromises.writeFile(zipPath, zip)
 
 console.log(`Extension directory: ${outputDir}`)

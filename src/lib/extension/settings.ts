@@ -1,4 +1,5 @@
-export const EXTENSION_SETTINGS_KEY = 'latexlive-studio:extension-settings'
+export const EXTENSION_SETTINGS_KEY = 'formuladock:extension-settings'
+export const LEGACY_EXTENSION_SETTINGS_KEY = 'latexlive-studio:extension-settings'
 
 export type InsertFormat = 'raw' | 'dollar-inline' | 'dollar-display' | 'bracket-display'
 export type MineruModel = 'vlm' | 'pipeline'
@@ -51,8 +52,22 @@ export function normaliseExtensionSettings(value: unknown): ExtensionSettings {
 
 export async function loadExtensionSettings(): Promise<ExtensionSettings> {
   if (!isExtensionContext()) return DEFAULT_EXTENSION_SETTINGS
-  const stored = await chrome.storage.local.get(EXTENSION_SETTINGS_KEY)
-  return normaliseExtensionSettings(stored[EXTENSION_SETTINGS_KEY])
+  const stored = await chrome.storage.local.get([
+    EXTENSION_SETTINGS_KEY,
+    LEGACY_EXTENSION_SETTINGS_KEY,
+  ])
+  const current = stored[EXTENSION_SETTINGS_KEY]
+  const legacy = stored[LEGACY_EXTENSION_SETTINGS_KEY]
+  const settings = normaliseExtensionSettings(current ?? legacy)
+
+  if (legacy !== undefined) {
+    if (current === undefined) {
+      await chrome.storage.local.set({ [EXTENSION_SETTINGS_KEY]: settings })
+    }
+    await chrome.storage.local.remove(LEGACY_EXTENSION_SETTINGS_KEY)
+  }
+
+  return settings
 }
 
 export function subscribeExtensionSettings(

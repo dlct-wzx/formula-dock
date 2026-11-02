@@ -109,7 +109,7 @@ async function insertIntoActivePage(text, insertFormat) {
 
   try {
     const result = await chrome.tabs.sendMessage(tab.id, {
-      type: 'LATEX_STUDIO_INSERT_TEXT',
+      type: 'FORMULADOCK_INSERT_TEXT',
       text: value,
     })
     if (!result?.ok) {
@@ -123,7 +123,7 @@ async function insertIntoActivePage(text, insertFormat) {
     try {
       await injectPageAgent(tab.id)
       return await chrome.tabs.sendMessage(tab.id, {
-        type: 'LATEX_STUDIO_INSERT_TEXT',
+        type: 'FORMULADOCK_INSERT_TEXT',
         text: value,
       })
     } catch {
@@ -136,8 +136,10 @@ async function insertIntoActivePage(text, insertFormat) {
 }
 
 async function getStoredMineruToken() {
-  const stored = await chrome.storage.local.get('latexlive-studio:extension-settings')
-  const settings = stored['latexlive-studio:extension-settings']
+  const currentKey = 'formuladock:extension-settings'
+  const legacyKey = 'latexlive-studio:extension-settings'
+  const stored = await chrome.storage.local.get([currentKey, legacyKey])
+  const settings = stored[currentKey] || stored[legacyKey]
   return typeof settings?.mineruToken === 'string' ? settings.mineruToken.trim() : ''
 }
 
@@ -344,7 +346,7 @@ chrome.commands.onCommand.addListener(async (command) => {
 })
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type === 'LATEX_STUDIO_INSERT_TO_PAGE') {
+  if (message?.type === 'FORMULADOCK_INSERT_TO_PAGE') {
     insertIntoActivePage(message.text, message.insertFormat)
       .then(sendResponse)
       .catch((error) => {
@@ -357,7 +359,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true
   }
 
-  if (message?.type === 'LATEX_STUDIO_MINERU_API_REQUEST') {
+  if (message?.type === 'FORMULADOCK_MINERU_API_REQUEST') {
     mineruApiRequest(message)
       .then(sendResponse)
       .catch(() => {
@@ -370,17 +372,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true
   }
 
-  if (message?.type === 'LATEX_STUDIO_MINERU_UPLOAD') {
+  if (message?.type === 'FORMULADOCK_MINERU_UPLOAD') {
     uploadMineruFile(message).then(sendResponse)
     return true
   }
 
-  if (message?.type === 'LATEX_STUDIO_MINERU_DOWNLOAD_ZIP') {
+  if (message?.type === 'FORMULADOCK_MINERU_DOWNLOAD_ZIP') {
     downloadMineruZip(message).then(sendResponse)
     return true
   }
 
-  if (message?.type === 'LATEX_STUDIO_OPEN_OPTIONS') {
+  if (message?.type === 'FORMULADOCK_OPEN_OPTIONS') {
     chrome.runtime.openOptionsPage()
     sendResponse({ ok: true })
     return false

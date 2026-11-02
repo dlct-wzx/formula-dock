@@ -2,7 +2,7 @@
 
 Last updated: 2026-11-02
 
-This policy describes the privacy behaviour of the open-source LaTeX Studio web application and browser extension. A deployer that hosts a public version must adapt this policy with their own identity, contact details, and infrastructure information.
+This policy describes the privacy behaviour of the open-source FormulaDock web application and browser extension. A deployer that hosts a public version must adapt this policy with their own identity, contact details, and infrastructure information.
 
 ## Data processed by the extension
 

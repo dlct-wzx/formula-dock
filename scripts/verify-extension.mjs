@@ -35,9 +35,9 @@ assert.deepEqual(
 assert.ok(!manifest.host_permissions.includes('<all_urls>'))
 const backgroundSource = await fsPromises.readFile(path.join(outputDir, 'background.js'), 'utf8')
 for (const marker of [
-  'LATEX_STUDIO_MINERU_API_REQUEST',
-  'LATEX_STUDIO_MINERU_UPLOAD',
-  'LATEX_STUDIO_MINERU_DOWNLOAD_ZIP',
+  'FORMULADOCK_MINERU_API_REQUEST',
+  'FORMULADOCK_MINERU_UPLOAD',
+  'FORMULADOCK_MINERU_DOWNLOAD_ZIP',
 ]) {
   assert.ok(backgroundSource.includes(marker), `Background proxy is missing ${marker}`)
 }
@@ -102,7 +102,7 @@ if (fs.existsSync(envLocalPath)) {
 const zipPath = path.join(
   root,
   'release',
-  `latexlive-studio-extension-v${manifest.version}.zip`,
+  `formuladock-extension-v${manifest.version}.zip`,
 )
 assert.ok(fs.existsSync(zipPath), 'Extension zip is missing.')
 const zipFiles = unzipSync(new Uint8Array(await fsPromises.readFile(zipPath)))

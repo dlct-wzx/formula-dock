@@ -18,7 +18,8 @@ interface IndexedItem {
   groupTitle: string
 }
 
-const RECENT_STORAGE_KEY = 'latexlive-studio:recent-tools'
+const RECENT_STORAGE_KEY = 'formuladock:recent-tools'
+const LEGACY_RECENT_STORAGE_KEY = 'latexlive-studio:recent-tools'
 
 function itemCount(category: QuickToolCategory): number {
   return category.groups.reduce((total, group) => total + group.items.length, 0)
@@ -33,8 +34,14 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(RECENT_STORAGE_KEY)
-      if (stored) setRecentIds(JSON.parse(stored) as string[])
+      const stored =
+        localStorage.getItem(RECENT_STORAGE_KEY) || localStorage.getItem(LEGACY_RECENT_STORAGE_KEY)
+      if (stored) {
+        const ids = JSON.parse(stored) as string[]
+        setRecentIds(ids)
+        localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(ids))
+        localStorage.removeItem(LEGACY_RECENT_STORAGE_KEY)
+      }
     } catch {
       setRecentIds([])
     }

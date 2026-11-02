@@ -78,7 +78,7 @@ try {
   await page.evaluate(
     (mineruToken) =>
       chrome.storage.local.set({
-        'latexlive-studio:extension-settings': {
+        'formuladock:extension-settings': {
           mineruToken,
           modelVersion: 'vlm',
           language: 'ch',
@@ -138,7 +138,7 @@ try {
     path: path.join(artifactsDir, 'extension-live-ocr-result.png'),
     fullPage: true,
   })
-  await page.evaluate(() => chrome.storage.local.remove('latexlive-studio:extension-settings'))
+  await page.evaluate(() => chrome.storage.local.remove('formuladock:extension-settings'))
 
   console.log(
     JSON.stringify(

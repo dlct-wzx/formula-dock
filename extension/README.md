@@ -1,4 +1,4 @@
-# LaTeX Studio Browser Extension
+# FormulaDock Browser Extension
 
 Manifest V3 extension for Chrome / Edge 116+.
 
@@ -12,7 +12,7 @@ npm run build:extension
 Outputs:
 
 - `extension-dist/` — load unpacked for local testing.
-- `release/latexlive-studio-extension-v0.1.1.zip` — upload/package artifact.
+- `release/formuladock-extension-v0.2.0.zip` — upload/package artifact.
 
 ## Install locally
 

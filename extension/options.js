@@ -1,6 +1,7 @@
 'use strict'
 
-const STORAGE_KEY = 'latexlive-studio:extension-settings'
+const STORAGE_KEY = 'formuladock:extension-settings'
+const LEGACY_STORAGE_KEY = 'latexlive-studio:extension-settings'
 const form = document.getElementById('settingsForm')
 const tokenInput = document.getElementById('mineruToken')
 const toggleTokenButton = document.getElementById('toggleToken')
@@ -41,8 +42,14 @@ function readForm() {
 
 async function loadSettings() {
   try {
-    const stored = await chrome.storage.local.get(STORAGE_KEY)
-    const settings = normaliseSettings(stored[STORAGE_KEY])
+    const stored = await chrome.storage.local.get([STORAGE_KEY, LEGACY_STORAGE_KEY])
+    const settings = normaliseSettings(stored[STORAGE_KEY] ?? stored[LEGACY_STORAGE_KEY])
+    if (stored[LEGACY_STORAGE_KEY] !== undefined) {
+      if (stored[STORAGE_KEY] === undefined) {
+        await chrome.storage.local.set({ [STORAGE_KEY]: settings })
+      }
+      await chrome.storage.local.remove(LEGACY_STORAGE_KEY)
+    }
     tokenInput.value = settings.mineruToken
     modelSelect.value = settings.modelVersion
     languageSelect.value = settings.language
@@ -79,7 +86,7 @@ async function testToken() {
   try {
     await saveSettings(false)
     const result = await chrome.runtime.sendMessage({
-      type: 'LATEX_STUDIO_MINERU_API_REQUEST',
+      type: 'FORMULADOCK_MINERU_API_REQUEST',
       path: '/extract-results/batch/00000000-0000-0000-0000-000000000000',
     })
     const payload = result?.payload || {}

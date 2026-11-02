@@ -20,7 +20,7 @@ export async function insertLatexIntoActivePage(
   if (!text.trim()) throw new Error('没有可插入的公式。')
 
   const response = (await chrome.runtime.sendMessage({
-    type: 'LATEX_STUDIO_INSERT_TO_PAGE',
+    type: 'FORMULADOCK_INSERT_TO_PAGE',
     text,
     insertFormat: settings.insertFormat,
   })) as RuntimeResponse | undefined

@@ -2,7 +2,7 @@
 
 ## Mission
 
-This repository is an **agent-led project**. The default operator is an AI coding agent working with a human reviewer. Optimise for reversible changes, explicit state, reproducible verification, and clean handoffs.
+FormulaDock is an **agent-led open-source project**. The default operator is an AI coding agent working with a human reviewer. Optimise for reversible changes, explicit state, reproducible verification, and clean handoffs.
 
 The product combines:
 
@@ -48,7 +48,7 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - Web frontend: React + TypeScript under `src/`.
 - Web API: dependency-light Node HTTP server under `server/`.
 - Browser extension source: `extension/`; tested build output: `extension-dist/`.
-- Extension artifact: `release/latexlive-studio-extension-v<version>.zip`.
+- Extension artifact: `release/formuladock-extension-v<version>.zip`.
 - Static formula content belongs in `src/data/`, not inside components.
 - Shared Node/browser MinerU extraction logic belongs in `shared/formula-parser.mjs`.
 - Quick tool/template insertion must target the current editor caret.

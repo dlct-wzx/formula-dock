@@ -59,8 +59,8 @@ try {
     }),
   )
   await page.reload({ waitUntil: 'networkidle' })
-  assert.match(await page.locator('.api-status').textContent(), /MINERU LIVE/)
   await page.getByText('MinerU 已配置').waitFor()
+  assert.match(await page.locator('.api-status').textContent(), /MINERU LIVE/)
   const sidepanelOverflow = await page.evaluate(() => ({
     viewport: window.innerWidth,
     documentWidth: document.documentElement.scrollWidth,
@@ -85,7 +85,20 @@ try {
     fullPage: true,
   })
 
-  await page.evaluate(() => chrome.storage.local.remove('latexlive-studio:extension-settings'))
+  const migrated = await page.evaluate(() =>
+    chrome.storage.local.get([
+      'formuladock:extension-settings',
+      'latexlive-studio:extension-settings',
+    ]),
+  )
+  assert.equal(migrated['formuladock:extension-settings']?.mineruToken, 'extension-smoke-test-token')
+  assert.equal(migrated['latexlive-studio:extension-settings'], undefined)
+  await page.evaluate(() =>
+    chrome.storage.local.remove([
+      'formuladock:extension-settings',
+      'latexlive-studio:extension-settings',
+    ]),
+  )
   assert.deepEqual(pageErrors, [], `Page errors: ${pageErrors.join(' | ')}`)
   assert.deepEqual(consoleErrors, [], `Console errors: ${consoleErrors.join(' | ')}`)
 

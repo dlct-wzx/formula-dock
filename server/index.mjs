@@ -113,7 +113,7 @@ async function handleApi(request, response, url) {
   if (request.method === 'GET' && url.pathname === '/api/health') {
     sendJson(response, 200, {
       ok: true,
-      service: 'latexlive-studio-api',
+      service: 'formuladock-api',
       mineru: {
         configured: Boolean(config.mineruToken),
         mode: config.mineruMockMode ? 'mock' : 'live',

@@ -1,4 +1,4 @@
-# LaTeX Studio
+# FormulaDock
 
 一个聚焦公式工作流的 Web 应用和 Chrome/Edge 浏览器扩展，包含：
 
@@ -68,7 +68,7 @@ npm run build:extension
 产物：
 
 - `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/latexlive-studio-extension-v0.1.1.zip`：安装/发布 ZIP。
+- `release/formuladock-extension-v0.2.0.zip`：安装/发布 ZIP。
 
 安装：
 

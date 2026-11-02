@@ -30,8 +30,12 @@ const TABS: Array<{ id: ToolTab; label: string; hint: string; icon: typeof Zap }
   { id: 'ocr', label: '图片识别', hint: 'MinerU OCR', icon: ScanLine },
 ]
 
+const THEME_STORAGE_KEY = 'formuladock:theme'
+const LEGACY_THEME_STORAGE_KEY = 'latexlive-studio:theme'
+
 function initialTheme(): 'light' | 'dark' {
-  const stored = localStorage.getItem('latexlive-studio:theme')
+  const stored =
+    localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem(LEGACY_THEME_STORAGE_KEY)
   if (stored === 'light' || stored === 'dark') return stored
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
@@ -58,7 +62,8 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     try {
-      localStorage.setItem('latexlive-studio:theme', theme)
+      localStorage.setItem(THEME_STORAGE_KEY, theme)
+      localStorage.removeItem(LEGACY_THEME_STORAGE_KEY)
     } catch {
       // Theme persistence is optional.
     }
@@ -144,11 +149,11 @@ export default function App() {
   return (
     <div className={`app ${extensionMode ? 'app--extension' : ''}`} id="top">
       <header className="site-header">
-        <a className="brand" href={extensionMode ? '#top' : '/'} aria-label="LaTeX Studio 首页">
+        <a className="brand" href={extensionMode ? '#top' : '/'} aria-label="FormulaDock 首页">
           <span className="brand-mark">∑</span>
           <span className="brand-copy">
             <strong>
-              LaTeX <em>Studio</em>
+              Formula<em>Dock</em>
             </strong>
             <small>公式编辑 · 模板 · 图片识别</small>
           </span>
@@ -355,7 +360,7 @@ export default function App() {
       <footer className="site-footer">
         <div>
           <span className="footer-mark">∑</span>
-          <span>LaTeX Studio</span>
+          <span>FormulaDock</span>
           <small>Focused formula workspace</small>
         </div>
         <p>

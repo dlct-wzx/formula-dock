@@ -33,7 +33,9 @@ const requiredFiles = [
   '.github/ISSUE_TEMPLATE/feature_request.yml',
   '.github/pull_request_template.md',
   '.agents/decisions/0005-open-source-license.md',
+  '.agents/decisions/0006-formuladock-rebrand.md',
   '.agents/verification/2026-11-02-open-source.yaml',
+  '.agents/verification/2026-11-02-formuladock-rebrand.yaml',
 ]
 
 for (const file of requiredFiles) {

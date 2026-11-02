@@ -1,8 +1,8 @@
 'use strict'
 
 ;(() => {
-  const VERSION = '0.1.1'
-  const previous = window.__latexStudioPageAgentV1
+  const VERSION = '0.2.0'
+  const previous = window.__formulaDockPageAgentV1
 
   if (previous?.listener) {
     try {
@@ -164,11 +164,11 @@
   }
 
   const listener = (message, _sender, sendResponse) => {
-    if (message?.type === 'LATEX_STUDIO_PING') {
+    if (message?.type === 'FORMULADOCK_PING') {
       sendResponse({ ok: true, version: VERSION })
       return false
     }
-    if (message?.type === 'LATEX_STUDIO_INSERT_TEXT') {
+    if (message?.type === 'FORMULADOCK_INSERT_TEXT') {
       try {
         sendResponse(insertText(String(message.text || '')))
       } catch (error) {
@@ -182,7 +182,7 @@
     return false
   }
 
-  window.__latexStudioPageAgentV1 = { version: VERSION, listener }
+  window.__formulaDockPageAgentV1 = { version: VERSION, listener }
   document.addEventListener('focusin', (event) => captureTarget(event.target), true)
   document.addEventListener('mousedown', (event) => captureTarget(event.target), true)
   document.addEventListener('selectionchange', captureSelection, true)

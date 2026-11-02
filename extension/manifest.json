@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "LaTeX Studio 公式助手",
-  "short_name": "LaTeX Studio",
+  "name": "FormulaDock 公式助手",
+  "short_name": "FormulaDock",
   "description": "快捷公式工具、公式模板、MinerU 图片识别，并可把 LaTeX 插入当前网页。",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",
@@ -21,7 +21,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "打开 LaTeX Studio 公式助手",
+    "default_title": "打开 FormulaDock 公式助手",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -48,7 +48,7 @@
         "default": "Ctrl+Shift+L",
         "mac": "Command+Shift+L"
       },
-      "description": "打开 LaTeX Studio 公式面板"
+      "description": "打开 FormulaDock 公式面板"
     }
   },
   "content_security_policy": {

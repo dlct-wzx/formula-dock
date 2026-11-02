@@ -50,7 +50,7 @@ async function requestMineruApi(
 ): Promise<MineruApiResponse> {
   if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
   const response = (await chrome.runtime.sendMessage({
-    type: 'LATEX_STUDIO_MINERU_API_REQUEST',
+    type: 'FORMULADOCK_MINERU_API_REQUEST',
     path,
     method,
     body,
@@ -102,7 +102,7 @@ async function createBatch(
       files: [
         {
           name: normaliseImageFileName(file.name, file.type),
-          data_id: `latexlive-extension-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+          data_id: `formuladock-extension-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
           is_ocr: true,
         },
       ],
@@ -131,7 +131,7 @@ async function createBatch(
 
   if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
   const uploadResponse = (await chrome.runtime.sendMessage({
-    type: 'LATEX_STUDIO_MINERU_UPLOAD',
+    type: 'FORMULADOCK_MINERU_UPLOAD',
     url: uploadUrl,
     dataBase64: await fileToBase64(file),
   })) as { ok?: boolean; status?: number; error?: string } | undefined
@@ -204,7 +204,7 @@ async function pollBatch(
       onProgress({ state: 'processing', message: '正在下载并解析 MinerU 结果。' })
       if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
       const zipResponse = (await chrome.runtime.sendMessage({
-        type: 'LATEX_STUDIO_MINERU_DOWNLOAD_ZIP',
+        type: 'FORMULADOCK_MINERU_DOWNLOAD_ZIP',
         url: zipUrl,
       })) as {
         ok?: boolean
