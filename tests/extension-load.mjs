@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { promises as fsPromises } from 'node:fs'
+import http from 'node:http'
 import path from 'node:path'
 import { chromium } from 'playwright-core'
 
@@ -17,6 +18,14 @@ const extensionPath = path.resolve('extension-dist')
 assert.ok(fs.existsSync(path.join(extensionPath, 'manifest.json')), 'Run npm run build:extension first.')
 const profileDir = path.resolve(`artifacts/extension-profile-${Date.now()}`)
 await fsPromises.mkdir(path.dirname(profileDir), { recursive: true })
+
+const targetServer = http.createServer((_request, response) => {
+  response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
+  response.end('<!doctype html><html><body><textarea id="target"></textarea></body></html>')
+})
+await new Promise((resolve) => targetServer.listen(0, '127.0.0.1', resolve))
+const targetAddress = targetServer.address()
+const targetUrl = `http://127.0.0.1:${targetAddress.port}/`
 
 const headless = process.env.EXTENSION_HEADLESS !== 'false'
 const context = await chromium.launchPersistentContext(profileDir, {
@@ -56,6 +65,7 @@ try {
         language: 'ch',
         insertFormat: 'dollar-inline',
         uiLocale: 'en',
+        interfaceScale: 110,
         editorFontSize: 18,
       },
     }),
@@ -67,6 +77,24 @@ try {
   assert.equal(
     await page.locator('.latex-editor').evaluate((element) => getComputedStyle(element).fontSize),
     '18px',
+  )
+  assert.equal(
+    await page.evaluate(() => document.documentElement.style.getPropertyValue('--ui-font-scale')),
+    '1.1',
+  )
+  assert.equal(
+    await page.locator('.tool-tab strong').first().evaluate((element) => getComputedStyle(element).fontSize),
+    '11px',
+  )
+  const toolPanelLayout = await page.locator('.quick-tools-panel').evaluate((element) => ({
+    overflowY: getComputedStyle(element).overflowY,
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }))
+  assert.equal(toolPanelLayout.overflowY, 'visible', 'Tool panel must not create an internal scrollbar.')
+  assert.ok(
+    toolPanelLayout.scrollHeight <= toolPanelLayout.clientHeight + 1,
+    `Tool panel should grow with its content: ${toolPanelLayout.scrollHeight}px > ${toolPanelLayout.clientHeight}px`,
   )
   const categoryColumnCount = await page.evaluate(
     () =>
@@ -99,7 +127,24 @@ try {
   await quickHoverPanel.waitFor({ state: 'detached' })
 
   await page.getByRole('tab', { name: /Formula templates/ }).click()
-  await page.locator('.template-category-chip').first().hover()
+  const templateCategoryColumnCount = await page.evaluate(
+    () =>
+      new Set(
+        Array.from(document.querySelectorAll('.template-category')).map((element) =>
+          Math.round(element.getBoundingClientRect().left),
+        ),
+      ).size,
+  )
+  assert.ok(
+    templateCategoryColumnCount >= 2,
+    `Expected responsive template category cards, got ${templateCategoryColumnCount} column(s)`,
+  )
+  assert.equal(await page.locator('.template-category-scroller').count(), 0)
+  await page.screenshot({
+    path: path.resolve('artifacts/extension-template-categories.png'),
+    fullPage: true,
+  })
+  await page.locator('.template-category__toggle').first().hover()
   const templateHoverPanel = page.locator('.template-hover-panel')
   await templateHoverPanel.waitFor({ state: 'visible' })
   await templateHoverPanel.getByText('Quadratic formula', { exact: true }).waitFor()
@@ -112,19 +157,56 @@ try {
   await templateHoverPanel.waitFor({ state: 'detached' })
   await page.getByRole('tab', { name: /Quick tools/ }).click()
 
-  const optionsPage = await context.newPage()
-  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`, {
-    waitUntil: 'domcontentloaded',
-  })
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
+  await page.locator('.preferences-dialog').waitFor()
+  assert.equal(await page.locator('#preferences-title').textContent(), 'Interface settings')
+  const optionsPagePromise = context.waitForEvent('page')
+  await page.locator('.preferences-dialog__link').click()
+  const optionsPage = await optionsPagePromise
+  await page.locator('.preferences-dialog').waitFor({ state: 'detached' })
+  await optionsPage.waitForLoadState('domcontentloaded')
   await optionsPage.locator('#settingsForm').waitFor()
   assert.equal(await optionsPage.locator('#mineruToken').inputValue(), 'extension-smoke-test-token')
   assert.equal(await optionsPage.locator('#uiLocale').inputValue(), 'en')
+  assert.equal(await optionsPage.locator('#interfaceScale').inputValue(), '110')
   assert.equal(await optionsPage.locator('#editorFontSize').inputValue(), '18')
   assert.equal(await optionsPage.title(), 'FormulaDock Extension Settings')
   await optionsPage.getByText('Connect MinerU and choose how formulas are inserted into webpages.').waitFor()
   assert.equal(await optionsPage.locator('html').getAttribute('lang'), 'en')
   await optionsPage.screenshot({
     path: path.resolve('artifacts/extension-options.png'),
+    fullPage: true,
+  })
+  await optionsPage.close()
+  await page.bringToFront()
+  await page.getByRole('button', { name: 'Settings', exact: true }).click()
+  await page.locator('.preferences-dialog').waitFor()
+  assert.equal(await page.locator('#preferences-title').textContent(), 'Interface settings')
+  await page.getByRole('button', { name: 'Close settings' }).click()
+  await page.locator('.preferences-dialog').waitFor({ state: 'detached' })
+
+  const targetPage = await context.newPage()
+  await targetPage.goto(targetUrl, { waitUntil: 'domcontentloaded' })
+  await page.bringToFront()
+  await page.locator('.latex-editor').fill('a^2 + b^2')
+  await targetPage.bringToFront()
+  await page.evaluate(() => {
+    document.querySelector('.extension-insert-button')?.click()
+  })
+  const permissionPrompt = page.locator('.extension-permission-prompt')
+  await permissionPrompt.waitFor({ timeout: 10_000 })
+  await permissionPrompt.getByText('Site access is required before inserting a formula.').waitFor()
+  const targetOriginPattern = `${new URL(targetUrl).origin}/*`
+  assert.equal(
+    await page.evaluate(
+      async (origin) => chrome.permissions.contains({ origins: [origin] }),
+      targetOriginPattern,
+    ),
+    false,
+    'The test site should start without optional host access.',
+  )
+  await page.screenshot({
+    path: path.resolve('artifacts/extension-site-access.png'),
     fullPage: true,
   })
 
@@ -156,16 +238,23 @@ try {
         storageSettings: true,
         legacySettingsMigration: true,
         englishLocale: true,
+        interfaceScale: 110,
         editorFontSize: 18,
         quickCategoryColumns: categoryColumnCount,
+        templateCategoryColumns: templateCategoryColumnCount,
         quickToolHoverPanel: true,
         templateHoverPanel: true,
+        settingsAlwaysOpensSimpleDialog: true,
+        siteAccessPrompt: true,
+        toolPanelInternalScroll: false,
         sidepanelWidth: 480,
         sidepanelOverflow: false,
         screenshots: [
           'artifacts/extension-sidepanel.png',
+          'artifacts/extension-template-categories.png',
           'artifacts/extension-template-hover.png',
           'artifacts/extension-options.png',
+          'artifacts/extension-site-access.png',
         ],
       },
       null,
@@ -174,5 +263,6 @@ try {
   )
 } finally {
   await context.close()
+  await new Promise((resolve) => targetServer.close(resolve))
   await fsPromises.rm(profileDir, { recursive: true, force: true }).catch(() => {})
 }

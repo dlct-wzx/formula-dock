@@ -6,6 +6,29 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-02
+
+### Fixed
+
+- The extension Settings button now always opens simple preferences; detailed settings are available only through the explicit full-settings link.
+- Page insertion now detects missing site access, shows a clear permission prompt, requests access for the active origin, and retries insertion after approval.
+- Formula-template categories now use the same responsive block-card grid and hover preview behavior as quick-tool categories.
+- Tool content uses content-driven height, removing the nested vertical scrollbar from the tools panel.
+- Interface text size is now configurable independently from the LaTeX editor font size.
+
+### Changed
+
+- Added an optional host-permission request flow without introducing static broad host access.
+- Added interface scale presets at 90%, 100%, and 110% in simple preferences and detailed extension options.
+- Bumped the extension manifest to version 0.3.1.
+
+### Verified
+
+- `npm run verify` passes.
+- Web and 480 px extension browser regressions pass.
+- The extension smoke test confirms repeated simple-settings entry, two-column quick/template category grids, 110% interface scale with an independent 18 px editor, and no internal tool-panel scrollbar.
+- Site-access detection and the permission prompt are covered by the extension browser regression; the browser-owned grant dialog still requires a final headed-browser approval check.
+
 ## [0.3.0] - 2026-11-02
 
 ### Added

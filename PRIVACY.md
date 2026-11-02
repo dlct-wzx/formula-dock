@@ -46,6 +46,8 @@ The open-source project does not include analytics, advertising, telemetry, user
 The extension requests permissions only for:
 
 - activating page insertion after an explicit toolbar or keyboard action,
+- reading the active tab URL to identify the exact site for which optional access is requested,
+- requesting optional site access when the current tab was not already authorized,
 - opening and rendering the side panel,
 - storing local settings,
 - contacting the three MinerU infrastructure URL patterns used for API access, signed uploads, and result downloads,

@@ -64,7 +64,10 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
   - `POST /api/ocr` with a raw image body.
   - `GET /api/ocr/:taskId` for live task polling.
 - Provider-specific response handling belongs in provider modules, not UI components.
-- Page insertion uses `activeTab` + `scripting`; do not add broad `<all_urls>` permissions without a decision record.
+- Page insertion uses `activeTab` + `scripting` first and requests optional access for the active origin only when injection requires it.
+- Do not add static broad `<all_urls>` host permissions without a new decision record.
+- The tool panel must keep content-driven height; do not reintroduce fixed-height internal vertical scrolling.
+- Formula-template categories must use the same responsive block-card grid and hover behavior as quick-tool categories.
 - Extension content scripts track the page caret and support textarea, text input, and common contenteditable editors.
 
 ## Engineering rules

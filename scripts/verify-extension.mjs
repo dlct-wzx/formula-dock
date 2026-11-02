@@ -15,6 +15,8 @@ const manifest = JSON.parse(await fsPromises.readFile(manifestPath, 'utf8'))
 assert.equal(manifest.manifest_version, 3)
 assert.ok(manifest.name, 'manifest name is required')
 assert.ok(manifest.version, 'manifest version is required')
+const packageJson = JSON.parse(await fsPromises.readFile(path.join(root, 'package.json'), 'utf8'))
+assert.equal(manifest.version, packageJson.version, 'Package and extension versions must match.')
 assert.equal(manifest.background.service_worker, 'background.js')
 assert.equal(manifest.side_panel.default_path, 'sidepanel.html')
 assert.equal(manifest.options_ui.page, 'options.html')
@@ -23,6 +25,7 @@ assert.ok(manifest.permissions.includes('activeTab'))
 assert.ok(manifest.permissions.includes('scripting'))
 assert.ok(manifest.permissions.includes('sidePanel'))
 assert.ok(manifest.permissions.includes('storage'))
+assert.ok(manifest.permissions.includes('tabs'))
 assert.deepEqual(
   [...manifest.host_permissions].sort(),
   [
@@ -32,12 +35,18 @@ assert.deepEqual(
   ],
   'Extension host permissions must remain limited to the three MinerU infrastructure patterns.',
 )
+assert.deepEqual(
+  [...manifest.optional_host_permissions].sort(),
+  ['http://*/*', 'https://*/*'],
+  'Optional page access must be requested per site.',
+)
 assert.ok(!manifest.host_permissions.includes('<all_urls>'))
 const backgroundSource = await fsPromises.readFile(path.join(outputDir, 'background.js'), 'utf8')
 for (const marker of [
   'FORMULADOCK_MINERU_API_REQUEST',
   'FORMULADOCK_MINERU_UPLOAD',
   'FORMULADOCK_MINERU_DOWNLOAD_ZIP',
+  'HOST_PERMISSION_REQUIRED',
 ]) {
   assert.ok(backgroundSource.includes(marker), `Background proxy is missing ${marker}`)
 }

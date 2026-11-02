@@ -1,7 +1,7 @@
 'use strict'
 
 ;(() => {
-  const VERSION = '0.3.0'
+  const VERSION = '0.3.1'
   const previous = window.__formulaDockPageAgentV1
 
   if (previous?.listener) {

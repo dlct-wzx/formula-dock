@@ -17,7 +17,7 @@
             <small data-i18n="subtitle">浏览器扩展设置</small>
           </span>
         </a>
-        <span class="version-pill">v<span id="version">0.3.0</span></span>
+        <span class="version-pill">v<span id="version">0.3.1</span></span>
       </div>
     </header>
 
@@ -54,15 +54,27 @@
 
             <label class="field">
               <span class="field-label">
-                <span data-i18n="editorFontSize">编辑器字号</span>
-                <small data-i18n="editorFontSizeHint">10–24 px</small>
+                <span data-i18n="interfaceScale">界面字号</span>
+                <small data-i18n="interfaceScaleHint">调整工具、按钮和说明文字</small>
               </span>
-              <span class="input-with-unit">
-                <input id="editorFontSize" name="editorFontSize" type="number" min="10" max="24" step="1" value="12" />
-                <span>px</span>
-              </span>
+              <select id="interfaceScale" name="interfaceScale">
+                <option value="90" data-i18n="scaleSmall">小</option>
+                <option value="100" data-i18n="scaleStandard">标准</option>
+                <option value="110" data-i18n="scaleLarge">大</option>
+              </select>
             </label>
           </div>
+
+          <label class="field field--wide">
+            <span class="field-label">
+              <span data-i18n="editorFontSize">编辑器字号</span>
+              <small data-i18n="editorFontSizeHint">10–24 px</small>
+            </span>
+            <span class="input-with-unit">
+              <input id="editorFontSize" name="editorFontSize" type="number" min="10" max="24" step="1" value="12" />
+              <span>px</span>
+            </span>
+          </label>
         </section>
 
         <section class="settings-card">

@@ -68,7 +68,7 @@ npm run build:extension
 产物：
 
 - `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/formuladock-extension-v0.3.0.zip`：安装/发布 ZIP。
+- `release/formuladock-extension-v0.3.1.zip`：安装/发布 ZIP。
 
 安装：
 
@@ -97,6 +97,7 @@ npm run build:extension
 - `text/search/tel/url/email` input
 - 常见 `contenteditable` 编辑区
 - `Ctrl+Shift+L` / `Command+Shift+L` 打开侧边栏
+- 首次在某个网站插入时，如当前标签页没有临时访问权限，会提示按站点授权
 
 ## 验证
 
@@ -194,9 +195,17 @@ Web 端、扩展侧边栏、设置页、页面插入脚本和扩展打包均已�
 
 ![快捷工具悬停预览](docs/screenshots/extension-sidepanel.png)
 
+### 公式模板分类
+
+![公式模板响应式分类](docs/screenshots/extension-template-categories.png)
+
 ### 公式模板悬停预览
 
 ![公式模板悬停预览](docs/screenshots/extension-template-hover.png)
+
+### 站点访问授权
+
+![站点访问授权](docs/screenshots/extension-site-access.png)
 
 ### 扩展设置
 
@@ -209,6 +218,6 @@ Web 端、扩展侧边栏、设置页、页面插入脚本和扩展打包均已�
 截图中的 MinerU Token 为测试占位值，不包含真实凭据。
 
 
-The 0.3.0 extension adds Chinese/English interface settings and a 10–24 px LaTeX editor font-size setting in both the in-app preferences dialog and extension options. Quick-tool categories are responsive block cards that wrap into multiple columns instead of stretching into full-width bars.
+The 0.3.1 extension fixes repeated Settings entry, site-access insertion, template category layout, and nested tool scrolling. The Settings button now always starts from simple preferences, page insertion can request access to the active site, quick-tool and formula-template categories share responsive block cards, and tool content grows with the page. Interface text scale (90/100/110%) is independent from the 10–24 px LaTeX editor font size.
 
-快捷工具和公式模板分类都支持鼠标悬停预览，同时保留点击展开或选中行为，兼容键盘和触屏操作。
+快捷工具和公式模板分类都支持鼠标悬停预览，同时保留点击展开或选中行为，兼容键盘和触屏操作。更新已安装的扩展后，需要在扩展管理页重新加载一次，使新增的可选站点权限生效。

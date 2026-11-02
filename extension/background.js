@@ -76,6 +76,15 @@ function isRestrictedUrl(url) {
   )
 }
 
+function originPatternForUrl(urlValue) {
+  try {
+    const url = new URL(urlValue)
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
+    return `${url.origin}/*`
+  } catch {
+    return null
+  }
+}
 async function insertIntoActivePage(text, insertFormat) {
   const value = formatLatex(text, insertFormat)
   if (!value) return { ok: false, message: '没有可插入的公式。' }
@@ -99,11 +108,22 @@ async function insertIntoActivePage(text, insertFormat) {
   try {
     await injectPageAgent(tab.id)
   } catch (error) {
+    const originPattern = originPatternForUrl(tab.url)
+    const rawError = error instanceof Error ? error.message : String(error)
+    if (originPattern) {
+      return {
+        ok: false,
+        message: '需要授权访问当前网站后才能插入公式。',
+        error: rawError,
+        errorCode: 'HOST_PERMISSION_REQUIRED',
+        originPattern,
+      }
+    }
     return {
       ok: false,
       message:
         '无法访问当前网页。请先点击工具栏中的扩展图标，再在网页编辑区放置光标。',
-      error: error instanceof Error ? error.message : String(error),
+      error: rawError,
     }
   }
 
@@ -127,6 +147,15 @@ async function insertIntoActivePage(text, insertFormat) {
         text: value,
       })
     } catch {
+      const originPattern = originPatternForUrl(tab.url)
+      if (originPattern) {
+        return {
+          ok: false,
+          message: '需要授权访问当前网站后才能插入公式。',
+          errorCode: 'HOST_PERMISSION_REQUIRED',
+          originPattern,
+        }
+      }
       return {
         ok: false,
         message: '无法连接到当前网页。请刷新网页后重新打开扩展。',

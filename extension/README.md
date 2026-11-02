@@ -12,7 +12,7 @@ npm run build:extension
 Outputs:
 
 - `extension-dist/` — load unpacked for local testing.
-- `release/formuladock-extension-v0.3.0.zip` — upload/package artifact.
+- `release/formuladock-extension-v0.3.1.zip` — upload/package artifact.
 
 ## Install locally
 
@@ -23,11 +23,12 @@ Outputs:
 5. Open the extension settings and enter a MinerU API token.
 6. On a normal web page, place the caret inside an input or editable region.
 7. Open the extension side panel and choose **插入网页**.
+8. If the active site does not already have temporary access, approve the site-specific permission prompt and FormulaDock retries insertion.
 
 ## Architecture
 
-- `manifest.json`: MV3 declaration, permissions, side panel and options entry points.
-- `background.js`: toolbar/command handling and page-insertion messaging.
+- `manifest.json`: MV3 declaration, optional site-access permissions, side panel and options entry points.
+- `background.js`: toolbar/command handling, permission-required responses, and page-insertion messaging.
 - `content/page-agent.js`: remembers the page caret and inserts LaTeX into text controls or contenteditable elements.
 - `options.html/js/css`: local MinerU token and insertion-format settings.
 - `sidepanel.html` in the built output: the React application.
@@ -60,7 +61,7 @@ npm run smoke:extension
 npm test
 ```
 
-`smoke:extension` loads the built extension into Playwright-controlled Edge, validates the side panel and options page, and checks 480px layout.
+`smoke:extension` loads the built extension into Playwright-controlled Edge, validates the side panel and options page, checks 480px layout, and verifies the missing-site-access prompt. The browser-owned grant dialog still needs a final headed-browser approval check.
 
 
 
@@ -71,7 +72,7 @@ The extension source and packaged build are distributed under the Apache License
 
 ## Interface preferences
 
-The settings page supports Chinese and English interfaces plus a 10–24 px LaTeX editor font size. These values are stored with the extension settings and applied to the side panel immediately after saving.
+The settings page supports Chinese and English interfaces, a 90/100/110% interface text-size preset, and an independent 10–24 px LaTeX editor font size. These values are stored with the extension settings and applied to the side panel immediately after saving.
 
 ## Category hover previews
 

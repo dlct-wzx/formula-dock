@@ -3,14 +3,15 @@
   "name": "FormulaDock 公式助手",
   "short_name": "FormulaDock",
   "description": "快捷公式工具、公式模板、MinerU 图片识别，并可把 LaTeX 插入当前网页。",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",
     "declarativeNetRequestWithHostAccess",
     "scripting",
     "sidePanel",
-    "storage"
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
     "https://mineru.net/api/v4/*",
@@ -53,5 +54,9 @@
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
-  }
+  },
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ]
 }

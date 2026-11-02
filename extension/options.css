@@ -1,6 +1,7 @@
 :root {
   color-scheme: light;
   font-family: "MiSans", "HarmonyOS Sans SC", "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --ui-font-scale: 1;
   --bg: #f4f6fb;
   --card: #ffffff;
   --subtle: #f7f9fc;
@@ -65,15 +66,15 @@ a { color: var(--accent); }
 }
 
 .brand span { display: flex; flex-direction: column; }
-.brand strong { color: var(--strong); font-size: 18px; letter-spacing: -0.03em; }
-.brand small { margin-top: 4px; color: var(--faint); font-size: 10px; letter-spacing: 0.06em; }
+.brand strong { color: var(--strong); font-size: calc(18px * var(--ui-font-scale, 1)); letter-spacing: -0.03em; }
+.brand small { margin-top: 4px; color: var(--faint); font-size: calc(10px * var(--ui-font-scale, 1)); letter-spacing: 0.06em; }
 .version-pill {
   padding: 5px 9px;
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--muted);
   background: var(--subtle);
-  font-size: 9px;
+  font-size: calc(9px * var(--ui-font-scale, 1));
   font-weight: 700;
 }
 
@@ -86,18 +87,18 @@ a { color: var(--accent); }
 .intro { max-width: 720px; margin-bottom: 28px; }
 .eyebrow {
   color: var(--accent);
-  font-size: 9px;
+  font-size: calc(9px * var(--ui-font-scale, 1));
   font-weight: 800;
   letter-spacing: 0.14em;
 }
 .intro h1 {
   margin: 10px 0 10px;
   color: var(--strong);
-  font-size: clamp(30px, 4.3vw, 46px);
+  font-size: clamp(calc(30px * var(--ui-font-scale, 1)), calc(4.3vw * var(--ui-font-scale, 1)), calc(46px * var(--ui-font-scale, 1)));
   line-height: 1.08;
   letter-spacing: -0.045em;
 }
-.intro p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
+.intro p { margin: 0; color: var(--muted); font-size: calc(13px * var(--ui-font-scale, 1)); line-height: 1.8; }
 code {
   padding: 2px 5px;
   border-radius: 5px;
@@ -134,12 +135,12 @@ code {
   border-radius: 8px;
   color: var(--accent);
   background: var(--accent-soft);
-  font-size: 8px;
+  font-size: calc(8px * var(--ui-font-scale, 1));
   font-weight: 800;
 }
-.card-heading h2 { margin: 0; color: var(--strong); font-size: 17px; letter-spacing: -0.02em; }
-.card-heading p { margin: 6px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
-.card-heading a { flex: 0 0 auto; margin-top: 4px; font-size: 10px; text-decoration: none; }
+.card-heading h2 { margin: 0; color: var(--strong); font-size: calc(17px * var(--ui-font-scale, 1)); letter-spacing: -0.02em; }
+.card-heading p { margin: 6px 0 0; color: var(--muted); font-size: calc(11px * var(--ui-font-scale, 1)); line-height: 1.6; }
+.card-heading a { flex: 0 0 auto; margin-top: 4px; font-size: calc(10px * var(--ui-font-scale, 1)); text-decoration: none; }
 .card-heading a:hover { text-decoration: underline; }
 
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
@@ -151,10 +152,10 @@ code {
   justify-content: space-between;
   gap: 10px;
   color: var(--strong);
-  font-size: 11px;
+  font-size: calc(11px * var(--ui-font-scale, 1));
   font-weight: 700;
 }
-.field-label small { color: var(--faint); font-size: 9px; font-weight: 500; }
+.field-label small { color: var(--faint); font-size: calc(9px * var(--ui-font-scale, 1)); font-weight: 500; }
 .field input,
 .field select {
   width: 100%;
@@ -165,7 +166,7 @@ code {
   outline: none;
   color: var(--text);
   background: var(--subtle);
-  font-size: 12px;
+  font-size: calc(12px * var(--ui-font-scale, 1));
   transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 .field input:focus,
@@ -185,7 +186,7 @@ code {
   color: var(--accent);
   background: var(--accent-soft);
   cursor: pointer;
-  font-size: 10px;
+  font-size: calc(10px * var(--ui-font-scale, 1));
   font-weight: 700;
 }
 .inline-button:hover { background: color-mix(in srgb, var(--accent) 16%, var(--card)); }
@@ -197,8 +198,8 @@ code {
   border-radius: 12px;
   background: var(--warning-soft);
 }
-.security-note strong { color: var(--warning); font-size: 10px; }
-.security-note p { margin: 5px 0 0; color: var(--muted); font-size: 9px; line-height: 1.65; }
+.security-note strong { color: var(--warning); font-size: calc(10px * var(--ui-font-scale, 1)); }
+.security-note p { margin: 5px 0 0; color: var(--muted); font-size: calc(9px * var(--ui-font-scale, 1)); line-height: 1.65; }
 .hint-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
 .hint-grid article {
   padding: 13px;
@@ -206,9 +207,9 @@ code {
   border-radius: 12px;
   background: var(--subtle);
 }
-.hint-grid article > span { color: var(--accent); font-size: 8px; font-weight: 800; }
-.hint-grid strong { display: block; margin-top: 7px; color: var(--strong); font-size: 10px; }
-.hint-grid p { margin: 5px 0 0; color: var(--faint); font-size: 9px; line-height: 1.55; }
+.hint-grid article > span { color: var(--accent); font-size: calc(8px * var(--ui-font-scale, 1)); font-weight: 800; }
+.hint-grid strong { display: block; margin-top: 7px; color: var(--strong); font-size: calc(10px * var(--ui-font-scale, 1)); }
+.hint-grid p { margin: 5px 0 0; color: var(--faint); font-size: calc(9px * var(--ui-font-scale, 1)); line-height: 1.55; }
 
 .settings-actions {
   display: flex;
@@ -221,7 +222,7 @@ code {
   background: var(--card);
   box-shadow: 0 10px 28px rgb(31 49 82 / 5%);
 }
-.status { color: var(--muted); font-size: 10px; line-height: 1.5; }
+.status { color: var(--muted); font-size: calc(10px * var(--ui-font-scale, 1)); line-height: 1.5; }
 .status--success { color: var(--success); }
 .status--error { color: var(--danger); }
 .status--warning { color: var(--warning); }
@@ -232,7 +233,7 @@ code {
   border: 1px solid transparent;
   border-radius: 9px;
   cursor: pointer;
-  font-size: 10px;
+  font-size: calc(10px * var(--ui-font-scale, 1));
   font-weight: 750;
 }
 .button:disabled { cursor: wait; opacity: 0.55; }
@@ -249,7 +250,7 @@ code {
   justify-content: space-between;
   border-top: 1px solid var(--border);
   color: var(--faint);
-  font-size: 9px;
+  font-size: calc(9px * var(--ui-font-scale, 1));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -302,6 +303,6 @@ code {
   position: absolute;
   right: 13px;
   color: var(--faint);
-  font-size: 10px;
+  font-size: calc(10px * var(--ui-font-scale, 1));
   pointer-events: none;
 }

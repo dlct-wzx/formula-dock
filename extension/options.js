@@ -7,6 +7,7 @@ const tokenInput = document.getElementById('mineruToken')
 const toggleTokenButton = document.getElementById('toggleToken')
 const uiLocaleSelect = document.getElementById('uiLocale')
 const editorFontSizeInput = document.getElementById('editorFontSize')
+const interfaceScaleSelect = document.getElementById('interfaceScale')
 const modelSelect = document.getElementById('modelVersion')
 const languageSelect = document.getElementById('language')
 const insertFormatSelect = document.getElementById('insertFormat')
@@ -22,9 +23,14 @@ const I18N = {
     introTitle: '连接 MinerU，并决定如何把公式插入网页。',
     introBody: 'Token 只保存在当前浏览器的 <code>chrome.storage.local</code>，不会写入项目源码，也不会上传到本项目的 Web 服务。',
     interfaceTitle: '界面设置',
-    interfaceDesc: '调整界面语言和 LaTeX 编辑器字号。',
+    interfaceDesc: '调整界面语言、界面字号和 LaTeX 编辑器字号。',
     uiLanguage: '界面语言',
     uiLanguageHint: '切换侧边栏和设置页语言',
+    interfaceScale: '界面字号',
+    interfaceScaleHint: '调整工具、按钮和说明文字',
+    scaleSmall: '小',
+    scaleStandard: '标准',
+    scaleLarge: '大',
     editorFontSize: '编辑器字号',
     editorFontSizeHint: '10–24 px',
     mineruTitle: 'MinerU 图片识别',
@@ -81,9 +87,14 @@ const I18N = {
     introTitle: 'Connect MinerU and choose how formulas are inserted into webpages.',
     introBody: 'The token is stored only in <code>chrome.storage.local</code>. It is not written to the project source or uploaded to the FormulaDock web service.',
     interfaceTitle: 'Interface',
-    interfaceDesc: 'Adjust the interface language and LaTeX editor font size.',
+    interfaceDesc: 'Adjust the interface language, interface text size, and LaTeX editor font size.',
     uiLanguage: 'Interface language',
     uiLanguageHint: 'Changes the side panel and settings page',
+    interfaceScale: 'Interface text size',
+    interfaceScaleHint: 'Changes tools, buttons, and labels',
+    scaleSmall: 'Small',
+    scaleStandard: 'Standard',
+    scaleLarge: 'Large',
     editorFontSize: 'Editor font size',
     editorFontSizeHint: '10–24 px',
     mineruTitle: 'MinerU image recognition',
@@ -176,6 +187,18 @@ function setStatus(key, kind = '') {
   status.className = `status${kind ? ` status--${kind}` : ''}`
 }
 
+function normaliseInterfaceScale(value) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return 100
+  return Math.min(110, Math.max(90, Math.round(parsed / 10) * 10))
+}
+
+function applyInterfaceScale(value) {
+  const scale = normaliseInterfaceScale(value)
+  document.documentElement.style.setProperty('--ui-font-scale', String(scale / 100))
+  return scale
+}
+
 function normaliseFontSize(value) {
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) return 12
@@ -194,6 +217,7 @@ function normaliseSettings(value) {
       ? candidate.insertFormat
       : 'raw',
     uiLocale: candidate.uiLocale === 'en' ? 'en' : 'zh',
+    interfaceScale: normaliseInterfaceScale(candidate.interfaceScale),
     editorFontSize: normaliseFontSize(candidate.editorFontSize),
   }
 }
@@ -205,6 +229,7 @@ function readForm() {
     language: languageSelect.value,
     insertFormat: insertFormatSelect.value,
     uiLocale: uiLocaleSelect.value,
+    interfaceScale: interfaceScaleSelect.value,
     editorFontSize: editorFontSizeInput.value,
   })
 }
@@ -221,6 +246,8 @@ async function loadSettings() {
     }
     tokenInput.value = settings.mineruToken
     uiLocaleSelect.value = settings.uiLocale
+    interfaceScaleSelect.value = String(settings.interfaceScale)
+    applyInterfaceScale(settings.interfaceScale)
     editorFontSizeInput.value = String(settings.editorFontSize)
     modelSelect.value = settings.modelVersion
     languageSelect.value = settings.language
@@ -295,6 +322,10 @@ form.addEventListener('submit', async (event) => {
 
 uiLocaleSelect.addEventListener('change', () => {
   applyLocale(uiLocaleSelect.value)
+})
+
+interfaceScaleSelect.addEventListener('change', () => {
+  interfaceScaleSelect.value = String(applyInterfaceScale(interfaceScaleSelect.value))
 })
 
 editorFontSizeInput.addEventListener('change', () => {

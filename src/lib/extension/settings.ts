@@ -1,5 +1,5 @@
 import type { UiLocale } from '../../i18n/messages'
-import { normaliseFontSize } from '../preferences'
+import { normaliseFontSize, normaliseInterfaceScale } from '../preferences'
 
 export const EXTENSION_SETTINGS_KEY = 'formuladock:extension-settings'
 export const LEGACY_EXTENSION_SETTINGS_KEY = 'latexlive-studio:extension-settings'
@@ -14,6 +14,7 @@ export interface ExtensionSettings {
   language: MineruLanguage
   insertFormat: InsertFormat
   uiLocale: UiLocale
+  interfaceScale: number
   editorFontSize: number
 }
 
@@ -23,6 +24,7 @@ export const DEFAULT_EXTENSION_SETTINGS: ExtensionSettings = {
   language: 'ch',
   insertFormat: 'raw',
   uiLocale: 'zh',
+  interfaceScale: 100,
   editorFontSize: 12,
 }
 
@@ -48,6 +50,7 @@ export function normaliseExtensionSettings(value: unknown): ExtensionSettings {
         ? candidate.insertFormat
         : 'raw',
     uiLocale: candidate.uiLocale === 'en' ? 'en' : 'zh',
+    interfaceScale: normaliseInterfaceScale(candidate.interfaceScale),
     editorFontSize: normaliseFontSize(candidate.editorFontSize),
   }
 }

@@ -6,15 +6,21 @@ import { normaliseFontSize } from '../lib/preferences'
 
 interface PreferencesDialogProps {
   initialLocale: UiLocale
+  initialInterfaceScale: number
   initialFontSize: number
   extensionMode: boolean
   onClose: () => void
-  onSave: (preferences: { uiLocale: UiLocale; editorFontSize: number }) => Promise<void>
+  onSave: (preferences: {
+    uiLocale: UiLocale
+    interfaceScale: number
+    editorFontSize: number
+  }) => Promise<void>
   onOpenExtensionOptions: () => Promise<void>
 }
 
 export function PreferencesDialog({
   initialLocale,
+  initialInterfaceScale,
   initialFontSize,
   extensionMode,
   onClose,
@@ -23,6 +29,7 @@ export function PreferencesDialog({
 }: PreferencesDialogProps) {
   const { t } = useI18n()
   const [uiLocale, setUiLocale] = useState<UiLocale>(initialLocale)
+  const [interfaceScale, setInterfaceScale] = useState(initialInterfaceScale)
   const [editorFontSize, setEditorFontSize] = useState(initialFontSize)
   const [saving, setSaving] = useState(false)
 
@@ -37,7 +44,11 @@ export function PreferencesDialog({
   const save = async () => {
     setSaving(true)
     try {
-      await onSave({ uiLocale, editorFontSize: normaliseFontSize(editorFontSize) })
+      await onSave({
+        uiLocale,
+        interfaceScale,
+        editorFontSize: normaliseFontSize(editorFontSize),
+      })
       onClose()
     } finally {
       setSaving(false)
@@ -84,6 +95,21 @@ export function PreferencesDialog({
             >
               <option value="zh">中文</option>
               <option value="en">English</option>
+            </select>
+          </label>
+
+          <label className="field">
+            <span className="field-label">
+              {t('settings.interfaceScale')}
+              <small>{t('settings.interfaceScaleHint')}</small>
+            </span>
+            <select
+              value={interfaceScale}
+              onChange={(event) => setInterfaceScale(Number(event.target.value))}
+            >
+              <option value="90">{t('settings.scaleSmall')}</option>
+              <option value="100">{t('settings.scaleStandard')}</option>
+              <option value="110">{t('settings.scaleLarge')}</option>
             </select>
           </label>
 

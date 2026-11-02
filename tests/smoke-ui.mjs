@@ -79,7 +79,7 @@ try {
   await page.getByPlaceholder('搜索公式名称、标签或描述').fill('高斯')
   await page.locator('.template-card').filter({ hasText: '高斯积分' }).waitFor()
   await page.getByPlaceholder('搜索公式名称、标签或描述').fill('')
-  await page.locator('.template-category-chip').first().hover()
+  await page.locator('.template-category__toggle').first().hover()
   const templateHoverPanel = page.locator('.template-hover-panel')
   await templateHoverPanel.waitFor({ state: 'visible' })
   await templateHoverPanel.getByText('一元二次方程求根公式', { exact: true }).waitFor()
@@ -91,16 +91,16 @@ try {
   await page.mouse.move(0, 0)
   await templateHoverPanel.waitFor({ state: 'detached' })
   const templateKatexErrors = []
-  const categoryCount = await page.locator('.template-category-chip').count()
+  const categoryCount = await page.locator('.template-category__toggle').count()
   for (let index = 0; index < categoryCount; index += 1) {
-    await page.locator('.template-category-chip').nth(index).click()
+    await page.locator('.template-category__toggle').nth(index).click()
     const badTemplates = await page
       .locator('.template-card:has(.katex-error) .template-card__title')
       .allTextContents()
     templateKatexErrors.push(...badTemplates)
   }
   assert.deepEqual(templateKatexErrors, [], `Template KaTeX errors: ${templateKatexErrors.join(' | ')}`)
-  await page.locator('.template-category-chip').filter({ hasText: '三角' }).click()
+  await page.locator('.template-category__toggle').filter({ hasText: '三角' }).click()
   await page.screenshot({
     path: path.join(artifactsDir, 'smoke-templates.png'),
     fullPage: true,
@@ -123,15 +123,32 @@ try {
   assert.ok((await editor.inputValue()).includes(String.raw`\int_{-\infty}`), 'OCR result was not inserted.')
 
   await page.getByRole('button', { name: '打开设置' }).click()
-  await page.locator('.preferences-dialog').waitFor()
-  await page.locator('.preferences-dialog select').selectOption('en')
-  await page.locator('.preferences-dialog input[type="number"]').fill('18')
-  await page.locator('.preferences-dialog__footer .button--primary').click()
+  const preferences = page.locator('.preferences-dialog')
+  await preferences.waitFor()
+  await preferences.locator('select').nth(0).selectOption('en')
+  await preferences.locator('select').nth(1).selectOption('110')
+  await preferences.locator('input[type="number"]').fill('18')
+  await preferences.locator('.preferences-dialog__footer .button--primary').click()
   await page.getByRole('heading', { name: /Formulas, beyond/ }).waitFor()
   assert.equal(
     await page.locator('.latex-editor').evaluate((element) => getComputedStyle(element).fontSize),
     '18px',
   )
+  assert.equal(
+    await page.evaluate(() => document.documentElement.style.getPropertyValue('--ui-font-scale')),
+    '1.1',
+  )
+  const interfaceFontSize = await page
+    .locator('.tool-tab strong')
+    .first()
+    .evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))
+  assert.ok(interfaceFontSize > 12, `Expected interface text to scale, got ${interfaceFontSize}px`)
+  await page.getByRole('button', { name: 'Open settings' }).click()
+  const reopenedPreferences = page.locator('.preferences-dialog')
+  await reopenedPreferences.waitFor()
+  assert.equal(await reopenedPreferences.locator('select').nth(1).inputValue(), '110')
+  assert.equal(await reopenedPreferences.locator('input[type="number"]').inputValue(), '18')
+  await reopenedPreferences.getByRole('button', { name: 'Cancel', exact: true }).click()
 
   await page.screenshot({
     path: path.join(artifactsDir, 'smoke-desktop.png'),
@@ -184,7 +201,9 @@ try {
         templateHoverPanel: true,
         interfaceSettings: true,
         englishLocale: true,
+        interfaceScale: 110,
         editorFontSize: true,
+        independentInterfaceAndEditorFontSizes: true,
         darkTheme: true,
         screenshots: [
           path.join(artifactsDir, 'smoke-quick-tools.png'),

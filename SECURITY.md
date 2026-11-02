@@ -26,7 +26,8 @@ Do not open a public issue containing:
 
 ## Extension security model
 
-- The extension uses `activeTab` and `scripting` to access a page only after user activation.
+- The extension uses `activeTab` and `scripting` first and requests optional host access only for the exact origin of the active page when insertion requires it.
+- Static `<all_urls>` host access is not requested.
 - The side panel is a privileged extension page.
 - The content script receives final text for insertion and does not receive the MinerU token.
 - MinerU API calls, signed uploads, and ZIP downloads are proxied through the extension service worker.

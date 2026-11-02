@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ArrowUpRight, CornerDownLeft, Search } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, CornerDownLeft, Search } from 'lucide-react'
 import {
   countTemplatesByCategory,
   formulaCategories,
@@ -68,31 +68,53 @@ export function FormulaTemplatesPanel({ onInsert }: FormulaTemplatesPanelProps) 
         </span>
       </div>
 
-      <div className="template-category-scroller" role="tablist" aria-label={t('templates.categoriesAria')}>
-        {formulaCategories.map((category) => {
+      <div
+        className="quick-category-grid template-category-grid"
+        role="tablist"
+        aria-label={t('templates.categoriesAria')}
+      >
+        {formulaCategories.map((category, categoryIndex) => {
           const localisedCategory = localisedFormulaCategory(category, locale)
+          const isActive = selectedCategory === category.id && !normalisedQuery
           return (
-            <button
+            <article
               key={category.id}
-              type="button"
-              role="tab"
-              aria-selected={selectedCategory === category.id && !normalisedQuery}
-              className={`template-category-chip ${
-                selectedCategory === category.id && !normalisedQuery ? 'is-active' : ''
+              className={`quick-category template-category ${
+                isActive ? 'template-category--active' : ''
               }`}
-              onClick={() => {
-                flyout.closeNow()
-                setSelectedCategory(category.id)
-                setQuery('')
-              }}
-              onMouseEnter={(event) => flyout.open(category.id, event.currentTarget)}
-              onMouseLeave={() => flyout.scheduleClose()}
-              aria-haspopup="dialog"
             >
-              <span>{category.symbol}</span>
-              {localisedCategory.title}
-              <em>{countTemplatesByCategory(category.id)}</em>
-            </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className="quick-category__toggle template-category__toggle"
+                onClick={() => {
+                  flyout.closeNow()
+                  setSelectedCategory(category.id)
+                  setQuery('')
+                }}
+                onMouseEnter={(event) => {
+                  if (!normalisedQuery) flyout.open(category.id, event.currentTarget)
+                }}
+                onMouseLeave={() => flyout.scheduleClose()}
+                aria-haspopup="dialog"
+              >
+                <span className="category-index">
+                  {String(categoryIndex + 1).padStart(2, '0')}
+                </span>
+                <span className="category-symbol" aria-hidden="true">
+                  {category.symbol}
+                </span>
+                <span className="category-copy">
+                  <strong>{localisedCategory.title}</strong>
+                  <small>{localisedCategory.description}</small>
+                </span>
+                <span className="category-count">
+                  {countTemplatesByCategory(category.id)}
+                </span>
+                <ChevronDown size={17} className="category-chevron" aria-hidden="true" />
+              </button>
+            </article>
           )
         })}
       </div>
@@ -150,7 +172,7 @@ export function FormulaTemplatesPanel({ onInsert }: FormulaTemplatesPanelProps) 
         </div>
       )}
 
-      {flyoutCategory && (
+      {!normalisedQuery && flyoutCategory && (
         <HoverPanel
           open
           anchor={flyout.anchor}

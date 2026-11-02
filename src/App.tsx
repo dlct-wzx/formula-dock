@@ -73,6 +73,9 @@ export default function App() {
   const locale: UiLocale = extensionMode
     ? extensionSettings?.uiLocale ?? 'zh'
     : webPreferences.uiLocale
+  const interfaceScale = extensionMode
+    ? extensionSettings?.interfaceScale ?? 100
+    : webPreferences.interfaceScale
   const editorFontSize = extensionMode
     ? extensionSettings?.editorFontSize ?? 12
     : webPreferences.editorFontSize
@@ -97,8 +100,9 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.lang = locale === 'en' ? 'en' : 'zh-CN'
+    document.documentElement.style.setProperty('--ui-font-scale', String(interfaceScale / 100))
     document.title = locale === 'en' ? 'FormulaDock · Formula workspace' : 'FormulaDock · 公式工作台'
-  }, [locale])
+  }, [interfaceScale, locale])
 
   useEffect(() => {
     if (extensionMode) return
@@ -168,6 +172,7 @@ export default function App() {
   const openFullExtensionSettings = async () => {
     try {
       await openExtensionOptions()
+      setPreferencesOpen(false)
     } catch {
       notify(t('ext.optionsError'), 'error')
     }
@@ -270,7 +275,12 @@ export default function App() {
 
         <main className="main-content">
           {extensionMode && (
-            <ExtensionActionBar latex={latex} settings={extensionSettings} onNotify={notify} />
+            <ExtensionActionBar
+              latex={latex}
+              settings={extensionSettings}
+              onNotify={notify}
+              onOpenSettings={() => setPreferencesOpen(true)}
+            />
           )}
 
           {!extensionMode && (
@@ -463,6 +473,7 @@ export default function App() {
         {preferencesOpen && (
           <PreferencesDialog
             initialLocale={locale}
+            initialInterfaceScale={interfaceScale}
             initialFontSize={editorFontSize}
             extensionMode={extensionMode}
             onClose={() => setPreferencesOpen(false)}
