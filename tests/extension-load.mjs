@@ -85,10 +85,32 @@ try {
     sidepanelOverflow.documentWidth <= sidepanelOverflow.viewport + 1,
     `Side panel horizontal overflow: ${sidepanelOverflow.documentWidth}px > ${sidepanelOverflow.viewport}px`,
   )
+
+  await page.locator('.quick-category__toggle').first().hover()
+  const quickHoverPanel = page.locator('.quick-hover-panel')
+  await quickHoverPanel.waitFor({ state: 'visible' })
+  await quickHoverPanel.getByText('Binary operators').waitFor()
+  await page.waitForTimeout(220)
   await page.screenshot({
     path: path.resolve('artifacts/extension-sidepanel.png'),
     fullPage: true,
   })
+  await page.mouse.move(0, 0)
+  await quickHoverPanel.waitFor({ state: 'detached' })
+
+  await page.getByRole('tab', { name: /Formula templates/ }).click()
+  await page.locator('.template-category-chip').first().hover()
+  const templateHoverPanel = page.locator('.template-hover-panel')
+  await templateHoverPanel.waitFor({ state: 'visible' })
+  await templateHoverPanel.getByText('Quadratic formula', { exact: true }).waitFor()
+  await page.waitForTimeout(220)
+  await page.screenshot({
+    path: path.resolve('artifacts/extension-template-hover.png'),
+    fullPage: true,
+  })
+  await page.mouse.move(0, 0)
+  await templateHoverPanel.waitFor({ state: 'detached' })
+  await page.getByRole('tab', { name: /Quick tools/ }).click()
 
   const optionsPage = await context.newPage()
   await optionsPage.goto(`chrome-extension://${extensionId}/options.html`, {
@@ -136,10 +158,13 @@ try {
         englishLocale: true,
         editorFontSize: 18,
         quickCategoryColumns: categoryColumnCount,
+        quickToolHoverPanel: true,
+        templateHoverPanel: true,
         sidepanelWidth: 480,
         sidepanelOverflow: false,
         screenshots: [
           'artifacts/extension-sidepanel.png',
+          'artifacts/extension-template-hover.png',
           'artifacts/extension-options.png',
         ],
       },

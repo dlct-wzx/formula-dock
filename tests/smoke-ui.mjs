@@ -53,10 +53,17 @@ try {
   await page.getByPlaceholder('搜索符号、名称或 LaTeX 命令').fill('积分')
   await page.locator('.quick-search-results .quick-item').first().waitFor()
   await page.getByPlaceholder('搜索符号、名称或 LaTeX 命令').fill('')
+  await page.locator('.quick-category__toggle').first().hover()
+  const quickHoverPanel = page.locator('.quick-hover-panel')
+  await quickHoverPanel.waitFor({ state: 'visible' })
+  await quickHoverPanel.getByText('二元运算符').waitFor()
+  await page.waitForTimeout(220)
   await page.screenshot({
     path: path.join(artifactsDir, 'smoke-quick-tools.png'),
     fullPage: true,
   })
+  await page.mouse.move(0, 0)
+  await quickHoverPanel.waitFor({ state: 'detached' })
   while ((await page.locator('.quick-category__toggle[aria-expanded="false"]').count()) > 0) {
     await page.locator('.quick-category__toggle[aria-expanded="false"]').first().click()
   }
@@ -72,6 +79,17 @@ try {
   await page.getByPlaceholder('搜索公式名称、标签或描述').fill('高斯')
   await page.locator('.template-card').filter({ hasText: '高斯积分' }).waitFor()
   await page.getByPlaceholder('搜索公式名称、标签或描述').fill('')
+  await page.locator('.template-category-chip').first().hover()
+  const templateHoverPanel = page.locator('.template-hover-panel')
+  await templateHoverPanel.waitFor({ state: 'visible' })
+  await templateHoverPanel.getByText('一元二次方程求根公式', { exact: true }).waitFor()
+  await page.waitForTimeout(220)
+  await page.screenshot({
+    path: path.join(artifactsDir, 'smoke-template-hover.png'),
+    fullPage: true,
+  })
+  await page.mouse.move(0, 0)
+  await templateHoverPanel.waitFor({ state: 'detached' })
   const templateKatexErrors = []
   const categoryCount = await page.locator('.template-category-chip').count()
   for (let index = 0; index < categoryCount; index += 1) {
@@ -162,6 +180,8 @@ try {
         mobileOverflow: false,
         katexValidation: true,
         searchValidation: true,
+        quickToolHoverPanel: true,
+        templateHoverPanel: true,
         interfaceSettings: true,
         englishLocale: true,
         editorFontSize: true,
@@ -169,6 +189,7 @@ try {
         screenshots: [
           path.join(artifactsDir, 'smoke-quick-tools.png'),
           path.join(artifactsDir, 'smoke-templates.png'),
+          path.join(artifactsDir, 'smoke-template-hover.png'),
           path.join(artifactsDir, 'smoke-desktop.png'),
           path.join(artifactsDir, 'smoke-dark.png'),
           path.join(artifactsDir, 'smoke-mobile.png'),

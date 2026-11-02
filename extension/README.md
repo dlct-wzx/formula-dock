@@ -72,3 +72,7 @@ The extension source and packaged build are distributed under the Apache License
 ## Interface preferences
 
 The settings page supports Chinese and English interfaces plus a 10–24 px LaTeX editor font size. These values are stored with the extension settings and applied to the side panel immediately after saving.
+
+## Category hover previews
+
+Both quick-tool and formula-template categories open a shared preview flyout on hover. The flyout remains open while the pointer moves into it, and click actions still pin or expand content for touch and keyboard use.

@@ -190,9 +190,13 @@ Web 端、扩展侧边栏、设置页、页面插入脚本和扩展打包均已�
 
 ## 界面截图
 
-### 扩展侧边栏
+### 快捷工具悬停预览
 
-![扩展侧边栏](docs/screenshots/extension-sidepanel.png)
+![快捷工具悬停预览](docs/screenshots/extension-sidepanel.png)
+
+### 公式模板悬停预览
+
+![公式模板悬停预览](docs/screenshots/extension-template-hover.png)
 
 ### 扩展设置
 
@@ -206,3 +210,5 @@ Web 端、扩展侧边栏、设置页、页面插入脚本和扩展打包均已�
 
 
 The 0.3.0 extension adds Chinese/English interface settings and a 10–24 px LaTeX editor font-size setting in both the in-app preferences dialog and extension options. Quick-tool categories are responsive block cards that wrap into multiple columns instead of stretching into full-width bars.
+
+快捷工具和公式模板分类都支持鼠标悬停预览，同时保留点击展开或选中行为，兼容键盘和触屏操作。

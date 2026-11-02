@@ -1808,3 +1808,197 @@ textarea:focus-visible,
     text-align: left;
   }
 }
+
+/* Hover category flyouts */
+.hover-panel {
+  position: fixed;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  max-height: min(72vh, 560px);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  box-shadow: 0 22px 60px rgb(7 14 29 / 24%);
+  overflow: hidden;
+  animation: hover-panel-in 150ms ease-out;
+}
+
+.hover-panel__header {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--border);
+  background:
+    radial-gradient(circle at 0 0, color-mix(in srgb, var(--accent) 8%, transparent), transparent 14rem),
+    var(--bg-elevated);
+}
+
+.hover-panel__symbol {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-family: "Times New Roman", serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.hover-panel__header h3 {
+  margin: 3px 0 0;
+  color: var(--text-strong);
+  font-size: 14px;
+  letter-spacing: -0.02em;
+}
+
+.hover-panel__header p {
+  margin: 3px 0 0;
+  color: var(--text-faint);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.hover-panel__kicker {
+  color: var(--text-faint);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hover-panel__count {
+  min-width: 27px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.hover-panel__body {
+  min-height: 0;
+  padding: 12px 14px 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.hover-panel__footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-top: 1px solid var(--border);
+  color: var(--text-faint);
+  background: var(--bg-subtle);
+  font-size: 9px;
+}
+
+.quick-hover-panel .quick-item-grid--flyout {
+  grid-template-columns: repeat(auto-fill, minmax(57px, 1fr));
+}
+
+.quick-hover-panel .quick-group:first-child {
+  padding-top: 0;
+}
+
+.template-hover-panel__body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 9px;
+}
+
+.template-hover-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.template-hover-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 24%, var(--bg-elevated));
+  transform: translateY(-1px);
+}
+
+.template-hover-card > strong {
+  color: var(--text-strong);
+  font-size: 10px;
+}
+
+.template-hover-card__preview {
+  display: grid;
+  place-items: center;
+  min-height: 64px;
+  padding: 7px;
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  overflow-x: auto;
+}
+
+.template-hover-card__preview .math-markup {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.template-hover-card__preview .katex-display {
+  margin: 0;
+}
+
+.template-hover-card > small {
+  color: var(--text-faint);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+@keyframes hover-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 560px) {
+  .hover-panel {
+    max-height: 68vh;
+    border-radius: 12px;
+  }
+
+  .hover-panel__header {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    padding: 11px 12px;
+  }
+
+  .hover-panel__symbol {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    font-size: 16px;
+  }
+
+  .hover-panel__body {
+    padding: 10px 12px 12px;
+  }
+
+  .template-hover-panel__body {
+    grid-template-columns: 1fr;
+  }
+}

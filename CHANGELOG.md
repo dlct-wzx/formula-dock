@@ -19,6 +19,8 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 ### Changed
 
 - Quick-tool categories now use responsive block cards with automatic multi-row wrapping.
+- Hovering a quick-tool or formula-template category opens a shared interactive preview flyout.
+- Clicking a category still provides pinned expansion or selection for touch and keyboard users.
 - The extension complete-settings page is fully bilingual.
 - The options page now separates interface language from MinerU OCR language.
 

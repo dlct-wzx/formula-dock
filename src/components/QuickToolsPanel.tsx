@@ -7,6 +7,7 @@ import {
   type QuickToolItem,
 } from '../data/quickTools'
 import { InlineMath } from './MathMarkup'
+import { HoverPanel, useHoverFlyout } from './HoverPanel'
 import { useI18n } from '../i18n/I18nContext'
 import {
   localisedQuickCategory,
@@ -33,6 +34,7 @@ function itemCount(category: QuickToolCategory): number {
 
 export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
   const { locale, t } = useI18n()
+  const flyout = useHoverFlyout<HTMLButtonElement>()
   const [query, setQuery] = useState('')
   const [openCategories, setOpenCategories] = useState<Set<string>>(() => new Set())
   const [recentIds, setRecentIds] = useState<string[]>([])
@@ -107,6 +109,7 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
   }
 
   const toggleCategory = (categoryId: string) => {
+    flyout.closeNow()
     setOpenCategories((previous) => {
       const next = new Set(previous)
       if (next.has(categoryId)) next.delete(categoryId)
@@ -114,6 +117,8 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
       return next
     })
   }
+
+  const flyoutCategory = quickToolCategories.find((category) => category.id === flyout.activeKey)
 
   return (
     <div className="tool-panel quick-tools-panel">
@@ -204,8 +209,13 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
                   type="button"
                   className="quick-category__toggle"
                   onClick={() => toggleCategory(category.id)}
+                  onMouseEnter={(event) => {
+                    if (!isOpen) flyout.open(category.id, event.currentTarget)
+                  }}
+                  onMouseLeave={() => flyout.scheduleClose()}
                   aria-expanded={isOpen}
                   aria-controls={`category-panel-${category.id}`}
+                  aria-haspopup="dialog"
                 >
                   <span className="category-index">
                     {String(categoryIndex + 1).padStart(2, '0')}
@@ -259,6 +269,65 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
             )
           })}
         </div>
+      )}
+
+      {!normalisedQuery && flyoutCategory && (
+        <HoverPanel
+          open
+          anchor={flyout.anchor}
+          className="quick-hover-panel"
+          onMouseEnter={flyout.cancelClose}
+          onMouseLeave={flyout.scheduleClose}
+          onClose={flyout.closeNow}
+        >
+          <header className="hover-panel__header">
+            <span className="hover-panel__symbol" aria-hidden="true">
+              {flyoutCategory.symbol}
+            </span>
+            <div>
+              <span className="hover-panel__kicker">{t('tabs.shortcuts')}</span>
+              <h3>{localisedQuickCategory(flyoutCategory, locale).title}</h3>
+              <p>{localisedQuickCategory(flyoutCategory, locale).description}</p>
+            </div>
+            <span className="hover-panel__count">{itemCount(flyoutCategory)}</span>
+          </header>
+          <div className="hover-panel__body">
+            {flyoutCategory.groups.map((group) => (
+              <section className="quick-group" key={`flyout-${flyoutCategory.id}-${group.title}`}>
+                <div className="quick-group__title">
+                  <span>{localisedQuickGroupTitle(group.title, locale)}</span>
+                  <span>{String(group.items.length).padStart(2, '0')}</span>
+                </div>
+                <div className="quick-item-grid quick-item-grid--flyout">
+                  {group.items.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="quick-item"
+                      onClick={() => {
+                        insertItem(item)
+                        flyout.closeNow()
+                      }}
+                      title={`${localisedQuickItemLabel(item, locale)} · ${item.latex}`}
+                      tabIndex={-1}
+                    >
+                      <span className="quick-item__math">
+                        <InlineMath latex={item.latex} />
+                      </span>
+                      <span className="quick-item__label">
+                        {localisedQuickItemLabel(item, locale)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+          <footer className="hover-panel__footer">
+            <CornerDownLeft size={14} aria-hidden="true" />
+            {t('quick.insertHint')}
+          </footer>
+        </HoverPanel>
       )}
     </div>
   )

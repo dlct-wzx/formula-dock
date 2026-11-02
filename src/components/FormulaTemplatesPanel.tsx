@@ -8,6 +8,7 @@ import {
   type FormulaTemplate,
 } from '../data/formulaTemplates'
 import { DisplayMath } from './MathMarkup'
+import { HoverPanel, useHoverFlyout } from './HoverPanel'
 import { useI18n } from '../i18n/I18nContext'
 import { localisedFormulaCategory, localisedFormulaTemplate } from '../i18n/content'
 
@@ -17,6 +18,7 @@ interface FormulaTemplatesPanelProps {
 
 export function FormulaTemplatesPanel({ onInsert }: FormulaTemplatesPanelProps) {
   const { locale, t } = useI18n()
+  const flyout = useHoverFlyout<HTMLButtonElement>()
   const [selectedCategory, setSelectedCategory] = useState(formulaCategories[0].id)
   const [query, setQuery] = useState('')
 
@@ -38,6 +40,10 @@ export function FormulaTemplatesPanel({ onInsert }: FormulaTemplatesPanelProps) 
   const activeCategory =
     formulaCategories.find((category) => category.id === selectedCategory) || formulaCategories[0]
   const localisedActiveCategory = localisedFormulaCategory(activeCategory, locale)
+  const flyoutCategory = formulaCategories.find((category) => category.id === flyout.activeKey)
+  const flyoutTemplates = flyoutCategory
+    ? formulaTemplates.filter((template) => template.category === flyoutCategory.id)
+    : []
 
   const insertTemplate = (template: FormulaTemplate) => {
     onInsert(template.latex, template.cursorBack)
@@ -75,9 +81,13 @@ export function FormulaTemplatesPanel({ onInsert }: FormulaTemplatesPanelProps) 
                 selectedCategory === category.id && !normalisedQuery ? 'is-active' : ''
               }`}
               onClick={() => {
+                flyout.closeNow()
                 setSelectedCategory(category.id)
                 setQuery('')
               }}
+              onMouseEnter={(event) => flyout.open(category.id, event.currentTarget)}
+              onMouseLeave={() => flyout.scheduleClose()}
+              aria-haspopup="dialog"
             >
               <span>{category.symbol}</span>
               {localisedCategory.title}
@@ -138,6 +148,57 @@ export function FormulaTemplatesPanel({ onInsert }: FormulaTemplatesPanelProps) 
           <h3>{t('templates.noResults')}</h3>
           <p>{t('templates.noResultsHint')}</p>
         </div>
+      )}
+
+      {flyoutCategory && (
+        <HoverPanel
+          open
+          anchor={flyout.anchor}
+          className="template-hover-panel"
+          preferredWidth={680}
+          onMouseEnter={flyout.cancelClose}
+          onMouseLeave={flyout.scheduleClose}
+          onClose={flyout.closeNow}
+        >
+          <header className="hover-panel__header">
+            <span className="hover-panel__symbol" aria-hidden="true">
+              {flyoutCategory.symbol}
+            </span>
+            <div>
+              <span className="hover-panel__kicker">{t('tabs.templates')}</span>
+              <h3>{localisedFormulaCategory(flyoutCategory, locale).title}</h3>
+              <p>{localisedFormulaCategory(flyoutCategory, locale).description}</p>
+            </div>
+            <span className="hover-panel__count">{flyoutTemplates.length}</span>
+          </header>
+          <div className="hover-panel__body template-hover-panel__body">
+            {flyoutTemplates.map((template) => {
+              const localisedTemplate = localisedFormulaTemplate(template, locale)
+              return (
+                <button
+                  key={template.id}
+                  type="button"
+                  className="template-hover-card"
+                  onClick={() => {
+                    insertTemplate(template)
+                    flyout.closeNow()
+                  }}
+                  tabIndex={-1}
+                >
+                  <strong>{localisedTemplate.title}</strong>
+                  <span className="template-hover-card__preview">
+                    <DisplayMath latex={template.latex} />
+                  </span>
+                  <small>{localisedTemplate.description}</small>
+                </button>
+              )
+            })}
+          </div>
+          <footer className="hover-panel__footer">
+            <CornerDownLeft size={14} aria-hidden="true" />
+            {t('templates.insert')}
+          </footer>
+        </HoverPanel>
       )}
     </div>
   )
