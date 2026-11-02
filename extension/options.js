@@ -10,7 +10,6 @@ const editorFontSizeInput = document.getElementById('editorFontSize')
 const interfaceScaleSelect = document.getElementById('interfaceScale')
 const modelSelect = document.getElementById('modelVersion')
 const languageSelect = document.getElementById('language')
-const insertFormatSelect = document.getElementById('insertFormat')
 const saveButton = document.getElementById('saveButton')
 const testButton = document.getElementById('testButton')
 const status = document.getElementById('status')
@@ -20,7 +19,7 @@ const I18N = {
     title: 'FormulaDock 插件设置',
     brandAria: '打开 FormulaDock 侧边栏',
     subtitle: '浏览器扩展设置',
-    introTitle: '连接 MinerU，并决定如何把公式插入网页。',
+    introTitle: '连接 MinerU，并为公式工作台设置舒适的界面。',
     introBody: 'Token 只保存在当前浏览器的 <code>chrome.storage.local</code>，不会写入项目源码，也不会上传到本项目的 Web 服务。',
     interfaceTitle: '界面设置',
     interfaceDesc: '调整界面语言、界面字号和 LaTeX 编辑器字号。',
@@ -28,9 +27,11 @@ const I18N = {
     uiLanguageHint: '切换侧边栏和设置页语言',
     interfaceScale: '界面字号',
     interfaceScaleHint: '调整工具、按钮和说明文字',
-    scaleSmall: '小',
-    scaleStandard: '标准',
-    scaleLarge: '大',
+    scaleSmall: '小（90%）',
+    scaleStandard: '标准（100%）',
+    scaleComfortable: '较大（110%）',
+    scaleLarge: '大（140%）',
+    scaleExtraLarge: '特大（160%）',
     editorFontSize: '编辑器字号',
     editorFontSizeHint: '10–24 px',
     mineruTitle: 'MinerU 图片识别',
@@ -51,20 +52,7 @@ const I18N = {
     ocrLanguageEn: 'English',
     securityTitle: '安全边界',
     securityBody: 'Token 可以读取扩展存储或被扩展内部脚本使用。此模式适合个人/内部安装；若发布给不受信任的公开用户，应改为由你的后端保管 Token。',
-    insertTitle: '插入当前网页',
-    insertDesc: '点击侧边栏中的“插入网页”时，按下面的格式写入当前输入框或可编辑区域。',
-    formatLabel: '默认公式包装',
-    formatHint: '可随时在设置中修改',
-    formatRaw: '原始 LaTeX：\\frac{a}{b}',
-    formatInline: '行内公式：$\\frac{a}{b}$',
-    formatDisplay: '独立公式：$$\\frac{a}{b}$$',
-    formatBracket: '独立公式：\\[\\frac{a}{b}\\]',
-    hint1Title: '先在网页放置光标',
-    hint1Body: '支持 textarea、文本 input 和常见 contenteditable 编辑区。',
-    hint2Title: '从工具栏打开扩展',
-    hint2Body: '首次打开会获得当前标签页的临时访问权限。',
-    hint3Title: '按 Ctrl+Shift+L',
-    hint3Body: '也可以随时打开侧边栏。',
+
     testToken: '测试 Token',
     testing: '测试中…',
     save: '保存设置',
@@ -84,7 +72,7 @@ const I18N = {
     title: 'FormulaDock Extension Settings',
     brandAria: 'Open the FormulaDock side panel',
     subtitle: 'Browser extension settings',
-    introTitle: 'Connect MinerU and choose how formulas are inserted into webpages.',
+    introTitle: 'Connect MinerU and tune the formula workspace for comfortable reading.',
     introBody: 'The token is stored only in <code>chrome.storage.local</code>. It is not written to the project source or uploaded to the FormulaDock web service.',
     interfaceTitle: 'Interface',
     interfaceDesc: 'Adjust the interface language, interface text size, and LaTeX editor font size.',
@@ -92,9 +80,11 @@ const I18N = {
     uiLanguageHint: 'Changes the side panel and settings page',
     interfaceScale: 'Interface text size',
     interfaceScaleHint: 'Changes tools, buttons, and labels',
-    scaleSmall: 'Small',
-    scaleStandard: 'Standard',
-    scaleLarge: 'Large',
+    scaleSmall: 'Small (90%)',
+    scaleStandard: 'Standard (100%)',
+    scaleComfortable: 'Comfortable (110%)',
+    scaleLarge: 'Large (140%)',
+    scaleExtraLarge: 'Extra large (160%)',
     editorFontSize: 'Editor font size',
     editorFontSizeHint: '10–24 px',
     mineruTitle: 'MinerU image recognition',
@@ -115,20 +105,7 @@ const I18N = {
     ocrLanguageEn: 'English',
     securityTitle: 'Security boundary',
     securityBody: 'The token can be read by the extension storage or internal extension scripts. This mode is intended for personal or internal installations. Public releases should keep the token on your own backend.',
-    insertTitle: 'Insert into the current page',
-    insertDesc: 'When you choose “Insert into page” in the side panel, FormulaDock uses the format below for the focused input or editable region.',
-    formatLabel: 'Default formula wrapper',
-    formatHint: 'Can be changed at any time',
-    formatRaw: 'Raw LaTeX: \\frac{a}{b}',
-    formatInline: 'Inline: $\\frac{a}{b}$',
-    formatDisplay: 'Display: $$\\frac{a}{b}$$',
-    formatBracket: 'Display: \\[\\frac{a}{b}\\]',
-    hint1Title: 'Place the caret on the page first',
-    hint1Body: 'Supports textarea, text inputs, and common contenteditable editors.',
-    hint2Title: 'Open the extension from the toolbar',
-    hint2Body: 'The first open grants temporary access to the current tab.',
-    hint3Title: 'Press Ctrl+Shift+L',
-    hint3Body: 'You can also open the side panel at any time.',
+
     testToken: 'Test token',
     testing: 'Testing…',
     save: 'Save settings',
@@ -187,10 +164,15 @@ function setStatus(key, kind = '') {
   status.className = `status${kind ? ` status--${kind}` : ''}`
 }
 
+const INTERFACE_SCALE_PRESETS = [90, 100, 110, 140, 160]
+
 function normaliseInterfaceScale(value) {
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) return 100
-  return Math.min(110, Math.max(90, Math.round(parsed / 10) * 10))
+  const clamped = Math.min(160, Math.max(90, parsed))
+  return INTERFACE_SCALE_PRESETS.reduce((closest, candidate) =>
+    Math.abs(candidate - clamped) <= Math.abs(closest - clamped) ? candidate : closest,
+  )
 }
 
 function applyInterfaceScale(value) {
@@ -211,11 +193,7 @@ function normaliseSettings(value) {
     mineruToken: typeof candidate.mineruToken === 'string' ? candidate.mineruToken.trim() : '',
     modelVersion: candidate.modelVersion === 'pipeline' ? 'pipeline' : 'vlm',
     language: candidate.language === 'en' ? 'en' : 'ch',
-    insertFormat: ['raw', 'dollar-inline', 'dollar-display', 'bracket-display'].includes(
-      candidate.insertFormat,
-    )
-      ? candidate.insertFormat
-      : 'raw',
+
     uiLocale: candidate.uiLocale === 'en' ? 'en' : 'zh',
     interfaceScale: normaliseInterfaceScale(candidate.interfaceScale),
     editorFontSize: normaliseFontSize(candidate.editorFontSize),
@@ -227,7 +205,6 @@ function readForm() {
     mineruToken: tokenInput.value,
     modelVersion: modelSelect.value,
     language: languageSelect.value,
-    insertFormat: insertFormatSelect.value,
     uiLocale: uiLocaleSelect.value,
     interfaceScale: interfaceScaleSelect.value,
     editorFontSize: editorFontSizeInput.value,
@@ -251,7 +228,6 @@ async function loadSettings() {
     editorFontSizeInput.value = String(settings.editorFontSize)
     modelSelect.value = settings.modelVersion
     languageSelect.value = settings.language
-    insertFormatSelect.value = settings.insertFormat
     applyLocale(settings.uiLocale)
     setStatus(settings.mineruToken ? 'statusLoaded' : 'statusNoToken', settings.mineruToken ? '' : 'warning')
   } catch {

@@ -7,7 +7,7 @@ FormulaDock is an **agent-led open-source project**. The default operator is an 
 The product combines:
 
 1. A standalone web workspace with quick tools, formula templates, and MinerU image recognition.
-2. A Manifest V3 browser extension side panel that reuses the workspace and can insert LaTeX into the active page.
+2. A Manifest V3 browser extension side panel that reuses the workspace without requesting access to webpages.
 
 The application intentionally excludes accounts, payment, document recognition, favorites, AI formula chat, and Office export unless a new decision record is added.
 
@@ -30,7 +30,7 @@ If these documents conflict, prefer the newest decision record and update the st
 ```powershell
 npm run dev               # Vite at :5173 + API at :8787
 npm run check             # TypeScript
-npm test                  # server/parser + extension page-agent tests
+npm test                  # server/parser tests
 npm run build             # production web frontend
 npm run build:extension   # web build + MV3 package
 npm run verify            # check + tests + extension build + static checks
@@ -41,7 +41,7 @@ npm run smoke:extension:live # real MinerU OCR using local token (generated test
 npm start                 # serve ./dist and API together
 ```
 
-Run `npm run verify` before declaring implementation work complete. Run `npm run smoke:extension` when extension UI, manifest, messaging, or insertion logic changes.
+Run `npm run verify` before declaring implementation work complete. Run `npm run smoke:extension` when extension UI, manifest, or messaging changes.
 
 ## Architecture rules
 
@@ -64,11 +64,12 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
   - `POST /api/ocr` with a raw image body.
   - `GET /api/ocr/:taskId` for live task polling.
 - Provider-specific response handling belongs in provider modules, not UI components.
-- Page insertion uses `activeTab` + `scripting` first and requests optional access for the active origin only when injection requires it.
-- Do not add static broad `<all_urls>` host permissions without a new decision record.
-- The tool panel must keep content-driven height; do not reintroduce fixed-height internal vertical scrolling.
-- Formula-template categories must use the same responsive block-card grid and hover behavior as quick-tool categories.
-- Extension content scripts track the page caret and support textarea, text input, and common contenteditable editors.
+- The browser extension does not inject content scripts, read the active page, or insert LaTeX into websites.
+- Do not add `activeTab`, `scripting`, `tabs`, `<all_urls>`, or optional webpage host permissions.
+- The tool panel and output preview must keep content-driven height; do not reintroduce fixed-height internal vertical scrolling.
+- Quick-tool and formula-template categories must use the same responsive block-card layout.
+- Category content opens only on hover and uses a blue hover state. Do not restore click-to-expand or click-to-select category state.
+- Interface text-size presets are 90, 100, 110, 140, and 160 percent, independent from the LaTeX editor font size.
 
 ## Engineering rules
 
@@ -79,7 +80,7 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - Do not commit `.env.local`, API tokens, uploaded images, generated extension profiles, or release ZIPs.
 - Keep `LICENSE`, `NOTICE`, `THIRD_PARTY_NOTICES.md`, `PRIVACY.md`, `SECURITY.md`, and `CONTRIBUTING.md` current when distribution or permissions change.
 - Validate image signatures in both server and direct-extension paths.
-- Add tests whenever extraction, provider state mapping, page insertion, or output formatting changes.
+- Add tests whenever extraction, provider state mapping, category interaction, layout, or output formatting changes.
 - Keep the product UI free of fake success states: only show “done” after a real response or mock provider response.
 - Keep web and extension surfaces working from the same source tree.
 

@@ -6,6 +6,30 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-03
+
+### Removed
+
+- Removed the side-panel “insert LaTeX into the current page” feature and its settings UI.
+- Removed active-page insertion runtime code, content script, insertion-format setting, website host permissions, and related browser permissions.
+- Removed click-to-expand and click-to-select behavior from quick-tool and formula-template category cards.
+- Removed the internal scrollbar from the output preview.
+
+### Changed
+
+- Category cards now turn blue on hover and open their content preview only while hovered.
+- Category cards widen with the interface text scale and wrap into additional rows instead of clipping large labels.
+- Added 140% large and 160% extra-large interface text presets.
+- The output preview now grows with its content and the surrounding page flow.
+- Updated the extension manifest to version 0.4.0.
+
+### Verified
+
+- `npm run verify` passes.
+- Web and extension browser regressions pass with hover-only categories.
+- Extension options and side panel render at 140% interface text with an independent 18 px editor font.
+- Extension manifest, packaged files, and background worker contain no active-page insertion path or webpage host access.
+
 ## [0.3.1] - 2026-11-02
 
 ### Fixed

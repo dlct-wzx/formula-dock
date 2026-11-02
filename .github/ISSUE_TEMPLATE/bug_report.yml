@@ -16,7 +16,7 @@ body:
       label: Affected surface
       options:
         - Browser extension side panel
-        - Page insertion
+        - Category interaction or layout
         - Web application
         - MinerU OCR
         - Build or tooling
@@ -46,7 +46,7 @@ body:
     id: version
     attributes:
       label: Project or extension version
-      placeholder: 0.3.0
+      placeholder: 0.4.0
     validations:
       required: true
 

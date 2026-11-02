@@ -1,15 +1,5 @@
 'use strict'
 
-const CONTENT_SCRIPT = 'content/page-agent.js'
-
-function formatLatex(text, mode) {
-  const value = String(text || '').trim()
-  if (mode === 'dollar-inline') return `$${value}$`
-  if (mode === 'dollar-display') return `$$${value}$$`
-  if (mode === 'bracket-display') return `\\[${value}\\]`
-  return value
-}
-
 async function configureMineruHeaderRules() {
   const requestHeaders = [
     { header: 'origin', operation: 'remove' },
@@ -54,116 +44,9 @@ chrome.runtime.onInstalled.addListener(() => {
   void setPanelBehaviour()
 })
 
-async function getActiveTab() {
-  const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
-  return tabs[0] || null
-}
-
 function openPanel(tabId) {
   chrome.sidePanel.open({ tabId }).catch(() => undefined)
 }
-
-async function injectPageAgent(tabId) {
-  await chrome.scripting.executeScript({
-    target: { tabId },
-    files: [CONTENT_SCRIPT],
-  })
-}
-
-function isRestrictedUrl(url) {
-  return /^(?:chrome|edge|brave|opera|vivaldi|about|devtools|view-source|chrome-extension|extension):/i.test(
-    url || '',
-  )
-}
-
-function originPatternForUrl(urlValue) {
-  try {
-    const url = new URL(urlValue)
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
-    return `${url.origin}/*`
-  } catch {
-    return null
-  }
-}
-async function insertIntoActivePage(text, insertFormat) {
-  const value = formatLatex(text, insertFormat)
-  if (!value) return { ok: false, message: '没有可插入的公式。' }
-  if (value.length > 1024 * 1024) return { ok: false, message: '公式内容过长。' }
-
-  const tab = await getActiveTab()
-  if (!tab?.id) return { ok: false, message: '没有找到当前网页。' }
-  if (isRestrictedUrl(tab.url)) {
-    return {
-      ok: false,
-      message: '浏览器内部页面不允许插入内容，请切换到普通网页后重试。',
-    }
-  }
-  if (tab.url?.startsWith('file://')) {
-    return {
-      ok: false,
-      message: '本地文件页面需要在扩展详情中开启“允许访问文件网址”。',
-    }
-  }
-
-  try {
-    await injectPageAgent(tab.id)
-  } catch (error) {
-    const originPattern = originPatternForUrl(tab.url)
-    const rawError = error instanceof Error ? error.message : String(error)
-    if (originPattern) {
-      return {
-        ok: false,
-        message: '需要授权访问当前网站后才能插入公式。',
-        error: rawError,
-        errorCode: 'HOST_PERMISSION_REQUIRED',
-        originPattern,
-      }
-    }
-    return {
-      ok: false,
-      message:
-        '无法访问当前网页。请先点击工具栏中的扩展图标，再在网页编辑区放置光标。',
-      error: rawError,
-    }
-  }
-
-  try {
-    const result = await chrome.tabs.sendMessage(tab.id, {
-      type: 'FORMULADOCK_INSERT_TEXT',
-      text: value,
-    })
-    if (!result?.ok) {
-      return {
-        ok: false,
-        message: result?.message || '当前网页中没有可插入的编辑区域。',
-      }
-    }
-    return result
-  } catch {
-    try {
-      await injectPageAgent(tab.id)
-      return await chrome.tabs.sendMessage(tab.id, {
-        type: 'FORMULADOCK_INSERT_TEXT',
-        text: value,
-      })
-    } catch {
-      const originPattern = originPatternForUrl(tab.url)
-      if (originPattern) {
-        return {
-          ok: false,
-          message: '需要授权访问当前网站后才能插入公式。',
-          errorCode: 'HOST_PERMISSION_REQUIRED',
-          originPattern,
-        }
-      }
-      return {
-        ok: false,
-        message: '无法连接到当前网页。请刷新网页后重新打开扩展。',
-      }
-    }
-  }
-}
-
 async function getStoredMineruToken() {
   const currentKey = 'formuladock:extension-settings'
   const legacyKey = 'latexlive-studio:extension-settings'
@@ -361,32 +244,14 @@ async function downloadMineruZip(message) {
   }
 }
 chrome.action.onClicked.addListener((tab) => {
-  if (!tab.id) return
-  openPanel(tab.id)
-  injectPageAgent(tab.id).catch(() => undefined)
+  if (tab.id) openPanel(tab.id)
 })
 
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command !== 'open-formula-panel') return
-  const tab = await getActiveTab()
-  if (!tab?.id) return
-  openPanel(tab.id)
-  injectPageAgent(tab.id).catch(() => undefined)
+chrome.commands.onCommand.addListener((command, tab) => {
+  if (command === 'open-formula-panel' && tab?.id) openPanel(tab.id)
 })
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type === 'FORMULADOCK_INSERT_TO_PAGE') {
-    insertIntoActivePage(message.text, message.insertFormat)
-      .then(sendResponse)
-      .catch((error) => {
-        sendResponse({
-          ok: false,
-          message: '插入当前网页失败。',
-          error: error instanceof Error ? error.message : String(error),
-        })
-      })
-    return true
-  }
 
   if (message?.type === 'FORMULADOCK_MINERU_API_REQUEST') {
     mineruApiRequest(message)
@@ -411,11 +276,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true
   }
 
-  if (message?.type === 'FORMULADOCK_OPEN_OPTIONS') {
-    chrome.runtime.openOptionsPage()
-    sendResponse({ ok: true })
-    return false
-  }
 
   return false
 })

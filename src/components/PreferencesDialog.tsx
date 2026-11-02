@@ -109,7 +109,9 @@ export function PreferencesDialog({
             >
               <option value="90">{t('settings.scaleSmall')}</option>
               <option value="100">{t('settings.scaleStandard')}</option>
-              <option value="110">{t('settings.scaleLarge')}</option>
+              <option value="110">{t('settings.scaleComfortable')}</option>
+              <option value="140">{t('settings.scaleLarge')}</option>
+              <option value="160">{t('settings.scaleExtraLarge')}</option>
             </select>
           </label>
 

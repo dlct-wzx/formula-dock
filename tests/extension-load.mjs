@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { promises as fsPromises } from 'node:fs'
-import http from 'node:http'
 import path from 'node:path'
 import { chromium } from 'playwright-core'
 
@@ -19,13 +18,6 @@ assert.ok(fs.existsSync(path.join(extensionPath, 'manifest.json')), 'Run npm run
 const profileDir = path.resolve(`artifacts/extension-profile-${Date.now()}`)
 await fsPromises.mkdir(path.dirname(profileDir), { recursive: true })
 
-const targetServer = http.createServer((_request, response) => {
-  response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' })
-  response.end('<!doctype html><html><body><textarea id="target"></textarea></body></html>')
-})
-await new Promise((resolve) => targetServer.listen(0, '127.0.0.1', resolve))
-const targetAddress = targetServer.address()
-const targetUrl = `http://127.0.0.1:${targetAddress.port}/`
 
 const headless = process.env.EXTENSION_HEADLESS !== 'false'
 const context = await chromium.launchPersistentContext(profileDir, {
@@ -56,23 +48,21 @@ try {
     waitUntil: 'networkidle',
   })
   await page.locator('.app--extension').waitFor()
-  await page.getByText('把 LaTeX 插入当前网页').waitFor()
+  await page.locator('.tool-tabs').waitFor()
   await page.evaluate(() =>
     chrome.storage.local.set({
       'latexlive-studio:extension-settings': {
         mineruToken: 'extension-smoke-test-token',
         modelVersion: 'vlm',
         language: 'ch',
-        insertFormat: 'dollar-inline',
         uiLocale: 'en',
-        interfaceScale: 110,
+        interfaceScale: 140,
         editorFontSize: 18,
       },
     }),
   )
   await page.reload({ waitUntil: 'networkidle' })
-  await page.getByText('MinerU configured').waitFor()
-  await page.getByText('Insert LaTeX into the current page').waitFor()
+  await page.waitForFunction(() => document.querySelector('.api-status')?.textContent?.includes('MINERU LIVE'))
   assert.match(await page.locator('.api-status').textContent(), /MINERU LIVE/)
   assert.equal(
     await page.locator('.latex-editor').evaluate((element) => getComputedStyle(element).fontSize),
@@ -80,11 +70,18 @@ try {
   )
   assert.equal(
     await page.evaluate(() => document.documentElement.style.getPropertyValue('--ui-font-scale')),
-    '1.1',
+    '1.4',
   )
   assert.equal(
     await page.locator('.tool-tab strong').first().evaluate((element) => getComputedStyle(element).fontSize),
-    '11px',
+    '14px',
+  )
+  assert.equal(await page.locator('.extension-action-bar').count(), 0)
+  assert.equal(await page.getByText('Insert LaTeX into the current page').count(), 0)
+  assert.equal(
+    await page.locator('.preview-surface').evaluate((element) => getComputedStyle(element).overflowY),
+    'visible',
+    'The output preview must not create an internal scrollbar.',
   )
   const toolPanelLayout = await page.locator('.quick-tools-panel').evaluate((element) => ({
     overflowY: getComputedStyle(element).overflowY,
@@ -96,15 +93,24 @@ try {
     toolPanelLayout.scrollHeight <= toolPanelLayout.clientHeight + 1,
     `Tool panel should grow with its content: ${toolPanelLayout.scrollHeight}px > ${toolPanelLayout.clientHeight}px`,
   )
-  const categoryColumnCount = await page.evaluate(
-    () =>
-      new Set(
-        Array.from(document.querySelectorAll('.quick-category:not(.quick-category--open)')).map(
-          (element) => Math.round(element.getBoundingClientRect().left),
-        ),
-      ).size,
+  const countCategoryColumns = () =>
+    page.evaluate(
+      () =>
+        new Set(
+          Array.from(document.querySelectorAll('.quick-category')).map((element) =>
+            Math.round(element.getBoundingClientRect().left),
+          ),
+        ).size,
+    )
+  const categoryColumnCount = await countCategoryColumns()
+  assert.ok(categoryColumnCount >= 1, 'Expected responsive quick category cards.')
+  await page.setViewportSize({ width: 900, height: 900 })
+  const wideCategoryColumnCount = await countCategoryColumns()
+  assert.ok(
+    wideCategoryColumnCount >= 3,
+    `Expected quick categories to spread across a wider panel, got ${wideCategoryColumnCount} column(s)`,
   )
-  assert.ok(categoryColumnCount >= 2, `Expected block categories in multiple columns, got ${categoryColumnCount}`)
+  await page.setViewportSize({ width: 480, height: 900 })
   const sidepanelOverflow = await page.evaluate(() => ({
     viewport: window.innerWidth,
     documentWidth: document.documentElement.scrollWidth,
@@ -118,6 +124,9 @@ try {
   const quickHoverPanel = page.locator('.quick-hover-panel')
   await quickHoverPanel.waitFor({ state: 'visible' })
   await quickHoverPanel.getByText('Binary operators').waitFor()
+  assert.equal(await page.locator('.quick-category--hovered').count(), 1)
+  assert.equal(await page.locator('.quick-category__body').count(), 0)
+  assert.equal(await page.locator('.quick-category--open').count(), 0)
   await page.waitForTimeout(220)
   await page.screenshot({
     path: path.resolve('artifacts/extension-sidepanel.png'),
@@ -127,19 +136,30 @@ try {
   await quickHoverPanel.waitFor({ state: 'detached' })
 
   await page.getByRole('tab', { name: /Formula templates/ }).click()
-  const templateCategoryColumnCount = await page.evaluate(
-    () =>
-      new Set(
-        Array.from(document.querySelectorAll('.template-category')).map((element) =>
-          Math.round(element.getBoundingClientRect().left),
-        ),
-      ).size,
-  )
+  const countTemplateCategoryColumns = () =>
+    page.evaluate(
+      () =>
+        new Set(
+          Array.from(document.querySelectorAll('.template-category')).map((element) =>
+            Math.round(element.getBoundingClientRect().left),
+          ),
+        ).size,
+    )
+  const templateCategoryColumnCount = await countTemplateCategoryColumns()
+  assert.ok(templateCategoryColumnCount >= 1, 'Expected responsive template category cards.')
+  await page.setViewportSize({ width: 900, height: 900 })
+  const wideTemplateCategoryColumnCount = await countTemplateCategoryColumns()
   assert.ok(
-    templateCategoryColumnCount >= 2,
-    `Expected responsive template category cards, got ${templateCategoryColumnCount} column(s)`,
+    wideTemplateCategoryColumnCount >= 3,
+    `Expected template categories to spread across a wider panel, got ${wideTemplateCategoryColumnCount} column(s)`,
   )
+  await page.setViewportSize({ width: 480, height: 900 })
   assert.equal(await page.locator('.template-category-scroller').count(), 0)
+  assert.equal(await page.locator('.template-category--active').count(), 0)
+  assert.equal(
+    await page.locator('.template-category__toggle').first().evaluate((element) => element.tagName),
+    'DIV',
+  )
   await page.screenshot({
     path: path.resolve('artifacts/extension-template-categories.png'),
     fullPage: true,
@@ -148,6 +168,7 @@ try {
   const templateHoverPanel = page.locator('.template-hover-panel')
   await templateHoverPanel.waitFor({ state: 'visible' })
   await templateHoverPanel.getByText('Quadratic formula', { exact: true }).waitFor()
+  assert.equal(await page.locator('.template-category--hovered').count(), 1)
   await page.waitForTimeout(220)
   await page.screenshot({
     path: path.resolve('artifacts/extension-template-hover.png'),
@@ -157,7 +178,7 @@ try {
   await templateHoverPanel.waitFor({ state: 'detached' })
   await page.getByRole('tab', { name: /Quick tools/ }).click()
 
-  await page.getByRole('button', { name: 'Settings', exact: true }).click()
+  await page.getByRole('button', { name: 'Open settings', exact: true }).click()
   await page.locator('.preferences-dialog').waitFor()
   assert.equal(await page.locator('#preferences-title').textContent(), 'Interface settings')
   const optionsPagePromise = context.waitForEvent('page')
@@ -168,10 +189,17 @@ try {
   await optionsPage.locator('#settingsForm').waitFor()
   assert.equal(await optionsPage.locator('#mineruToken').inputValue(), 'extension-smoke-test-token')
   assert.equal(await optionsPage.locator('#uiLocale').inputValue(), 'en')
-  assert.equal(await optionsPage.locator('#interfaceScale').inputValue(), '110')
+  assert.equal(await optionsPage.locator('#interfaceScale').inputValue(), '140')
+  assert.equal(await optionsPage.locator('#interfaceScale option[value="160"]').count(), 1)
+  await optionsPage.locator('#interfaceScale').selectOption('160')
+  assert.equal(
+    await optionsPage.evaluate(() => document.documentElement.style.getPropertyValue('--ui-font-scale')),
+    '1.6',
+  )
+  await optionsPage.locator('#interfaceScale').selectOption('140')
   assert.equal(await optionsPage.locator('#editorFontSize').inputValue(), '18')
   assert.equal(await optionsPage.title(), 'FormulaDock Extension Settings')
-  await optionsPage.getByText('Connect MinerU and choose how formulas are inserted into webpages.').waitFor()
+  await optionsPage.getByText('Connect MinerU and tune the formula workspace for comfortable reading.').waitFor()
   assert.equal(await optionsPage.locator('html').getAttribute('lang'), 'en')
   await optionsPage.screenshot({
     path: path.resolve('artifacts/extension-options.png'),
@@ -179,36 +207,11 @@ try {
   })
   await optionsPage.close()
   await page.bringToFront()
-  await page.getByRole('button', { name: 'Settings', exact: true }).click()
+  await page.getByRole('button', { name: 'Open settings', exact: true }).click()
   await page.locator('.preferences-dialog').waitFor()
   assert.equal(await page.locator('#preferences-title').textContent(), 'Interface settings')
   await page.getByRole('button', { name: 'Close settings' }).click()
   await page.locator('.preferences-dialog').waitFor({ state: 'detached' })
-
-  const targetPage = await context.newPage()
-  await targetPage.goto(targetUrl, { waitUntil: 'domcontentloaded' })
-  await page.bringToFront()
-  await page.locator('.latex-editor').fill('a^2 + b^2')
-  await targetPage.bringToFront()
-  await page.evaluate(() => {
-    document.querySelector('.extension-insert-button')?.click()
-  })
-  const permissionPrompt = page.locator('.extension-permission-prompt')
-  await permissionPrompt.waitFor({ timeout: 10_000 })
-  await permissionPrompt.getByText('Site access is required before inserting a formula.').waitFor()
-  const targetOriginPattern = `${new URL(targetUrl).origin}/*`
-  assert.equal(
-    await page.evaluate(
-      async (origin) => chrome.permissions.contains({ origins: [origin] }),
-      targetOriginPattern,
-    ),
-    false,
-    'The test site should start without optional host access.',
-  )
-  await page.screenshot({
-    path: path.resolve('artifacts/extension-site-access.png'),
-    fullPage: true,
-  })
 
   const migrated = await page.evaluate(() =>
     chrome.storage.local.get([
@@ -236,17 +239,21 @@ try {
         sidepanel: true,
         optionsPage: true,
         storageSettings: true,
+        pageInsertionUiRemoved: true,
         legacySettingsMigration: true,
         englishLocale: true,
-        interfaceScale: 110,
+        interfaceScale: 140,
         editorFontSize: 18,
-        quickCategoryColumns: categoryColumnCount,
-        templateCategoryColumns: templateCategoryColumnCount,
+        quickCategoryColumnsAt480: categoryColumnCount,
+        quickCategoryColumnsAt900: wideCategoryColumnCount,
+        templateCategoryColumnsAt480: templateCategoryColumnCount,
+        templateCategoryColumnsAt900: wideTemplateCategoryColumnCount,
         quickToolHoverPanel: true,
+        categoryClickExpansion: false,
         templateHoverPanel: true,
         settingsAlwaysOpensSimpleDialog: true,
-        siteAccessPrompt: true,
         toolPanelInternalScroll: false,
+        outputInternalScroll: false,
         sidepanelWidth: 480,
         sidepanelOverflow: false,
         screenshots: [
@@ -254,7 +261,6 @@ try {
           'artifacts/extension-template-categories.png',
           'artifacts/extension-template-hover.png',
           'artifacts/extension-options.png',
-          'artifacts/extension-site-access.png',
         ],
       },
       null,
@@ -263,6 +269,5 @@ try {
   )
 } finally {
   await context.close()
-  await new Promise((resolve) => targetServer.close(resolve))
   await fsPromises.rm(profileDir, { recursive: true, force: true }).catch(() => {})
 }

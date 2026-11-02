@@ -4,7 +4,6 @@ import { normaliseFontSize, normaliseInterfaceScale } from '../preferences'
 export const EXTENSION_SETTINGS_KEY = 'formuladock:extension-settings'
 export const LEGACY_EXTENSION_SETTINGS_KEY = 'latexlive-studio:extension-settings'
 
-export type InsertFormat = 'raw' | 'dollar-inline' | 'dollar-display' | 'bracket-display'
 export type MineruModel = 'vlm' | 'pipeline'
 export type MineruLanguage = 'ch' | 'en'
 
@@ -12,7 +11,6 @@ export interface ExtensionSettings {
   mineruToken: string
   modelVersion: MineruModel
   language: MineruLanguage
-  insertFormat: InsertFormat
   uiLocale: UiLocale
   interfaceScale: number
   editorFontSize: number
@@ -22,7 +20,6 @@ export const DEFAULT_EXTENSION_SETTINGS: ExtensionSettings = {
   mineruToken: '',
   modelVersion: 'vlm',
   language: 'ch',
-  insertFormat: 'raw',
   uiLocale: 'zh',
   interfaceScale: 100,
   editorFontSize: 12,
@@ -43,12 +40,6 @@ export function normaliseExtensionSettings(value: unknown): ExtensionSettings {
     mineruToken: typeof candidate.mineruToken === 'string' ? candidate.mineruToken.trim() : '',
     modelVersion: candidate.modelVersion === 'pipeline' ? 'pipeline' : 'vlm',
     language: candidate.language === 'en' ? 'en' : 'ch',
-    insertFormat:
-      candidate.insertFormat === 'dollar-inline' ||
-      candidate.insertFormat === 'dollar-display' ||
-      candidate.insertFormat === 'bracket-display'
-        ? candidate.insertFormat
-        : 'raw',
     uiLocale: candidate.uiLocale === 'en' ? 'en' : 'zh',
     interfaceScale: normaliseInterfaceScale(candidate.interfaceScale),
     editorFontSize: normaliseFontSize(candidate.editorFontSize),

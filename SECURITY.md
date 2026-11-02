@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes are supported for the latest `0.1.x` release and the current default branch.
+Security fixes are supported for the latest `0.4.x` release and the current default branch.
 
 ## Reporting a vulnerability
 
@@ -26,10 +26,9 @@ Do not open a public issue containing:
 
 ## Extension security model
 
-- The extension uses `activeTab` and `scripting` first and requests optional host access only for the exact origin of the active page when insertion requires it.
-- Static `<all_urls>` host access is not requested.
+- The extension does not request access to websites, active tabs, or content scripts.
+- Host permissions are limited to MinerU API, upload, and result-download infrastructure.
 - The side panel is a privileged extension page.
-- The content script receives final text for insertion and does not receive the MinerU token.
 - MinerU API calls, signed uploads, and ZIP downloads are proxied through the extension service worker.
 - Declarative Net Request rules remove `Origin` and `Referer` only for MinerU API, Aliyun upload, and OpenXLab result infrastructure.
 - DNR rules must not be broadened to unrelated websites without security review.

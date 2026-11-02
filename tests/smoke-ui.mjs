@@ -62,23 +62,70 @@ try {
     path: path.join(artifactsDir, 'smoke-quick-tools.png'),
     fullPage: true,
   })
+  assert.equal(await page.locator('.quick-category__body').count(), 0)
+  assert.equal(await page.locator('.quick-category--open').count(), 0)
+  assert.equal(
+    await page.locator('.quick-category__toggle').first().evaluate((element) => element.tagName),
+    'DIV',
+  )
+  await page.locator('.quick-category__toggle').first().click()
   await page.mouse.move(0, 0)
   await quickHoverPanel.waitFor({ state: 'detached' })
-  while ((await page.locator('.quick-category__toggle[aria-expanded="false"]').count()) > 0) {
-    await page.locator('.quick-category__toggle[aria-expanded="false"]').first().click()
+  assert.equal(await page.locator('.quick-category__body').count(), 0)
+  assert.equal(await page.locator('.quick-category--open').count(), 0)
+  const quickKatexErrors = []
+  const quickCategoryCount = await page.locator('.quick-category__toggle').count()
+  for (let index = 0; index < quickCategoryCount; index += 1) {
+    await page.locator('.quick-category__toggle').nth(index).hover()
+    await quickHoverPanel.waitFor({ state: 'visible' })
+    await page.waitForTimeout(60)
+    quickKatexErrors.push(
+      ...(await page.locator('.quick-hover-panel .quick-item:has(.katex-error)').evaluateAll((nodes) =>
+        nodes.map((node) => node.getAttribute('title') || node.textContent || 'unknown quick item'),
+      )),
+    )
   }
-  const quickKatexErrors = await page.locator('.quick-item:has(.katex-error)').evaluateAll((nodes) =>
-    nodes.map((node) => node.getAttribute('title') || node.textContent || 'unknown quick item'),
-  )
   assert.deepEqual(quickKatexErrors, [], `Quick tool KaTeX errors: ${quickKatexErrors.join(' | ')}`)
+  await page.locator('.quick-category__toggle').first().hover()
+  await quickHoverPanel.waitFor({ state: 'visible' })
   await page.locator('button[title^="加 ·"]').first().click()
   assert.ok((await editor.inputValue()).includes('+'), 'Quick tool was not inserted.')
   await page.locator('.preview-math .katex').waitFor()
+  assert.equal(
+    await page.locator('.preview-surface').evaluate((element) => getComputedStyle(element).overflowY),
+    'visible',
+    'The output preview must not create an internal scrollbar.',
+  )
+  const shortPreviewHeight = await page.locator('.preview-surface').evaluate((element) => element.clientHeight)
+  const alignedRows = Array.from({ length: 28 }, (_, index) => `x_{${index + 1}} &= ${index + 1}`).join('\\\\')
+  await editor.fill(`\\begin{aligned}${alignedRows}\\end{aligned}`)
+  await page.locator('.preview-math .katex').waitFor()
+  await page.waitForTimeout(120)
+  const tallPreviewHeight = await page.locator('.preview-surface').evaluate((element) => element.clientHeight)
+  assert.ok(
+    tallPreviewHeight > shortPreviewHeight,
+    `Expected output content to grow the preview (${shortPreviewHeight}px -> ${tallPreviewHeight}px).`,
+  )
+  await editor.fill('x^2')
 
   await page.getByRole('tab', { name: /公式模板/ }).click()
   await page.getByPlaceholder('搜索公式名称、标签或描述').fill('高斯')
   await page.locator('.template-card').filter({ hasText: '高斯积分' }).waitFor()
   await page.getByPlaceholder('搜索公式名称、标签或描述').fill('')
+  assert.equal(await page.locator('.template-category--active').count(), 0)
+  assert.equal(
+    await page.locator('.template-category__toggle').first().evaluate((element) => element.tagName),
+    'DIV',
+  )
+  await page.screenshot({
+    path: path.join(artifactsDir, 'smoke-templates.png'),
+    fullPage: true,
+  })
+  await page.locator('.template-category__toggle').first().click()
+  await page.mouse.move(0, 0)
+  await page.locator('.template-hover-panel').waitFor({ state: 'detached' })
+  assert.equal(await page.locator('.template-category--active').count(), 0)
+  assert.equal(await page.locator('.template-card').count(), 0)
   await page.locator('.template-category__toggle').first().hover()
   const templateHoverPanel = page.locator('.template-hover-panel')
   await templateHoverPanel.waitFor({ state: 'visible' })
@@ -93,19 +140,19 @@ try {
   const templateKatexErrors = []
   const categoryCount = await page.locator('.template-category__toggle').count()
   for (let index = 0; index < categoryCount; index += 1) {
-    await page.locator('.template-category__toggle').nth(index).click()
-    const badTemplates = await page
-      .locator('.template-card:has(.katex-error) .template-card__title')
-      .allTextContents()
-    templateKatexErrors.push(...badTemplates)
+    await page.locator('.template-category__toggle').nth(index).hover()
+    await templateHoverPanel.waitFor({ state: 'visible' })
+    await page.waitForTimeout(60)
+    templateKatexErrors.push(
+      ...(await page
+        .locator('.template-hover-card:has(.katex-error) > strong')
+        .allTextContents()),
+    )
   }
   assert.deepEqual(templateKatexErrors, [], `Template KaTeX errors: ${templateKatexErrors.join(' | ')}`)
-  await page.locator('.template-category__toggle').filter({ hasText: '三角' }).click()
-  await page.screenshot({
-    path: path.join(artifactsDir, 'smoke-templates.png'),
-    fullPage: true,
-  })
-  await page.locator('.template-card').filter({ hasText: '三角平方恒等式' }).click()
+  await page.locator('.template-category__toggle').filter({ hasText: '三角' }).hover()
+  await templateHoverPanel.getByText('三角平方恒等式', { exact: true }).waitFor()
+  await templateHoverPanel.getByText('三角平方恒等式', { exact: true }).click()
   const afterTemplate = await editor.inputValue()
   assert.ok(afterTemplate.includes(String.raw`\sin^2 x+\cos^2 x=1`), 'Template was not inserted.')
 
@@ -126,7 +173,8 @@ try {
   const preferences = page.locator('.preferences-dialog')
   await preferences.waitFor()
   await preferences.locator('select').nth(0).selectOption('en')
-  await preferences.locator('select').nth(1).selectOption('110')
+  assert.equal(await preferences.locator('select').nth(1).locator('option[value="160"]').count(), 1)
+  await preferences.locator('select').nth(1).selectOption('140')
   await preferences.locator('input[type="number"]').fill('18')
   await preferences.locator('.preferences-dialog__footer .button--primary').click()
   await page.getByRole('heading', { name: /Formulas, beyond/ }).waitFor()
@@ -136,17 +184,17 @@ try {
   )
   assert.equal(
     await page.evaluate(() => document.documentElement.style.getPropertyValue('--ui-font-scale')),
-    '1.1',
+    '1.4',
   )
   const interfaceFontSize = await page
     .locator('.tool-tab strong')
     .first()
     .evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))
-  assert.ok(interfaceFontSize > 12, `Expected interface text to scale, got ${interfaceFontSize}px`)
+  assert.ok(interfaceFontSize > 16, `Expected interface text to scale, got ${interfaceFontSize}px`)
   await page.getByRole('button', { name: 'Open settings' }).click()
   const reopenedPreferences = page.locator('.preferences-dialog')
   await reopenedPreferences.waitFor()
-  assert.equal(await reopenedPreferences.locator('select').nth(1).inputValue(), '110')
+  assert.equal(await reopenedPreferences.locator('select').nth(1).inputValue(), '140')
   assert.equal(await reopenedPreferences.locator('input[type="number"]').inputValue(), '18')
   await reopenedPreferences.getByRole('button', { name: 'Cancel', exact: true }).click()
 
@@ -197,13 +245,16 @@ try {
         mobileOverflow: false,
         katexValidation: true,
         searchValidation: true,
+        categoryClickState: false,
         quickToolHoverPanel: true,
         templateHoverPanel: true,
         interfaceSettings: true,
         englishLocale: true,
-        interfaceScale: 110,
+        interfaceScale: 140,
         editorFontSize: true,
         independentInterfaceAndEditorFontSizes: true,
+        previewInternalScroll: false,
+        previewGrowsWithContent: true,
         darkTheme: true,
         screenshots: [
           path.join(artifactsDir, 'smoke-quick-tools.png'),

@@ -1,6 +1,6 @@
 # Privacy Policy
 
-Last updated: 2026-11-02
+Last updated: 2026-11-03
 
 This policy describes the privacy behaviour of the open-source FormulaDock web application and browser extension. A deployer that hosts a public version must adapt this policy with their own identity, contact details, and infrastructure information.
 
@@ -14,13 +14,10 @@ When the user explicitly starts MinerU recognition, the selected image is sent t
 
 The extension stores the MinerU API token in `chrome.storage.local`. The token is read by extension pages and the extension service worker and is sent only to MinerU as an authorization header. It is never sent to page scripts, written to project source, or included in the packaged extension.
 
-### Page insertion
-
-The content script tracks the currently focused editable element and caret in page memory so that the user can insert LaTeX into that page. It does not persist page content or transmit it to the extension developer.
 
 ### Local preferences
 
-The extension stores the MinerU model, OCR language, insertion format, interface language, and editor font size in `chrome.storage.local`. The web application stores theme, interface language, editor font size, and recent-tool preferences in browser local storage.
+The extension stores the MinerU model, OCR language, interface language, interface text size, and editor font size in `chrome.storage.local`. The web application stores theme, interface language, interface text size, editor font size, and recent-tool preferences in browser local storage.
 
 ## Data processed by the self-hosted web application
 
@@ -45,9 +42,6 @@ The open-source project does not include analytics, advertising, telemetry, user
 
 The extension requests permissions only for:
 
-- activating page insertion after an explicit toolbar or keyboard action,
-- reading the active tab URL to identify the exact site for which optional access is requested,
-- requesting optional site access when the current tab was not already authorized,
 - opening and rendering the side panel,
 - storing local settings,
 - contacting the three MinerU infrastructure URL patterns used for API access, signed uploads, and result downloads,

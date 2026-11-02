@@ -20,12 +20,11 @@ assert.equal(manifest.version, packageJson.version, 'Package and extension versi
 assert.equal(manifest.background.service_worker, 'background.js')
 assert.equal(manifest.side_panel.default_path, 'sidepanel.html')
 assert.equal(manifest.options_ui.page, 'options.html')
-assert.ok(manifest.permissions.includes('declarativeNetRequestWithHostAccess'))
-assert.ok(manifest.permissions.includes('activeTab'))
-assert.ok(manifest.permissions.includes('scripting'))
-assert.ok(manifest.permissions.includes('sidePanel'))
-assert.ok(manifest.permissions.includes('storage'))
-assert.ok(manifest.permissions.includes('tabs'))
+assert.deepEqual(
+  [...manifest.permissions].sort(),
+  ['declarativeNetRequestWithHostAccess', 'sidePanel', 'storage'],
+  'Page-insertion permissions must not be present after removing the feature.',
+)
 assert.deepEqual(
   [...manifest.host_permissions].sort(),
   [
@@ -35,20 +34,18 @@ assert.deepEqual(
   ],
   'Extension host permissions must remain limited to the three MinerU infrastructure patterns.',
 )
-assert.deepEqual(
-  [...manifest.optional_host_permissions].sort(),
-  ['http://*/*', 'https://*/*'],
-  'Optional page access must be requested per site.',
-)
+assert.equal(manifest.optional_host_permissions, undefined, 'No optional page access may be requested.')
 assert.ok(!manifest.host_permissions.includes('<all_urls>'))
 const backgroundSource = await fsPromises.readFile(path.join(outputDir, 'background.js'), 'utf8')
 for (const marker of [
   'FORMULADOCK_MINERU_API_REQUEST',
   'FORMULADOCK_MINERU_UPLOAD',
   'FORMULADOCK_MINERU_DOWNLOAD_ZIP',
-  'HOST_PERMISSION_REQUIRED',
 ]) {
   assert.ok(backgroundSource.includes(marker), `Background proxy is missing ${marker}`)
+}
+for (const removedMarker of ['FORMULADOCK_INSERT_TO_PAGE', 'chrome.scripting', 'chrome.tabs']) {
+  assert.ok(!backgroundSource.includes(removedMarker), `Removed page-insertion path is still packaged: ${removedMarker}`)
 }
 
 const requiredFiles = [
@@ -62,7 +59,6 @@ const requiredFiles = [
   'NOTICE',
   'THIRD_PARTY_NOTICES.md',
   'PRIVACY.md',
-  'content/page-agent.js',
   'icons/icon16.png',
   'icons/icon32.png',
   'icons/icon48.png',
@@ -76,7 +72,7 @@ const sidepanelHtml = await fsPromises.readFile(path.join(outputDir, 'sidepanel.
 assert.match(sidepanelHtml, /<script[^>]+src="\/assets\//, 'sidepanel.html must load the built Vite bundle')
 assert.doesNotMatch(sidepanelHtml, /\/src\/main\.tsx/, 'sidepanel.html must not reference Vite source entry')
 
-for (const script of ['background.js', 'options.js', 'content/page-agent.js']) {
+for (const script of ['background.js', 'options.js']) {
   execFileSync(process.execPath, ['--check', path.join(outputDir, script)], { stdio: 'pipe' })
 }
 
@@ -118,6 +114,7 @@ const zipFiles = unzipSync(new Uint8Array(await fsPromises.readFile(zipPath)))
 assert.ok(zipFiles['manifest.json'], 'Zip must contain manifest.json at its root')
 assert.ok(zipFiles['sidepanel.html'], 'Zip must contain sidepanel.html at its root')
 assert.ok(zipFiles['background.js'], 'Zip must contain background.js at its root')
+assert.equal(zipFiles['content/page-agent.js'], undefined, 'Page-agent content script must not be packaged.')
 
 console.log(
   JSON.stringify(

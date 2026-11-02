@@ -13,11 +13,15 @@ const DEFAULT_PREFERENCES: UiPreferences = {
   editorFontSize: 12,
 }
 
+const INTERFACE_SCALE_PRESETS = [90, 100, 110, 140, 160]
+
 export function normaliseInterfaceScale(value: unknown): number {
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) return 100
-  const clamped = Math.min(110, Math.max(90, Math.round(parsed / 10) * 10))
-  return clamped
+  const clamped = Math.min(160, Math.max(90, parsed))
+  return INTERFACE_SCALE_PRESETS.reduce((closest, candidate) =>
+    Math.abs(candidate - clamped) <= Math.abs(closest - clamped) ? candidate : closest,
+  )
 }
 
 export function normaliseFontSize(value: unknown): number {

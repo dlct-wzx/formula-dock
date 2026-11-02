@@ -18,7 +18,6 @@ import { FormulaTemplatesPanel } from './components/FormulaTemplatesPanel'
 import { ImageRecognitionPanel } from './components/ImageRecognitionPanel'
 import { PreviewPanel } from './components/PreviewPanel'
 import { Toast, type ToastState } from './components/Toast'
-import { ExtensionActionBar } from './components/ExtensionActionBar'
 import { PreferencesDialog } from './components/PreferencesDialog'
 import { formulaCategories, formulaTemplateCount } from './data/formulaTemplates'
 import { quickToolCategories, quickToolCount } from './data/quickTools'
@@ -274,14 +273,6 @@ export default function App() {
         </header>
 
         <main className="main-content">
-          {extensionMode && (
-            <ExtensionActionBar
-              latex={latex}
-              settings={extensionSettings}
-              onNotify={notify}
-              onOpenSettings={() => setPreferencesOpen(true)}
-            />
-          )}
 
           {!extensionMode && (
             <section className="hero" aria-labelledby="hero-title">

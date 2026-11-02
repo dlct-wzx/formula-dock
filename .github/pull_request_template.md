@@ -8,7 +8,7 @@ Describe the problem and the implemented change.
 
 - [ ] `npm run verify`
 - [ ] `npm run smoke` when web UI changed
-- [ ] `npm run smoke:extension` when extension UI, manifest, messaging, or insertion changed
+- [ ] `npm run smoke:extension` when extension UI, manifest, messaging, or permissions changed
 - [ ] `npm run smoke:extension:live` when the MinerU network path changed
 
 ## Checklist

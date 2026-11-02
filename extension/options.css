@@ -200,16 +200,7 @@ code {
 }
 .security-note strong { color: var(--warning); font-size: calc(10px * var(--ui-font-scale, 1)); }
 .security-note p { margin: 5px 0 0; color: var(--muted); font-size: calc(9px * var(--ui-font-scale, 1)); line-height: 1.65; }
-.hint-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
-.hint-grid article {
-  padding: 13px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--subtle);
-}
-.hint-grid article > span { color: var(--accent); font-size: calc(8px * var(--ui-font-scale, 1)); font-weight: 800; }
-.hint-grid strong { display: block; margin-top: 7px; color: var(--strong); font-size: calc(10px * var(--ui-font-scale, 1)); }
-.hint-grid p { margin: 5px 0 0; color: var(--faint); font-size: calc(9px * var(--ui-font-scale, 1)); line-height: 1.55; }
+
 
 .settings-actions {
   display: flex;
@@ -281,7 +272,7 @@ code {
   .header-inner, .settings-shell, .page-footer { width: min(100% - 24px, 900px); }
   .settings-shell { padding-top: 30px; }
   .settings-card { padding: 18px; border-radius: 16px; }
-  .field-row, .hint-grid { grid-template-columns: 1fr; }
+  .field-row { grid-template-columns: 1fr; }
   .card-heading { flex-direction: column; gap: 10px; }
   .card-heading a { margin-left: 40px; }
   .settings-actions { align-items: stretch; flex-direction: column; }

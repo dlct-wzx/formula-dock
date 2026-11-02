@@ -82,7 +82,6 @@ try {
           mineruToken,
           modelVersion: 'vlm',
           language: 'ch',
-          insertFormat: 'raw',
           uiLocale: 'en',
           editorFontSize: 16,
         },
@@ -90,7 +89,7 @@ try {
     token,
   )
   await page.reload({ waitUntil: 'networkidle' })
-  await page.getByText('MinerU configured').waitFor()
+  await page.locator('.api-status').filter({ hasText: 'MINERU LIVE' }).waitFor()
 
   const editor = page.locator('.latex-editor')
   await editor.fill(String.raw`x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}`)

@@ -17,14 +17,14 @@
             <small data-i18n="subtitle">浏览器扩展设置</small>
           </span>
         </a>
-        <span class="version-pill">v<span id="version">0.3.1</span></span>
+        <span class="version-pill">v<span id="version">0.4.0</span></span>
       </div>
     </header>
 
     <main class="settings-shell">
       <section class="intro">
         <span class="eyebrow">EXTENSION SETTINGS</span>
-        <h1 data-i18n="introTitle">连接 MinerU，并决定如何把公式插入网页。</h1>
+        <h1 data-i18n="introTitle">连接 MinerU，并为公式工作台设置舒适的界面。</h1>
         <p data-i18n-html="introBody">
           Token 只保存在当前浏览器的 <code>chrome.storage.local</code>，不会写入项目源码，也不会上传到本项目的 Web 服务。
         </p>
@@ -58,9 +58,11 @@
                 <small data-i18n="interfaceScaleHint">调整工具、按钮和说明文字</small>
               </span>
               <select id="interfaceScale" name="interfaceScale">
-                <option value="90" data-i18n="scaleSmall">小</option>
-                <option value="100" data-i18n="scaleStandard">标准</option>
-                <option value="110" data-i18n="scaleLarge">大</option>
+                <option value="90" data-i18n="scaleSmall">小（90%）</option>
+                <option value="100" data-i18n="scaleStandard">标准（100%）</option>
+                <option value="110" data-i18n="scaleComfortable">较大（110%）</option>
+                <option value="140" data-i18n="scaleLarge">大（140%）</option>
+                <option value="160" data-i18n="scaleExtraLarge">特大（160%）</option>
               </select>
             </label>
           </div>
@@ -138,46 +140,6 @@
           </div>
         </section>
 
-        <section class="settings-card">
-          <div class="card-heading">
-            <div>
-              <span class="section-number">03</span>
-              <h2 data-i18n="insertTitle">插入当前网页</h2>
-              <p data-i18n="insertDesc">点击侧边栏中的“插入网页”时，按下面的格式写入当前输入框或可编辑区域。</p>
-            </div>
-          </div>
-
-          <label class="field field--wide">
-            <span class="field-label">
-              <span data-i18n="formatLabel">默认公式包装</span>
-              <small data-i18n="formatHint">可随时在设置中修改</small>
-            </span>
-            <select id="insertFormat" name="insertFormat">
-              <option value="raw" data-i18n="formatRaw">原始 LaTeX：\frac{a}{b}</option>
-              <option value="dollar-inline" data-i18n="formatInline">行内公式：$\frac{a}{b}$</option>
-              <option value="dollar-display" data-i18n="formatDisplay">独立公式：$$\frac{a}{b}$$</option>
-              <option value="bracket-display" data-i18n="formatBracket">独立公式：\[\frac{a}{b}\]</option>
-            </select>
-          </label>
-
-          <div class="hint-grid">
-            <article>
-              <span>01</span>
-              <strong data-i18n="hint1Title">先在网页放置光标</strong>
-              <p data-i18n="hint1Body">支持 textarea、文本 input 和常见 contenteditable 编辑区。</p>
-            </article>
-            <article>
-              <span>02</span>
-              <strong data-i18n="hint2Title">从工具栏打开扩展</strong>
-              <p data-i18n="hint2Body">首次打开会获得当前标签页的临时访问权限。</p>
-            </article>
-            <article>
-              <span>03</span>
-              <strong data-i18n="hint3Title">按 Ctrl+Shift+L</strong>
-              <p data-i18n="hint3Body">也可以随时打开侧边栏。</p>
-            </article>
-          </div>
-        </section>
 
         <section class="settings-actions">
           <div id="status" class="status" role="status" aria-live="polite"></div>

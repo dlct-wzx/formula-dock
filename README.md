@@ -5,7 +5,7 @@
 - **快捷工具**：10 个分类、284 个符号与结构、搜索、最近使用与光标插入。
 - **公式模板**：10 个分类、60 个可检索公式模板、KaTeX 实时预览。
 - **图片识别**：上传、拖拽、剪贴板粘贴，接入 MinerU 精准解析 API。
-- **浏览器扩展**：Manifest V3 侧边栏，可把编辑好的 LaTeX 插入当前网页输入框或 contenteditable 编辑区。
+- **浏览器扩展**：Manifest V3 侧边栏，直接复用快捷工具、公式模板和 MinerU 图片识别。
 
 支持浅色/深色主题和响应式布局。
 
@@ -68,7 +68,7 @@ npm run build:extension
 产物：
 
 - `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/formuladock-extension-v0.3.1.zip`：安装/发布 ZIP。
+- `release/formuladock-extension-v0.4.0.zip`：安装/发布 ZIP。
 
 安装：
 
@@ -77,8 +77,8 @@ npm run build:extension
 3. 点击“加载已解压的扩展程序”。
 4. 选择 `E:\code\LatexLive\extension-dist`。
 5. 打开扩展“设置”，填写 MinerU Token。
-6. 在普通网页的输入框/编辑区放置光标，打开扩展侧边栏。
-7. 编辑公式后点击“插入网页”。
+6. 从工具栏或 `Ctrl+Shift+L` / `Command+Shift+L` 打开侧边栏。
+7. 使用快捷工具、公式模板、公式编辑器或 MinerU 图片识别。
 
 扩展 Token 模式：
 
@@ -93,11 +93,11 @@ npm run build:extension
 
 扩展支持：
 
-- `textarea`
-- `text/search/tel/url/email` input
-- 常见 `contenteditable` 编辑区
+- 快捷工具与公式模板的响应式块状分类
+- 鼠标悬停分类时显示蓝色高亮和内容预览
+- 搜索、最近使用和点击结果插入编辑器光标处
 - `Ctrl+Shift+L` / `Command+Shift+L` 打开侧边栏
-- 首次在某个网站插入时，如当前标签页没有临时访问权限，会提示按站点授权
+- 不请求当前网页访问权限，也不提供网页插入功能
 
 ## 验证
 
@@ -116,7 +116,7 @@ npm run smoke
 
 `npm run smoke` 会自动启动一个隔离的 Mock API 服务，不会使用 `.env.local` 中的真实 MinerU 模式；覆盖 Web 三项核心流程、公式搜索、全部 KaTeX 渲染、深色主题和 390px 移动端布局。
 
-`npm run smoke:extension` 会实际加载 `extension-dist`，验证侧边栏、设置页、Chrome Storage 和 480px 布局，并生成：
+`npm run smoke:extension` 会实际加载 `extension-dist`，验证侧边栏、设置页、Chrome Storage、仅悬停分类、140% 大字号和 480px 布局，并生成：
 
 - `artifacts/extension-sidepanel.png`
 - `artifacts/extension-options.png`
@@ -137,8 +137,7 @@ shared/
   formula-parser.mjs   Node/浏览器共用公式提取器
 extension/
   manifest.json        Manifest V3
-  background.js        侧边栏和网页消息
-  content/             页面光标跟踪与插入
+  background.js        侧边栏与 MinerU 代理
   options.*            扩展设置页
   icons/               PNG 图标
 extension-dist/        生成的可加载扩展
@@ -155,7 +154,7 @@ Agent 协作以 [AGENTS.md](./AGENTS.md) 为准。
 
 ## 当前验证边界
 
-Web 端、扩展侧边栏、设置页、页面插入脚本和扩展打包均已验证。扩展端真实 MinerU OCR 已用一张自动生成的测试公式图完成上传、轮询、ZIP 下载、公式提取和渲染。Chrome Web Store 注册和公开发布仍需要开发者账号、商店截图与隐私政策材料。
+Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真实 MinerU OCR 已用一张自动生成的测试公式图完成上传、轮询、ZIP 下载、公式提取和渲染。Chrome Web Store 注册和公开发布仍需要开发者账号、商店截图与隐私政策材料。
 
 ## 开源与许可证
 
@@ -203,9 +202,6 @@ Web 端、扩展侧边栏、设置页、页面插入脚本和扩展打包均已�
 
 ![公式模板悬停预览](docs/screenshots/extension-template-hover.png)
 
-### 站点访问授权
-
-![站点访问授权](docs/screenshots/extension-site-access.png)
 
 ### 扩展设置
 
@@ -218,6 +214,6 @@ Web 端、扩展侧边栏、设置页、页面插入脚本和扩展打包均已�
 截图中的 MinerU Token 为测试占位值，不包含真实凭据。
 
 
-The 0.3.1 extension fixes repeated Settings entry, site-access insertion, template category layout, and nested tool scrolling. The Settings button now always starts from simple preferences, page insertion can request access to the active site, quick-tool and formula-template categories share responsive block cards, and tool content grows with the page. Interface text scale (90/100/110%) is independent from the 10–24 px LaTeX editor font size.
+FormulaDock 0.4.0 removes the active-page LaTeX insertion feature and its website permissions. Quick-tool and formula-template categories now show their contents only on hover, highlight in blue while active, and no longer expand or stay selected after a click. The output preview grows with its content without an internal scrollbar, and interface text size now supports 90/100/110/140/160% presets independently from the 10–24 px LaTeX editor font size.
 
-快捷工具和公式模板分类都支持鼠标悬停预览，同时保留点击展开或选中行为，兼容键盘和触屏操作。更新已安装的扩展后，需要在扩展管理页重新加载一次，使新增的可选站点权限生效。
+快捷工具和公式模板分类现在只通过鼠标悬停打开内容预览；离开后自动关闭，不保留点击展开或选中状态。需要较大文字时可在设置中选择 140% 或 160%。

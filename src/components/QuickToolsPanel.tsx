@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, Clock3, CornerDownLeft, Search } from 'lucide-react'
+import { Clock3, CornerDownLeft, Search } from 'lucide-react'
 import {
   quickToolCategories,
   quickToolCount,
@@ -34,9 +34,8 @@ function itemCount(category: QuickToolCategory): number {
 
 export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
   const { locale, t } = useI18n()
-  const flyout = useHoverFlyout<HTMLButtonElement>()
+  const flyout = useHoverFlyout<HTMLElement>()
   const [query, setQuery] = useState('')
-  const [openCategories, setOpenCategories] = useState<Set<string>>(() => new Set())
   const [recentIds, setRecentIds] = useState<string[]>([])
 
   useEffect(() => {
@@ -108,15 +107,6 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
     rememberItem(item)
   }
 
-  const toggleCategory = (categoryId: string) => {
-    flyout.closeNow()
-    setOpenCategories((previous) => {
-      const next = new Set(previous)
-      if (next.has(categoryId)) next.delete(categoryId)
-      else next.add(categoryId)
-      return next
-    })
-  }
 
   const flyoutCategory = quickToolCategories.find((category) => category.id === flyout.activeKey)
 
@@ -196,27 +186,19 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
           )}
         </section>
       ) : (
-        <div className="quick-category-grid">
+        <div className="quick-category-grid" role="list">
           {quickToolCategories.map((category, categoryIndex) => {
-            const isOpen = openCategories.has(category.id)
             const localisedCategory = localisedQuickCategory(category, locale)
+            const isHovered = flyout.activeKey === category.id
             return (
               <article
-                className={`quick-category ${isOpen ? 'quick-category--open' : ''}`}
+                className={`quick-category ${isHovered ? 'quick-category--hovered' : ''}`}
                 key={category.id}
+                role="listitem"
+                onMouseEnter={(event) => flyout.open(category.id, event.currentTarget)}
+                onMouseLeave={() => flyout.scheduleClose()}
               >
-                <button
-                  type="button"
-                  className="quick-category__toggle"
-                  onClick={() => toggleCategory(category.id)}
-                  onMouseEnter={(event) => {
-                    if (!isOpen) flyout.open(category.id, event.currentTarget)
-                  }}
-                  onMouseLeave={() => flyout.scheduleClose()}
-                  aria-expanded={isOpen}
-                  aria-controls={`category-panel-${category.id}`}
-                  aria-haspopup="dialog"
-                >
+                <div className="quick-category__toggle">
                   <span className="category-index">
                     {String(categoryIndex + 1).padStart(2, '0')}
                   </span>
@@ -228,43 +210,7 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
                     <small>{localisedCategory.description}</small>
                   </span>
                   <span className="category-count">{itemCount(category)}</span>
-                  <ChevronDown size={17} className="category-chevron" aria-hidden="true" />
-                </button>
-
-                {isOpen && (
-                  <div className="quick-category__body" id={`category-panel-${category.id}`}>
-                    {category.groups.map((group) => (
-                      <section className="quick-group" key={`${category.id}-${group.title}`}>
-                        <div className="quick-group__title">
-                          <span>{localisedQuickGroupTitle(group.title, locale)}</span>
-                          <span>{String(group.items.length).padStart(2, '0')}</span>
-                        </div>
-                        <div className="quick-item-grid">
-                          {group.items.map((item) => (
-                            <button
-                              key={item.id}
-                              type="button"
-                              className="quick-item"
-                              onClick={() => insertItem(item)}
-                              title={`${localisedQuickItemLabel(item, locale)} · ${item.latex}`}
-                            >
-                              <span className="quick-item__math">
-                                <InlineMath latex={item.latex} />
-                              </span>
-                              <span className="quick-item__label">
-                                {localisedQuickItemLabel(item, locale)}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </section>
-                    ))}
-                    <div className="quick-category__footer">
-                      <CornerDownLeft size={14} aria-hidden="true" />
-                      {t('quick.insertHint')}
-                    </div>
-                  </div>
-                )}
+                </div>
               </article>
             )
           })}

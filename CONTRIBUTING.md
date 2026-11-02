@@ -59,7 +59,7 @@ Never place the token in source, test fixtures, terminal output, or screenshots.
 - Keep formula data in `src/data/` and validate KaTeX rendering when adding content.
 - Preserve keyboard accessibility and responsive behaviour.
 - Keep the extension permissions minimal. Permission changes require documentation and tests.
-- Add tests for formula parsing, provider-state mapping, page insertion, or build packaging changes.
+- Add tests for formula parsing, provider-state mapping, category interaction, layout, or build packaging changes.
 - Update `.agents/tasks/backlog.yaml` and relevant verification notes when changing project state.
 - Do not commit generated ZIPs, browser profiles, uploaded images, or secrets.
 - Use Conventional Commit-style messages when practical.

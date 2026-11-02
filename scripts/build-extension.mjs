@@ -54,9 +54,7 @@ for (const file of ['manifest.json', 'background.js', 'options.html', 'options.j
 for (const file of ['LICENSE', 'NOTICE', 'THIRD_PARTY_NOTICES.md', 'PRIVACY.md']) {
   await fsPromises.copyFile(path.join(root, file), path.join(outputDir, file))
 }
-await fsPromises.cp(path.join(extensionDir, 'content'), path.join(outputDir, 'content'), {
-  recursive: true,
-})
+
 await fsPromises.cp(path.join(extensionDir, 'icons'), path.join(outputDir, 'icons'), {
   recursive: true,
 })
