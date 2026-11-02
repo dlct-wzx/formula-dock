@@ -1,0 +1,390 @@
+'use strict'
+
+const CONTENT_SCRIPT = 'content/page-agent.js'
+
+function formatLatex(text, mode) {
+  const value = String(text || '').trim()
+  if (mode === 'dollar-inline') return `$${value}$`
+  if (mode === 'dollar-display') return `$$${value}$$`
+  if (mode === 'bracket-display') return `\\[${value}\\]`
+  return value
+}
+
+async function configureMineruHeaderRules() {
+  const requestHeaders = [
+    { header: 'origin', operation: 'remove' },
+    { header: 'referer', operation: 'remove' },
+  ]
+  const rules = [
+    { id: 9001, urlFilter: '||mineru.net/api/v4/' },
+    { id: 9002, urlFilter: '||aliyuncs.com/' },
+    { id: 9003, urlFilter: '||openxlab.org.cn/' },
+  ].map((rule) => ({
+    id: rule.id,
+    priority: 1,
+    action: { type: 'modifyHeaders', requestHeaders },
+    condition: {
+      urlFilter: rule.urlFilter,
+      resourceTypes: ['xmlhttprequest', 'other'],
+    },
+  }))
+
+  try {
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: [9001, 9002, 9003],
+      addRules: rules,
+    })
+  } catch {
+    // Direct MinerU OCR will report the provider error if header modification fails.
+  }
+}
+
+async function setPanelBehaviour() {
+  try {
+    await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false })
+  } catch {
+    // Older Chromium versions can reject while the side panel is initialising.
+  }
+}
+
+void configureMineruHeaderRules()
+void setPanelBehaviour()
+chrome.runtime.onInstalled.addListener(() => {
+  void configureMineruHeaderRules()
+  void setPanelBehaviour()
+})
+
+async function getActiveTab() {
+  const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true })
+  return tabs[0] || null
+}
+
+function openPanel(tabId) {
+  chrome.sidePanel.open({ tabId }).catch(() => undefined)
+}
+
+async function injectPageAgent(tabId) {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    files: [CONTENT_SCRIPT],
+  })
+}
+
+function isRestrictedUrl(url) {
+  return /^(?:chrome|edge|brave|opera|vivaldi|about|devtools|view-source|chrome-extension|extension):/i.test(
+    url || '',
+  )
+}
+
+async function insertIntoActivePage(text, insertFormat) {
+  const value = formatLatex(text, insertFormat)
+  if (!value) return { ok: false, message: '没有可插入的公式。' }
+  if (value.length > 1024 * 1024) return { ok: false, message: '公式内容过长。' }
+
+  const tab = await getActiveTab()
+  if (!tab?.id) return { ok: false, message: '没有找到当前网页。' }
+  if (isRestrictedUrl(tab.url)) {
+    return {
+      ok: false,
+      message: '浏览器内部页面不允许插入内容，请切换到普通网页后重试。',
+    }
+  }
+  if (tab.url?.startsWith('file://')) {
+    return {
+      ok: false,
+      message: '本地文件页面需要在扩展详情中开启“允许访问文件网址”。',
+    }
+  }
+
+  try {
+    await injectPageAgent(tab.id)
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        '无法访问当前网页。请先点击工具栏中的扩展图标，再在网页编辑区放置光标。',
+      error: error instanceof Error ? error.message : String(error),
+    }
+  }
+
+  try {
+    const result = await chrome.tabs.sendMessage(tab.id, {
+      type: 'LATEX_STUDIO_INSERT_TEXT',
+      text: value,
+    })
+    if (!result?.ok) {
+      return {
+        ok: false,
+        message: result?.message || '当前网页中没有可插入的编辑区域。',
+      }
+    }
+    return result
+  } catch {
+    try {
+      await injectPageAgent(tab.id)
+      return await chrome.tabs.sendMessage(tab.id, {
+        type: 'LATEX_STUDIO_INSERT_TEXT',
+        text: value,
+      })
+    } catch {
+      return {
+        ok: false,
+        message: '无法连接到当前网页。请刷新网页后重新打开扩展。',
+      }
+    }
+  }
+}
+
+async function getStoredMineruToken() {
+  const stored = await chrome.storage.local.get('latexlive-studio:extension-settings')
+  const settings = stored['latexlive-studio:extension-settings']
+  return typeof settings?.mineruToken === 'string' ? settings.mineruToken.trim() : ''
+}
+
+function isAllowedMineruApiPath(pathValue) {
+  return (
+    typeof pathValue === 'string' &&
+    (/^\/file-urls\/batch$/.test(pathValue) ||
+      /^\/extract-results\/batch\/[A-Za-z0-9-]+$/.test(pathValue))
+  )
+}
+
+async function mineruApiRequest(message) {
+  const token = await getStoredMineruToken()
+  if (!token) {
+    return {
+      ok: false,
+      status: 401,
+      payload: { code: 'TOKEN_MISSING', msg: '请在扩展设置中配置 MinerU Token。' },
+    }
+  }
+  if (!isAllowedMineruApiPath(message.path)) {
+    return {
+      ok: false,
+      status: 400,
+      payload: { code: 'INVALID_PATH', msg: '不允许访问该 MinerU API 路径。' },
+    }
+  }
+
+  const method = message.method === 'POST' ? 'POST' : 'GET'
+  try {
+    const response = await fetch(`https://mineru.net/api/v4${message.path}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        ...(message.body ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: message.body ? JSON.stringify(message.body) : undefined,
+    })
+    const text = await response.text()
+    let payload = null
+    try {
+      payload = JSON.parse(text)
+    } catch {
+      payload = null
+    }
+    return {
+      ok: response.ok,
+      status: response.status,
+      payload,
+      error: response.ok ? undefined : text.slice(0, 300),
+    }
+  } catch {
+    return {
+      ok: false,
+      status: 0,
+      payload: { code: 'NETWORK_ERROR', msg: '扩展后台无法连接 MinerU。' },
+    }
+  }
+}
+function isAllowedStorageUrl(value) {
+  try {
+    const url = new URL(value)
+    if (url.protocol !== 'https:') return false
+    const host = url.hostname.toLowerCase()
+    return (
+      host === 'aliyuncs.com' ||
+      host.endsWith('.aliyuncs.com') ||
+      host === 'openxlab.org.cn' ||
+      host.endsWith('.openxlab.org.cn')
+    )
+  } catch {
+    return false
+  }
+}
+
+function base64ToBytes(value) {
+  const binary = atob(value)
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index)
+  }
+  return bytes
+}
+
+function bytesToBase64(bytes) {
+  let binary = ''
+  const chunkSize = 0x8000
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize))
+  }
+  return btoa(binary)
+}
+
+async function uploadMineruFile(message) {
+  if (!isAllowedStorageUrl(message.url)) {
+    return { ok: false, status: 400, error: '上传地址不在允许的 MinerU 存储域名内。' }
+  }
+  try {
+    const bytes = base64ToBytes(String(message.dataBase64 || ''))
+    if (!bytes.length) return { ok: false, status: 400, error: '上传文件为空。' }
+    if (bytes.length > 10 * 1024 * 1024) {
+      return { ok: false, status: 413, error: '图片不能超过 10 MB。' }
+    }
+
+    const response = await fetch(message.url, {
+      method: 'PUT',
+      body: bytes,
+    })
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        error: `图片上传到 MinerU 失败（HTTP ${response.status}）。`,
+      }
+    }
+    return { ok: true, status: response.status }
+  } catch {
+    return { ok: false, status: 0, error: '扩展后台无法上传图片到 MinerU。' }
+  }
+}
+
+async function downloadMineruZip(message) {
+  let host = 'unknown-host'
+  try {
+    host = new URL(message.url).hostname
+  } catch {
+    return { ok: false, status: 400, error: 'MinerU 结果下载地址无效。' }
+  }
+
+  if (!isAllowedStorageUrl(message.url)) {
+    return {
+      ok: false,
+      status: 400,
+      error: `下载地址不在允许的 MinerU 存储域名内（${host}）。`,
+    }
+  }
+
+  const maxBytes = 25 * 1024 * 1024
+  let lastError = '网络错误'
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const response = await fetch(message.url, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(60_000),
+      })
+      if (response.status === 429 || response.status >= 500) {
+        lastError = `HTTP ${response.status}`
+        if (attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)))
+          continue
+        }
+        return { ok: false, status: response.status, error: `下载 MinerU 结果失败（HTTP ${response.status}，${host}）。` }
+      }
+      if (!response.ok) {
+        return { ok: false, status: response.status, error: `下载 MinerU 结果失败（HTTP ${response.status}，${host}）。` }
+      }
+      const contentLength = Number(response.headers.get('content-length') || 0)
+      if (contentLength > maxBytes) {
+        return { ok: false, status: 413, error: 'MinerU 结果文件过大。' }
+      }
+      const buffer = await response.arrayBuffer()
+      if (buffer.byteLength > maxBytes) {
+        return { ok: false, status: 413, error: 'MinerU 结果文件过大。' }
+      }
+      return {
+        ok: true,
+        status: response.status,
+        byteLength: buffer.byteLength,
+        dataBase64: bytesToBase64(new Uint8Array(buffer)),
+      }
+    } catch (error) {
+      lastError =
+        error instanceof Error && error.name === 'TimeoutError'
+          ? '下载超时'
+          : error instanceof Error
+            ? error.message
+            : '网络错误'
+      if (attempt < 2) {
+        await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)))
+      }
+    }
+  }
+
+  return {
+    ok: false,
+    status: 0,
+    error: `扩展后台无法下载 MinerU 结果（${host}）：${lastError}`,
+  }
+}
+chrome.action.onClicked.addListener((tab) => {
+  if (!tab.id) return
+  openPanel(tab.id)
+  injectPageAgent(tab.id).catch(() => undefined)
+})
+
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command !== 'open-formula-panel') return
+  const tab = await getActiveTab()
+  if (!tab?.id) return
+  openPanel(tab.id)
+  injectPageAgent(tab.id).catch(() => undefined)
+})
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === 'LATEX_STUDIO_INSERT_TO_PAGE') {
+    insertIntoActivePage(message.text, message.insertFormat)
+      .then(sendResponse)
+      .catch((error) => {
+        sendResponse({
+          ok: false,
+          message: '插入当前网页失败。',
+          error: error instanceof Error ? error.message : String(error),
+        })
+      })
+    return true
+  }
+
+  if (message?.type === 'LATEX_STUDIO_MINERU_API_REQUEST') {
+    mineruApiRequest(message)
+      .then(sendResponse)
+      .catch(() => {
+        sendResponse({
+          ok: false,
+          status: 0,
+          payload: { code: 'NETWORK_ERROR', msg: '扩展后台请求 MinerU 失败。' },
+        })
+      })
+    return true
+  }
+
+  if (message?.type === 'LATEX_STUDIO_MINERU_UPLOAD') {
+    uploadMineruFile(message).then(sendResponse)
+    return true
+  }
+
+  if (message?.type === 'LATEX_STUDIO_MINERU_DOWNLOAD_ZIP') {
+    downloadMineruZip(message).then(sendResponse)
+    return true
+  }
+
+  if (message?.type === 'LATEX_STUDIO_OPEN_OPTIONS') {
+    chrome.runtime.openOptionsPage()
+    sendResponse({ ok: true })
+    return false
+  }
+
+  return false
+})

@@ -1,0 +1,49 @@
+name: Feature request
+description: Propose a focused improvement to the formula workspace or extension.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Target surface
+      options:
+        - Browser extension
+        - Web application
+        - MinerU integration
+        - Accessibility
+        - Developer tooling
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Explain the user problem rather than only the proposed implementation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: dropdown
+    id: permissions
+    attributes:
+      label: Does this require new browser permissions?
+      options:
+        - "No"
+        - "Yes - described in the proposal"
+        - Unknown
+    validations:
+      required: true

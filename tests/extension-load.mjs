@@ -1,0 +1,115 @@
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import { promises as fsPromises } from 'node:fs'
+import path from 'node:path'
+import { chromium } from 'playwright-core'
+
+const browserCandidates = [
+  process.env.BROWSER_PATH,
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+  'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+].filter(Boolean)
+const executablePath = browserCandidates.find((candidate) => fs.existsSync(candidate))
+assert.ok(executablePath, 'No Edge/Chrome executable found. Set BROWSER_PATH.')
+
+const extensionPath = path.resolve('extension-dist')
+assert.ok(fs.existsSync(path.join(extensionPath, 'manifest.json')), 'Run npm run build:extension first.')
+const profileDir = path.resolve(`artifacts/extension-profile-${Date.now()}`)
+await fsPromises.mkdir(path.dirname(profileDir), { recursive: true })
+
+const headless = process.env.EXTENSION_HEADLESS !== 'false'
+const context = await chromium.launchPersistentContext(profileDir, {
+  headless,
+  executablePath,
+  args: [
+    `--disable-extensions-except=${extensionPath}`,
+    `--load-extension=${extensionPath}`,
+  ],
+})
+
+try {
+  let worker = context.serviceWorkers()[0]
+  if (!worker) worker = await context.waitForEvent('serviceworker', { timeout: 15_000 })
+  const extensionId = new URL(worker.url()).host
+  assert.ok(extensionId, 'Could not resolve extension ID.')
+
+  const page = await context.newPage()
+  await page.setViewportSize({ width: 480, height: 900 })
+  const consoleErrors = []
+  const pageErrors = []
+  page.on('console', (message) => {
+    if (message.type() === 'error') consoleErrors.push(message.text())
+  })
+  page.on('pageerror', (error) => pageErrors.push(error.message))
+
+  await page.goto(`chrome-extension://${extensionId}/sidepanel.html`, {
+    waitUntil: 'networkidle',
+  })
+  await page.locator('.app--extension').waitFor()
+  await page.getByText('把 LaTeX 插入当前网页').waitFor()
+  await page.evaluate(() =>
+    chrome.storage.local.set({
+      'latexlive-studio:extension-settings': {
+        mineruToken: 'extension-smoke-test-token',
+        modelVersion: 'vlm',
+        language: 'ch',
+        insertFormat: 'dollar-inline',
+      },
+    }),
+  )
+  await page.reload({ waitUntil: 'networkidle' })
+  assert.match(await page.locator('.api-status').textContent(), /MINERU LIVE/)
+  await page.getByText('MinerU 已配置').waitFor()
+  const sidepanelOverflow = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    documentWidth: document.documentElement.scrollWidth,
+  }))
+  assert.ok(
+    sidepanelOverflow.documentWidth <= sidepanelOverflow.viewport + 1,
+    `Side panel horizontal overflow: ${sidepanelOverflow.documentWidth}px > ${sidepanelOverflow.viewport}px`,
+  )
+  await page.screenshot({
+    path: path.resolve('artifacts/extension-sidepanel.png'),
+    fullPage: true,
+  })
+
+  const optionsPage = await context.newPage()
+  await optionsPage.goto(`chrome-extension://${extensionId}/options.html`, {
+    waitUntil: 'domcontentloaded',
+  })
+  await optionsPage.locator('#settingsForm').waitFor()
+  assert.equal(await optionsPage.locator('#mineruToken').inputValue(), 'extension-smoke-test-token')
+  await optionsPage.screenshot({
+    path: path.resolve('artifacts/extension-options.png'),
+    fullPage: true,
+  })
+
+  await page.evaluate(() => chrome.storage.local.remove('latexlive-studio:extension-settings'))
+  assert.deepEqual(pageErrors, [], `Page errors: ${pageErrors.join(' | ')}`)
+  assert.deepEqual(consoleErrors, [], `Console errors: ${consoleErrors.join(' | ')}`)
+
+  console.log(
+    JSON.stringify(
+      {
+        status: 'passed',
+        headless,
+        extensionId,
+        sidepanel: true,
+        optionsPage: true,
+        storageSettings: true,
+        sidepanelWidth: 480,
+        sidepanelOverflow: false,
+        screenshots: [
+          'artifacts/extension-sidepanel.png',
+          'artifacts/extension-options.png',
+        ],
+      },
+      null,
+      2,
+    ),
+  )
+} finally {
+  await context.close()
+  await fsPromises.rm(profileDir, { recursive: true, force: true }).catch(() => {})
+}

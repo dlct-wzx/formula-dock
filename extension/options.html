@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>LaTeX Studio 插件设置</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="header-inner">
+        <a class="brand" href="sidepanel.html" aria-label="打开 LaTeX Studio 侧边栏">
+          <img src="icons/icon48.png" width="40" height="40" alt="" />
+          <span>
+            <strong>LaTeX Studio</strong>
+            <small>浏览器扩展设置</small>
+          </span>
+        </a>
+        <span class="version-pill">v<span id="version">0.1.1</span></span>
+      </div>
+    </header>
+
+    <main class="settings-shell">
+      <section class="intro">
+        <span class="eyebrow">EXTENSION SETTINGS</span>
+        <h1>连接 MinerU，并决定如何把公式插入网页。</h1>
+        <p>
+          Token 只保存在当前浏览器的 <code>chrome.storage.local</code>，不会写入项目源码，也不会上传到本项目的 Web 服务。
+        </p>
+      </section>
+
+      <form id="settingsForm" class="settings-form">
+        <section class="settings-card">
+          <div class="card-heading">
+            <div>
+              <span class="section-number">01</span>
+              <h2>MinerU 图片识别</h2>
+              <p>插件直接调用 MinerU 精准解析 API，不依赖本地 Node 服务。</p>
+            </div>
+            <a href="https://mineru.net/apiManage/docs" target="_blank" rel="noreferrer">API 文档 ↗</a>
+          </div>
+
+          <label class="field field--wide">
+            <span class="field-label">
+              API Token
+              <small>必填，保存在本机扩展存储中</small>
+            </span>
+            <span class="token-control">
+              <input
+                id="mineruToken"
+                name="mineruToken"
+                type="password"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="粘贴 MinerU API Token"
+              />
+              <button id="toggleToken" type="button" class="inline-button">显示</button>
+            </span>
+          </label>
+
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label">
+                模型
+                <small>图片公式推荐 VLM</small>
+              </span>
+              <select id="modelVersion" name="modelVersion">
+                <option value="vlm">MinerU VLM（推荐）</option>
+                <option value="pipeline">MinerU Pipeline</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="field-label">
+                语言
+                <small>影响中文/英文 OCR</small>
+              </span>
+              <select id="language" name="language">
+                <option value="ch">中文 + English</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="security-note">
+            <strong>安全边界</strong>
+            <p>
+              Token 可以读取扩展存储或被扩展内部脚本使用。此模式适合个人/内部安装；若发布给不受信任的公开用户，应改为由你的后端保管 Token。
+            </p>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="card-heading">
+            <div>
+              <span class="section-number">02</span>
+              <h2>插入当前网页</h2>
+              <p>点击侧边栏中的“插入网页”时，按下面的格式写入当前输入框或可编辑区域。</p>
+            </div>
+          </div>
+
+          <label class="field field--wide">
+            <span class="field-label">
+              默认公式包装
+              <small>可随时在设置中修改</small>
+            </span>
+            <select id="insertFormat" name="insertFormat">
+              <option value="raw">原始 LaTeX：\frac{a}{b}</option>
+              <option value="dollar-inline">行内公式：$\frac{a}{b}$</option>
+              <option value="dollar-display">独立公式：$$\frac{a}{b}$$</option>
+              <option value="bracket-display">独立公式：\[\frac{a}{b}\]</option>
+            </select>
+          </label>
+
+          <div class="hint-grid">
+            <article>
+              <span>01</span>
+              <strong>先在网页放置光标</strong>
+              <p>支持 textarea、文本 input 和常见 contenteditable 编辑区。</p>
+            </article>
+            <article>
+              <span>02</span>
+              <strong>从工具栏打开扩展</strong>
+              <p>首次打开会获得当前标签页的临时访问权限。</p>
+            </article>
+            <article>
+              <span>03</span>
+              <strong>按 Ctrl+Shift+L</strong>
+              <p>也可以随时打开侧边栏。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="settings-actions">
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+          <div class="action-buttons">
+            <button id="testButton" type="button" class="button button--secondary">测试 Token</button>
+            <button id="saveButton" type="submit" class="button button--primary">保存设置</button>
+          </div>
+        </section>
+      </form>
+    </main>
+
+    <footer class="page-footer">
+      <span>LaTeX Studio</span>
+      <span>Manifest V3 · Chrome / Edge 116+</span>
+    </footer>
+
+    <script src="options.js"></script>
+  </body>
+</html>

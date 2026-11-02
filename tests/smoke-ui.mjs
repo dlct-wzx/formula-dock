@@ -1,0 +1,177 @@
+import assert from 'node:assert/strict'
+import fs from 'node:fs'
+import { promises as fsPromises } from 'node:fs'
+import path from 'node:path'
+import { chromium } from 'playwright-core'
+
+const BASE_URL = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:8787'
+const candidates = [
+  process.env.BROWSER_PATH,
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+  'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+].filter(Boolean)
+
+const executablePath = candidates.find((candidate) => fs.existsSync(candidate))
+assert.ok(executablePath, 'No Edge/Chrome executable found. Set BROWSER_PATH.')
+
+const artifactsDir = path.resolve('artifacts')
+await fsPromises.mkdir(artifactsDir, { recursive: true })
+
+const png = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+  'base64',
+)
+
+const browser = await chromium.launch({ headless: true, executablePath })
+const context = await browser.newContext({
+  viewport: { width: 1440, height: 1100 },
+  deviceScaleFactor: 1,
+})
+const page = await context.newPage()
+const consoleErrors = []
+const pageErrors = []
+const failedResponses = []
+
+page.on('console', (message) => {
+  if (message.type() !== 'error') return
+  const location = message.location()
+  consoleErrors.push(`${message.text()} @ ${location.url || 'unknown'}:${location.lineNumber ?? 0}`)
+})
+page.on('pageerror', (error) => pageErrors.push(error.message))
+page.on('response', (response) => {
+  if (response.status() >= 400) failedResponses.push(`${response.status()} ${response.url()}`)
+})
+
+const editor = page.locator('textarea[aria-label="LaTeX 源码编辑器"]')
+
+try {
+  await page.goto(BASE_URL, { waitUntil: 'networkidle' })
+  await page.getByRole('heading', { name: /公式，不止于/ }).waitFor()
+
+  await page.getByRole('tab', { name: /快捷工具/ }).click()
+  await page.getByPlaceholder('搜索符号、名称或 LaTeX 命令').fill('积分')
+  await page.locator('.quick-search-results .quick-item').first().waitFor()
+  await page.getByPlaceholder('搜索符号、名称或 LaTeX 命令').fill('')
+  await page.screenshot({
+    path: path.join(artifactsDir, 'smoke-quick-tools.png'),
+    fullPage: true,
+  })
+  while ((await page.locator('.quick-category__toggle[aria-expanded="false"]').count()) > 0) {
+    await page.locator('.quick-category__toggle[aria-expanded="false"]').first().click()
+  }
+  const quickKatexErrors = await page.locator('.quick-item:has(.katex-error)').evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute('title') || node.textContent || 'unknown quick item'),
+  )
+  assert.deepEqual(quickKatexErrors, [], `Quick tool KaTeX errors: ${quickKatexErrors.join(' | ')}`)
+  await page.locator('button[title^="加 ·"]').first().click()
+  assert.ok((await editor.inputValue()).includes('+'), 'Quick tool was not inserted.')
+  await page.locator('.preview-math .katex').waitFor()
+
+  await page.getByRole('tab', { name: /公式模板/ }).click()
+  await page.getByPlaceholder('搜索公式名称、标签或描述').fill('高斯')
+  await page.locator('.template-card').filter({ hasText: '高斯积分' }).waitFor()
+  await page.getByPlaceholder('搜索公式名称、标签或描述').fill('')
+  const templateKatexErrors = []
+  const categoryCount = await page.locator('.template-category-chip').count()
+  for (let index = 0; index < categoryCount; index += 1) {
+    await page.locator('.template-category-chip').nth(index).click()
+    const badTemplates = await page
+      .locator('.template-card:has(.katex-error) .template-card__title')
+      .allTextContents()
+    templateKatexErrors.push(...badTemplates)
+  }
+  assert.deepEqual(templateKatexErrors, [], `Template KaTeX errors: ${templateKatexErrors.join(' | ')}`)
+  await page.locator('.template-category-chip').filter({ hasText: '三角' }).click()
+  await page.screenshot({
+    path: path.join(artifactsDir, 'smoke-templates.png'),
+    fullPage: true,
+  })
+  await page.locator('.template-card').filter({ hasText: '三角平方恒等式' }).click()
+  const afterTemplate = await editor.inputValue()
+  assert.ok(afterTemplate.includes(String.raw`\sin^2 x+\cos^2 x=1`), 'Template was not inserted.')
+
+  await page.getByRole('tab', { name: /图片识别/ }).click()
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'formula-mock.png',
+    mimeType: 'image/png',
+    buffer: png,
+  })
+  await page.getByRole('button', { name: '开始识别', exact: true }).click()
+  await page.locator('.ocr-results').waitFor({ state: 'visible', timeout: 10_000 })
+  const resultCards = page.locator('.ocr-formula-card')
+  assert.ok((await resultCards.count()) >= 1, 'Mock OCR returned no formulas.')
+  await resultCards.first().getByRole('button', { name: '插入', exact: true }).click()
+  assert.ok((await editor.inputValue()).includes(String.raw`\int_{-\infty}`), 'OCR result was not inserted.')
+
+  await page.screenshot({
+    path: path.join(artifactsDir, 'smoke-desktop.png'),
+    fullPage: true,
+  })
+
+  await page.locator('.theme-button').click()
+  assert.equal(
+    await page.locator('html').getAttribute('data-theme'),
+    'dark',
+    'Theme toggle did not enable dark mode.',
+  )
+  await page.waitForTimeout(250)
+  await page.screenshot({
+    path: path.join(artifactsDir, 'smoke-dark.png'),
+    fullPage: true,
+  })
+  await page.locator('.theme-button').click()
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(BASE_URL, { waitUntil: 'networkidle' })
+  await page.getByRole('heading', { name: /公式，不止于/ }).waitFor()
+  const overflow = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    documentWidth: document.documentElement.scrollWidth,
+  }))
+  assert.ok(
+    overflow.documentWidth <= overflow.viewport + 1,
+    `Mobile horizontal overflow: ${overflow.documentWidth}px > ${overflow.viewport}px`,
+  )
+  await page.screenshot({
+    path: path.join(artifactsDir, 'smoke-mobile.png'),
+    fullPage: true,
+  })
+
+  assert.deepEqual(pageErrors, [], `Page errors: ${pageErrors.join(' | ')}`)
+  assert.deepEqual(consoleErrors, [], `Console errors: ${consoleErrors.join(' | ')}`)
+
+  console.log(
+    JSON.stringify(
+      {
+        status: 'passed',
+        quickToolInsertion: true,
+        templateInsertion: true,
+        mockOcrInsertion: true,
+        mobileOverflow: false,
+        katexValidation: true,
+        searchValidation: true,
+        darkTheme: true,
+        screenshots: [
+          path.join(artifactsDir, 'smoke-quick-tools.png'),
+          path.join(artifactsDir, 'smoke-templates.png'),
+          path.join(artifactsDir, 'smoke-desktop.png'),
+          path.join(artifactsDir, 'smoke-dark.png'),
+          path.join(artifactsDir, 'smoke-mobile.png'),
+        ],
+      },
+      null,
+      2,
+    ),
+  )
+} catch (error) {
+  await page.screenshot({
+    path: path.join(artifactsDir, 'smoke-failure.png'),
+    fullPage: true,
+  }).catch(() => {})
+  console.error(error)
+  console.error({ consoleErrors, pageErrors, failedResponses })
+  process.exitCode = 1
+} finally {
+  await browser.close()
+}

@@ -1,0 +1,57 @@
+{
+  "name": "latexlive-studio",
+  "private": true,
+  "version": "0.1.1",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"node server/index.mjs\"",
+    "dev:client": "vite",
+    "dev:server": "node server/index.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/copy-legal-files.mjs",
+    "preview": "vite preview",
+    "check": "tsc --noEmit",
+    "test": "node --test server/*.test.mjs tests/*.test.mjs",
+    "verify": "npm run check && npm test && npm run build:extension && npm run verify:extension && npm run verify:agents",
+    "verify:agents": "node scripts/verify-agent-files.mjs",
+    "smoke": "node scripts/run-web-smoke.mjs",
+    "start": "node server/index.mjs",
+    "generate:icons": "node scripts/generate-extension-icons.mjs",
+    "build:extension": "tsc --noEmit && vite build && node scripts/copy-legal-files.mjs && node scripts/build-extension.mjs",
+    "verify:extension": "node scripts/verify-extension.mjs",
+    "package:extension": "npm run build:extension",
+    "smoke:extension": "node tests/extension-load.mjs",
+    "smoke:extension:live": "node tests/extension-mineru-live.mjs",
+    "smoke:ui": "node tests/smoke-ui.mjs"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "katex": "^0.19.1",
+    "lucide-react": "^1.66.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "@types/katex": "^0.16.8",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.0",
+    "concurrently": "^10.0.6",
+    "playwright-core": "^1.64.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  },
+  "license": "Apache-2.0",
+  "author": "LaTeX Studio contributors",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "keywords": [
+    "latex",
+    "katex",
+    "browser-extension",
+    "mineru",
+    "formula-editor"
+  ]
+}
