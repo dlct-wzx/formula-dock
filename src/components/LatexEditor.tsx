@@ -5,6 +5,7 @@ import {
   type ChangeEvent,
   type KeyboardEvent,
 } from 'react'
+import { useI18n } from '../i18n/I18nContext'
 
 export interface LatexEditorHandle {
   insertText: (text: string, cursorBack?: number) => void
@@ -14,10 +15,12 @@ export interface LatexEditorHandle {
 interface LatexEditorProps {
   value: string
   onChange: (value: string) => void
+  fontSize: number
 }
 
 export const LatexEditor = forwardRef<LatexEditorHandle, LatexEditorProps>(
-  function LatexEditor({ value, onChange }, ref) {
+  function LatexEditor({ value, onChange, fontSize }, ref) {
+    const { t } = useI18n()
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     const insertText = (text: string, cursorBack = 0) => {
@@ -65,11 +68,12 @@ export const LatexEditor = forwardRef<LatexEditorHandle, LatexEditorProps>(
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={String.raw`在此输入 LaTeX，例如：\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}`}
+          placeholder={t('editor.placeholder')}
           spellCheck={false}
           autoCapitalize="off"
           autoCorrect="off"
-          aria-label="LaTeX 源码编辑器"
+          aria-label={t('editor.aria')}
+          style={{ fontSize: `${fontSize}px` }}
         />
         <div className="editor-meta" aria-hidden="true">
           <span>LaTeX / UTF-8</span>

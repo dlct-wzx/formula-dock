@@ -7,6 +7,12 @@ import {
   type QuickToolItem,
 } from '../data/quickTools'
 import { InlineMath } from './MathMarkup'
+import { useI18n } from '../i18n/I18nContext'
+import {
+  localisedQuickCategory,
+  localisedQuickGroupTitle,
+  localisedQuickItemLabel,
+} from '../i18n/content'
 
 interface QuickToolsPanelProps {
   onInsert: (latex: string, cursorBack?: number) => void
@@ -26,10 +32,9 @@ function itemCount(category: QuickToolCategory): number {
 }
 
 export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
+  const { locale, t } = useI18n()
   const [query, setQuery] = useState('')
-  const [openCategories, setOpenCategories] = useState<Set<string>>(
-    () => new Set(['common']),
-  )
+  const [openCategories, setOpenCategories] = useState<Set<string>>(() => new Set())
   const [recentIds, setRecentIds] = useState<string[]>([])
 
   useEffect(() => {
@@ -58,7 +63,13 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
   )
 
   const itemById = useMemo(
-    () => new Map(indexedItems.map(({ item, category, groupTitle }) => [item.id, { item, category, groupTitle }])),
+    () =>
+      new Map(
+        indexedItems.map(({ item, category, groupTitle }) => [
+          item.id,
+          { item, category, groupTitle },
+        ]),
+      ),
     [indexedItems],
   )
 
@@ -71,10 +82,14 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
   const searchResults = useMemo(() => {
     if (!normalisedQuery) return []
     return indexedItems.filter(({ item, category, groupTitle }) => {
-      const haystack = `${item.label} ${item.latex} ${category.title} ${groupTitle}`.toLowerCase()
+      const localisedCategory = localisedQuickCategory(category, locale)
+      const localisedGroup = localisedQuickGroupTitle(groupTitle, locale)
+      const localisedLabel = localisedQuickItemLabel(item, locale)
+      const haystack =
+        `${item.label} ${localisedLabel} ${item.latex} ${category.title} ${localisedCategory.title} ${groupTitle} ${localisedGroup}`.toLowerCase()
       return haystack.includes(normalisedQuery)
     })
-  }, [indexedItems, normalisedQuery])
+  }, [indexedItems, locale, normalisedQuery])
 
   const rememberItem = (item: QuickToolItem) => {
     const next = [item.id, ...recentIds.filter((id) => id !== item.id)].slice(0, 12)
@@ -105,23 +120,23 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
       <div className="panel-search-row">
         <label className="search-field">
           <Search size={16} aria-hidden="true" />
-          <span className="sr-only">搜索快捷工具</span>
+          <span className="sr-only">{t('quick.searchAria')}</span>
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="搜索符号、名称或 LaTeX 命令"
+            placeholder={t('quick.searchPlaceholder')}
           />
           {query && <kbd>{searchResults.length}</kbd>}
         </label>
-        <span className="panel-count">{quickToolCount} 个工具</span>
+        <span className="panel-count">{t('quick.count', { count: quickToolCount })}</span>
       </div>
 
       {recentItems.length > 0 && !normalisedQuery && (
         <section className="recent-strip" aria-labelledby="recent-tools-title">
           <div className="section-kicker" id="recent-tools-title">
             <Clock3 size={14} aria-hidden="true" />
-            最近使用
+            {t('quick.recent')}
           </div>
           <div className="recent-items">
             {recentItems.map(({ item }) => (
@@ -130,10 +145,10 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
                 type="button"
                 className="recent-item"
                 onClick={() => insertItem(item)}
-                title={`${item.label} · ${item.latex}`}
+                title={`${localisedQuickItemLabel(item, locale)} · ${item.latex}`}
               >
                 <InlineMath latex={item.latex} />
-                <span>{item.label}</span>
+                <span>{localisedQuickItemLabel(item, locale)}</span>
               </button>
             ))}
           </div>
@@ -144,10 +159,10 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
         <section className="quick-search-results" aria-live="polite">
           <div className="section-heading">
             <div>
-              <span className="section-kicker">搜索结果</span>
+              <span className="section-kicker">{t('quick.results')}</span>
               <h3>“{query.trim()}”</h3>
             </div>
-            <span className="section-note">点击任意符号插入光标位置</span>
+            <span className="section-note">{t('quick.clickInsert')}</span>
           </div>
           {searchResults.length > 0 ? (
             <div className="quick-item-grid quick-item-grid--search">
@@ -157,19 +172,21 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
                   type="button"
                   className="quick-item"
                   onClick={() => insertItem(item)}
-                  title={`${item.label} · ${category.title} / ${groupTitle} · ${item.latex}`}
+                  title={`${localisedQuickItemLabel(item, locale)} · ${localisedQuickCategory(category, locale).title} / ${localisedQuickGroupTitle(groupTitle, locale)} · ${item.latex}`}
                 >
                   <span className="quick-item__math">
                     <InlineMath latex={item.latex} />
                   </span>
-                  <span className="quick-item__label">{item.label}</span>
+                  <span className="quick-item__label">
+                    {localisedQuickItemLabel(item, locale)}
+                  </span>
                 </button>
               ))}
             </div>
           ) : (
             <div className="empty-state empty-state--compact">
               <Search size={24} aria-hidden="true" />
-              <p>没有找到匹配的快捷工具，试试“积分”或 “\alpha”。</p>
+              <p>{t('quick.noResults')}</p>
             </div>
           )}
         </section>
@@ -177,6 +194,7 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
         <div className="quick-category-grid">
           {quickToolCategories.map((category, categoryIndex) => {
             const isOpen = openCategories.has(category.id)
+            const localisedCategory = localisedQuickCategory(category, locale)
             return (
               <article
                 className={`quick-category ${isOpen ? 'quick-category--open' : ''}`}
@@ -189,13 +207,15 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
                   aria-expanded={isOpen}
                   aria-controls={`category-panel-${category.id}`}
                 >
-                  <span className="category-index">{String(categoryIndex + 1).padStart(2, '0')}</span>
+                  <span className="category-index">
+                    {String(categoryIndex + 1).padStart(2, '0')}
+                  </span>
                   <span className="category-symbol" aria-hidden="true">
                     {category.symbol}
                   </span>
                   <span className="category-copy">
-                    <strong>{category.title}</strong>
-                    <small>{category.description}</small>
+                    <strong>{localisedCategory.title}</strong>
+                    <small>{localisedCategory.description}</small>
                   </span>
                   <span className="category-count">{itemCount(category)}</span>
                   <ChevronDown size={17} className="category-chevron" aria-hidden="true" />
@@ -206,7 +226,7 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
                     {category.groups.map((group) => (
                       <section className="quick-group" key={`${category.id}-${group.title}`}>
                         <div className="quick-group__title">
-                          <span>{group.title}</span>
+                          <span>{localisedQuickGroupTitle(group.title, locale)}</span>
                           <span>{String(group.items.length).padStart(2, '0')}</span>
                         </div>
                         <div className="quick-item-grid">
@@ -216,12 +236,14 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
                               type="button"
                               className="quick-item"
                               onClick={() => insertItem(item)}
-                              title={`${item.label} · ${item.latex}`}
+                              title={`${localisedQuickItemLabel(item, locale)} · ${item.latex}`}
                             >
                               <span className="quick-item__math">
                                 <InlineMath latex={item.latex} />
                               </span>
-                              <span className="quick-item__label">{item.label}</span>
+                              <span className="quick-item__label">
+                                {localisedQuickItemLabel(item, locale)}
+                              </span>
                             </button>
                           ))}
                         </div>
@@ -229,7 +251,7 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
                     ))}
                     <div className="quick-category__footer">
                       <CornerDownLeft size={14} aria-hidden="true" />
-                      插入到当前光标位置，支持随后继续编辑
+                      {t('quick.insertHint')}
                     </div>
                   </div>
                 )}

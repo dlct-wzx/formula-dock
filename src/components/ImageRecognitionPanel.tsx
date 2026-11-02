@@ -29,6 +29,8 @@ import { recogniseImageWithMineruDirect } from '../lib/extension/ocr'
 import type { ExtensionSettings } from '../lib/extension/settings'
 import type { OcrFormula, OcrResponse, OcrStatus, ToastTone } from '../types'
 import { DisplayMath } from './MathMarkup'
+import { useI18n } from '../i18n/I18nContext'
+import type { MessageKey } from '../i18n/messages'
 
 interface ImageRecognitionPanelProps {
   mineruMode?: 'mock' | 'live'
@@ -42,13 +44,13 @@ interface ImageRecognitionPanelProps {
 const ACCEPTED_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 const MAX_BYTES = 10 * 1024 * 1024
 
-const STATUS_COPY: Record<OcrStatus, string> = {
-  idle: '等待识别',
-  uploading: '正在上传图片',
-  pending: '已进入 MinerU 队列',
-  processing: 'MinerU 正在解析公式',
-  done: '识别完成',
-  error: '识别失败',
+const STATUS_KEYS: Record<OcrStatus, MessageKey> = {
+  idle: 'ocr.status.idle',
+  uploading: 'ocr.status.uploading',
+  pending: 'ocr.status.pending',
+  processing: 'ocr.status.processing',
+  done: 'ocr.status.done',
+  error: 'ocr.status.error',
 }
 
 function wait(ms: number, signal: AbortSignal): Promise<void> {
@@ -81,6 +83,7 @@ export function ImageRecognitionPanel({
   onInsert,
   onNotify,
 }: ImageRecognitionPanelProps) {
+  const { locale, t } = useI18n()
   const inputId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -94,7 +97,7 @@ export function ImageRecognitionPanel({
   const [mode, setMode] = useState<'mock' | 'live' | undefined>(mineruMode)
 
   const busy = status === 'uploading' || status === 'pending' || status === 'processing'
-  const statusLabel = useMemo(() => STATUS_COPY[status], [status])
+  const statusLabel = useMemo(() => t(STATUS_KEYS[status]), [status, t])
 
   useEffect(() => {
     if (!file) {
@@ -132,11 +135,11 @@ export function ImageRecognitionPanel({
   const selectFile = useCallback(
     (nextFile: File) => {
       if (!ACCEPTED_TYPES.has(nextFile.type)) {
-        onNotify('仅支持 PNG、JPEG 和 WebP 图片。', 'error')
+        onNotify(t('ocr.invalidType'), 'error')
         return
       }
       if (nextFile.size > MAX_BYTES) {
-        onNotify('图片不能超过 10 MB。', 'error')
+        onNotify(t('ocr.tooLarge'), 'error')
         return
       }
 
@@ -210,9 +213,9 @@ export function ImageRecognitionPanel({
 
     try {
       if (extensionMode) {
-        if (!extensionSettings) throw new Error('插件设置正在加载，请稍后再试。')
+        if (!extensionSettings) throw new Error(t('ocr.settingsLoading'))
         if (!extensionSettings.mineruToken) {
-          throw new Error('请先在插件设置中配置 MinerU Token，再识别图片。')
+          throw new Error(t('ocr.tokenRequired'))
         }
 
         setMode('live')
@@ -222,7 +225,13 @@ export function ImageRecognitionPanel({
           controller.signal,
           (progress) => {
             setStatus(progress.state)
-            setMessage(progress.message)
+            setMessage(
+              progress.state === 'uploading'
+                ? t('ocr.uploadingMessage')
+                : progress.state === 'pending'
+                  ? t('ocr.pendingMessage')
+                  : t('ocr.processingGeneric'),
+            )
           },
         )
         setMode(payload.mode || 'live')
@@ -230,7 +239,7 @@ export function ImageRecognitionPanel({
         setMessage(
           payload.message ||
             (payload.formulas?.length
-              ? `已提取 ${payload.formulas.length} 个公式，可插入编辑器或复制源码。`
+              ? t('ocr.extractedCount', { count: payload.formulas.length })
               : ''),
         )
         setStatus('done')
@@ -248,7 +257,7 @@ export function ImageRecognitionPanel({
       })
       const payload = await readResponse(response)
       if (!response.ok || payload.error) {
-        throw new Error(payload.error || `识别请求失败（HTTP ${response.status}）。`)
+        throw new Error(payload.error || t('ocr.requestFailed', { status: response.status }))
       }
 
       setMode(payload.mode || mineruMode)
@@ -256,21 +265,21 @@ export function ImageRecognitionPanel({
       if (payload.formulas?.length) {
         setFormulas(payload.formulas)
         setMessage(
-          payload.message || `已提取 ${payload.formulas.length} 个公式，可插入编辑器或复制源码。`,
+          payload.message || t('ocr.extractedCount', { count: payload.formulas.length }),
         )
         setStatus('done')
         return
       }
 
       if (!payload.taskId) {
-        throw new Error('识别服务没有返回任务 ID。')
+        throw new Error(t('ocr.taskMissing'))
       }
 
       setStatus(payload.state === 'processing' ? 'processing' : 'pending')
       setMessage(
         payload.mode === 'live'
-          ? '图片已上传至 MinerU，正在等待解析结果。通常需要数秒到数十秒。'
-          : '正在生成识别结果。',
+          ? t('ocr.waitingLive')
+          : t('ocr.generating'),
       )
 
       const startedAt = Date.now()
@@ -284,13 +293,18 @@ export function ImageRecognitionPanel({
         })
         const pollPayload = await readResponse(pollResponse)
         if (!pollResponse.ok || pollPayload.error) {
-          throw new Error(pollPayload.error || `查询识别结果失败（HTTP ${pollResponse.status}）。`)
+          throw new Error(
+            pollPayload.error || t('ocr.pollFailed', { status: pollResponse.status }),
+          )
         }
 
         setMode(pollPayload.mode || 'live')
         if (pollPayload.progress?.totalPages) {
           setMessage(
-            `正在解析第 ${pollPayload.progress.extractedPages || 0} / ${pollPayload.progress.totalPages} 页。`,
+            t('ocr.parsingPages', {
+              page: pollPayload.progress.extractedPages || 0,
+              total: pollPayload.progress.totalPages,
+            }),
           )
         }
 
@@ -299,22 +313,26 @@ export function ImageRecognitionPanel({
           setMessage(
             pollPayload.message ||
               (pollPayload.formulas?.length
-                ? `已提取 ${pollPayload.formulas.length} 个公式，可插入编辑器或复制源码。`
+                ? t('ocr.extractedCount', { count: pollPayload.formulas.length })
                 : ''),
           )
           setStatus('done')
           return
         }
         if (pollPayload.state === 'failed') {
-          throw new Error(pollPayload.message || pollPayload.error || 'MinerU 解析失败。')
+          throw new Error(pollPayload.message || pollPayload.error || t('ocr.parseFailed'))
         }
         setStatus(pollPayload.state === 'processing' ? 'processing' : 'pending')
       }
 
-      throw new Error('识别等待超时，请重试或稍后在 MinerU 控制台检查任务。')
+      throw new Error(t('ocr.timeout'))
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return
-      const errorMessage = error instanceof Error ? error.message : '图片识别失败。'
+      const rawMessage = error instanceof Error ? error.message : ''
+      const errorMessage =
+        locale === 'en' && (!rawMessage || /[\u3400-\u9fff]/.test(rawMessage))
+          ? t('ocr.failure')
+          : rawMessage || t('ocr.failure')
       setStatus('error')
       setMessage(errorMessage)
       onNotify(errorMessage, 'error')
@@ -324,9 +342,9 @@ export function ImageRecognitionPanel({
   const copyFormula = async (latex: string) => {
     try {
       await navigator.clipboard.writeText(latex)
-      onNotify('LaTeX 已复制到剪贴板。', 'success')
+      onNotify(t('ocr.copied'), 'success')
     } catch {
-      onNotify('浏览器未允许写入剪贴板。', 'error')
+      onNotify(t('ocr.clipboardDenied'), 'error')
     }
   }
 
@@ -341,23 +359,23 @@ export function ImageRecognitionPanel({
         <div>
           <span className="section-kicker">
             <ScanLine size={14} aria-hidden="true" />
-            MinerU 图片识别
+            {t('ocr.kicker')}
           </span>
-          <h3>截图、拖拽或粘贴一个公式</h3>
+          <h3>{t('ocr.title')}</h3>
         </div>
         <div className="ocr-mode-stack">
           <span className={`mode-badge ${mode === 'live' ? 'mode-badge--live' : ''}`}>
             {extensionMode && !mineruConfigured
-              ? 'SETUP REQUIRED'
+              ? t('ocr.modeSetup')
               : mode === 'live'
                 ? extensionMode
-                  ? 'EXTENSION LIVE'
-                  : 'LIVE API'
-                : 'LOCAL MOCK'}
+                  ? t('ocr.modeExtensionLive')
+                  : t('ocr.modeLive')
+                : t('ocr.modeMock')}
           </span>
           {mineruConfigured === false && mineruMode === 'mock' && (
             <span className="mode-hint">
-              {extensionMode ? '在插件设置中配置 MinerU Token' : '配置 Token 后切换真实识别'}
+              {extensionMode ? t('ocr.configureTokenExtension') : t('ocr.configureToken')}
             </span>
           )}
         </div>
@@ -398,15 +416,15 @@ export function ImageRecognitionPanel({
           <span className="ocr-dropzone__icon">
             <Upload size={25} aria-hidden="true" />
           </span>
-          <strong>上传公式图片</strong>
-          <p>点击选择文件，或把图片拖到这里</p>
+          <strong>{t('ocr.uploadTitle')}</strong>
+          <p>{t('ocr.uploadBody')}</p>
           <span className="ocr-dropzone__action">
             <ImageIcon size={15} aria-hidden="true" />
-            浏览本地图片
+            {t('ocr.browse')}
           </span>
           <div className="ocr-paste-hint" id={`${inputId}-help`}>
             <ClipboardPaste size={15} aria-hidden="true" />
-            截图后直接按 <kbd>Ctrl</kbd> + <kbd>V</kbd> 粘贴
+            {t('ocr.pasteHint')}
           </div>
         </div>
       ) : (
@@ -428,14 +446,14 @@ export function ImageRecognitionPanel({
         >
           <div className="ocr-preview">
             {previewUrl ? (
-              <img src={previewUrl} alt="待识别公式预览" />
+              <img src={previewUrl} alt={t('ocr.previewAlt')} />
             ) : (
               <ImageIcon size={32} aria-hidden="true" />
             )}
             <span className="ocr-preview__scanline" aria-hidden="true" />
           </div>
           <div className="ocr-file-info">
-            <span className="section-kicker">待识别图片</span>
+            <span className="section-kicker">{t('ocr.pendingImage')}</span>
             <strong>{file.name}</strong>
             <p>
               {formatBytes(file.size)} · {file.type.replace('image/', '').toUpperCase()}
@@ -448,7 +466,7 @@ export function ImageRecognitionPanel({
                 disabled={busy}
               >
                 <RefreshCw size={14} aria-hidden="true" />
-                更换
+                {t('ocr.change')}
               </button>
               <button
                 type="button"
@@ -457,7 +475,7 @@ export function ImageRecognitionPanel({
                 disabled={busy}
               >
                 <X size={14} aria-hidden="true" />
-                移除
+                {t('ocr.remove')}
               </button>
             </div>
           </div>
@@ -472,7 +490,7 @@ export function ImageRecognitionPanel({
             ) : (
               <Sparkles size={16} aria-hidden="true" />
             )}
-            {busy ? '识别中' : '开始识别'}
+            {busy ? t('ocr.recognizing') : t('ocr.recognize')}
           </button>
         </div>
       )}
@@ -484,7 +502,7 @@ export function ImageRecognitionPanel({
           onDrop={handleDrop}
         >
           <Upload size={24} aria-hidden="true" />
-          松开鼠标替换图片
+          {t('ocr.replaceHint')}
         </div>
       )}
 
@@ -514,13 +532,13 @@ export function ImageRecognitionPanel({
         <section className="ocr-results" aria-labelledby="ocr-results-title" ref={resultsRef}>
           <div className="section-heading">
             <div>
-              <span className="section-kicker">识别结果</span>
-              <h3 id="ocr-results-title">找到 {formulas.length} 个公式</h3>
+              <span className="section-kicker">{t('ocr.results')}</span>
+              <h3 id="ocr-results-title">{t('ocr.found', { count: formulas.length })}</h3>
             </div>
             {formulas.length > 1 && (
               <button type="button" className="button button--soft button--small" onClick={insertAll}>
                 <CornerDownLeft size={14} aria-hidden="true" />
-                全部插入
+                {t('ocr.insertAll')}
               </button>
             )}
           </div>
@@ -538,8 +556,8 @@ export function ImageRecognitionPanel({
                     type="button"
                     className="icon-button"
                     onClick={() => copyFormula(formula.latex)}
-                    title="复制 LaTeX"
-                    aria-label="复制 LaTeX"
+                    title={t('ocr.copyLatex')}
+                    aria-label={t('ocr.copyLatex')}
                   >
                     <Copy size={15} aria-hidden="true" />
                   </button>
@@ -549,7 +567,7 @@ export function ImageRecognitionPanel({
                     onClick={() => onInsert(formula.latex)}
                   >
                     <CornerDownLeft size={14} aria-hidden="true" />
-                    插入
+                    {t('ocr.insert')}
                   </button>
                 </div>
               </article>
@@ -561,7 +579,7 @@ export function ImageRecognitionPanel({
       {status === 'done' && formulas.length === 0 && (
         <div className="empty-state empty-state--compact">
           <ScanLine size={24} aria-hidden="true" />
-          <p>{message || '没有从图片中找到可识别的公式。'}</p>
+          <p>{message || t('ocr.none')}</p>
         </div>
       )}
 
@@ -569,10 +587,10 @@ export function ImageRecognitionPanel({
         <ShieldCheck size={15} aria-hidden="true" />
         <span>
           {extensionMode
-            ? 'Token 保存在 chrome.storage.local；识别时图片直接发送到 MinerU，不经过本项目的 Web 服务。'
+            ? t('ocr.privacyExtension')
             : mode === 'live'
-              ? '图片会发送到你配置的 MinerU 服务。项目默认不落盘、不写入数据库。'
-              : 'Mock 模式仅在本地返回演示公式，不会上传图片。'}
+              ? t('ocr.privacyLive')
+              : t('ocr.privacyMock')}
         </span>
       </div>
     </div>

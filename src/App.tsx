@@ -6,6 +6,7 @@ import {
   Moon,
   ScanLine,
   Server,
+  Settings2,
   Sparkles,
   Sun,
   Trash2,
@@ -18,16 +19,30 @@ import { ImageRecognitionPanel } from './components/ImageRecognitionPanel'
 import { PreviewPanel } from './components/PreviewPanel'
 import { Toast, type ToastState } from './components/Toast'
 import { ExtensionActionBar } from './components/ExtensionActionBar'
+import { PreferencesDialog } from './components/PreferencesDialog'
 import { formulaCategories, formulaTemplateCount } from './data/formulaTemplates'
 import { quickToolCategories, quickToolCount } from './data/quickTools'
 import type { ApiHealth, ToastTone, ToolTab } from './types'
-import { isExtensionContext } from './lib/extension/settings'
+import {
+  DEFAULT_EXTENSION_SETTINGS,
+  isExtensionContext,
+  openExtensionOptions,
+  saveExtensionSettings,
+} from './lib/extension/settings'
 import { useExtensionSettings } from './lib/extension/useExtensionSettings'
+import {
+  loadUiPreferences,
+  saveUiPreferences,
+  type UiPreferences,
+} from './lib/preferences'
+import { I18nProvider } from './i18n/I18nContext'
+import { translate, type UiLocale } from './i18n/messages'
+import { localisedFormulaCategory } from './i18n/content'
 
-const TABS: Array<{ id: ToolTab; label: string; hint: string; icon: typeof Zap }> = [
-  { id: 'shortcuts', label: '快捷工具', hint: `${quickToolCount} 个符号`, icon: Zap },
-  { id: 'templates', label: '公式模板', hint: `${formulaTemplateCount} 个模板`, icon: BookOpen },
-  { id: 'ocr', label: '图片识别', hint: 'MinerU OCR', icon: ScanLine },
+const TAB_DEFINITIONS: Array<{ id: ToolTab; icon: typeof Zap }> = [
+  { id: 'shortcuts', icon: Zap },
+  { id: 'templates', icon: BookOpen },
+  { id: 'ocr', icon: ScanLine },
 ]
 
 const THEME_STORAGE_KEY = 'formuladock:theme'
@@ -50,8 +65,19 @@ export default function App() {
   const [toast, setToast] = useState<ToastState | null>(null)
   const [health, setHealth] = useState<ApiHealth | null>(null)
   const [apiOffline, setApiOffline] = useState(false)
+  const [webPreferences, setWebPreferences] = useState<UiPreferences>(loadUiPreferences)
+  const [preferencesOpen, setPreferencesOpen] = useState(false)
   const extensionMode = isExtensionContext()
   const { settings: extensionSettings } = useExtensionSettings(extensionMode)
+
+  const locale: UiLocale = extensionMode
+    ? extensionSettings?.uiLocale ?? 'zh'
+    : webPreferences.uiLocale
+  const editorFontSize = extensionMode
+    ? extensionSettings?.editorFontSize ?? 12
+    : webPreferences.editorFontSize
+  const t = (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) =>
+    translate(locale, key, values)
 
   const notify = useCallback((message: string, tone: ToastTone = 'info') => {
     if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current)
@@ -68,6 +94,11 @@ export default function App() {
       // Theme persistence is optional.
     }
   }, [theme])
+
+  useEffect(() => {
+    document.documentElement.lang = locale === 'en' ? 'en' : 'zh-CN'
+    document.title = locale === 'en' ? 'FormulaDock · Formula workspace' : 'FormulaDock · 公式工作台'
+  }, [locale])
 
   useEffect(() => {
     if (extensionMode) return
@@ -99,19 +130,19 @@ export default function App() {
 
   const insertLatex = (value: string, cursorBack = 0) => {
     editorRef.current?.insertText(value, cursorBack)
-    notify('已插入到编辑器光标位置。', 'success')
+    notify(t('toast.inserted'), 'success')
   }
 
   const copyLatex = async () => {
     if (!latex.trim()) {
-      notify('编辑器还是空的，先输入一个公式。', 'info')
+      notify(t('toast.empty'), 'info')
       return
     }
     try {
       await navigator.clipboard.writeText(latex)
-      notify('LaTeX 源码已复制。', 'success')
+      notify(t('toast.copied'), 'success')
     } catch {
-      notify('浏览器未允许写入剪贴板。', 'error')
+      notify(t('toast.clipboardDenied'), 'error')
     }
   }
 
@@ -119,7 +150,27 @@ export default function App() {
     if (!latex) return
     setLatex('')
     editorRef.current?.focus()
-    notify('编辑器已清空。', 'info')
+    notify(t('toast.cleared'), 'info')
+  }
+
+  const savePreferences = async (preferences: UiPreferences) => {
+    if (extensionMode) {
+      await saveExtensionSettings({
+        ...(extensionSettings ?? DEFAULT_EXTENSION_SETTINGS),
+        ...preferences,
+      })
+    } else {
+      setWebPreferences(saveUiPreferences(preferences))
+    }
+    notify(translate(preferences.uiLocale, 'settings.saved'), 'success')
+  }
+
+  const openFullExtensionSettings = async () => {
+    try {
+      await openExtensionOptions()
+    } catch {
+      notify(t('ext.optionsError'), 'error')
+    }
   }
 
   const extensionMineruReady = Boolean(extensionSettings?.mineruToken)
@@ -131,245 +182,297 @@ export default function App() {
   const mineruConfigured = extensionMode ? extensionMineruReady : health?.mineru.configured
   const statusText = extensionMode
     ? extensionMineruReady
-      ? 'MINERU LIVE'
-      : 'MINERU SETUP'
+      ? t('status.live')
+      : t('status.setup')
     : apiOffline
-      ? 'API OFFLINE'
+      ? t('status.offline')
       : mineruMode === 'live'
-        ? 'MINERU LIVE'
-        : 'MINERU MOCK'
+        ? t('status.live')
+        : t('status.mock')
   const statusTitle = extensionMode
     ? extensionMineruReady
-      ? 'MinerU Token 已配置，直接由扩展调用'
-      : '请打开扩展设置配置 MinerU Token'
+      ? t('status.liveTitle')
+      : t('status.setupTitle')
     : apiOffline
-      ? 'API 服务未启动'
-      : `MinerU: ${mineruMode || 'loading'}`
+      ? t('status.offlineTitle')
+      : t('status.mockTitle', { mode: mineruMode || 'loading' })
+
+  const tabs = TAB_DEFINITIONS.map(({ id, icon }) => ({
+    id,
+    icon,
+    label:
+      id === 'shortcuts'
+        ? t('tabs.shortcuts')
+        : id === 'templates'
+          ? t('tabs.templates')
+          : t('tabs.ocr'),
+    hint:
+      id === 'shortcuts'
+        ? t('tabs.shortcutsHint', { count: quickToolCount })
+        : id === 'templates'
+          ? t('tabs.templatesHint', { count: formulaTemplateCount })
+          : t('tabs.ocrHint'),
+  }))
+
+  const categorySeparator = locale === 'zh' ? '、' : ', '
+  const categoryNames = formulaCategories
+    .map((category) => localisedFormulaCategory(category, locale).title)
+    .join(categorySeparator)
 
   return (
-    <div className={`app ${extensionMode ? 'app--extension' : ''}`} id="top">
-      <header className="site-header">
-        <a className="brand" href={extensionMode ? '#top' : '/'} aria-label="FormulaDock 首页">
-          <span className="brand-mark">∑</span>
-          <span className="brand-copy">
-            <strong>
-              Formula<em>Dock</em>
-            </strong>
-            <small>公式编辑 · 模板 · 图片识别</small>
-          </span>
-        </a>
-
-        <div className="header-actions">
-          {!extensionMode && (
-            <span className="agent-chip">
-              <Sparkles size={13} aria-hidden="true" />
-              Agent-maintained
+    <I18nProvider locale={locale}>
+      <div className={`app ${extensionMode ? 'app--extension' : ''}`} id="top">
+        <header className="site-header">
+          <a className="brand" href={extensionMode ? '#top' : '/'} aria-label={t('app.home')}>
+            <span className="brand-mark">∑</span>
+            <span className="brand-copy">
+              <strong>
+                Formula<em>Dock</em>
+              </strong>
+              <small>{t('app.tagline')}</small>
             </span>
+          </a>
+
+          <div className="header-actions">
+            {!extensionMode && (
+              <span className="agent-chip">
+                <Sparkles size={13} aria-hidden="true" />
+                {t('app.agent')}
+              </span>
+            )}
+            <span
+              className={`api-status ${
+                apiOffline ? 'api-status--offline' : mineruMode === 'live' ? 'api-status--live' : ''
+              }`}
+              title={statusTitle}
+            >
+              <Server size={14} aria-hidden="true" />
+              {statusText}
+            </span>
+            <button
+              type="button"
+              className="theme-button"
+              onClick={() => setPreferencesOpen(true)}
+              aria-label={t('settings.open')}
+            >
+              <Settings2 size={17} />
+            </button>
+            <button
+              type="button"
+              className="theme-button"
+              onClick={() => setTheme((current) => (current === 'light' ? 'dark' : 'light'))}
+              aria-label={locale === 'en' ? 'Switch theme' : '切换主题'}
+            >
+              {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
+            </button>
+          </div>
+        </header>
+
+        <main className="main-content">
+          {extensionMode && (
+            <ExtensionActionBar latex={latex} settings={extensionSettings} onNotify={notify} />
           )}
-          <span
-            className={`api-status ${
-              apiOffline ? 'api-status--offline' : mineruMode === 'live' ? 'api-status--live' : ''
-            }`}
-            title={statusTitle}
-          >
-            <Server size={14} aria-hidden="true" />
-            {statusText}
-          </span>
-          <button
-            type="button"
-            className="theme-button"
-            onClick={() => setTheme((current) => (current === 'light' ? 'dark' : 'light'))}
-            aria-label={theme === 'light' ? '切换到深色主题' : '切换到浅色主题'}
-          >
-            {theme === 'light' ? <Moon size={17} /> : <Sun size={17} />}
-          </button>
-        </div>
-      </header>
 
-      <main className="main-content">
-        {extensionMode && (
-          <ExtensionActionBar
-            latex={latex}
-            settings={extensionSettings}
-            onNotify={notify}
-          />
-        )}
-
-        {!extensionMode && (
-        <section className="hero" aria-labelledby="hero-title">
-          <div className="hero-copy">
-            <span className="eyebrow">
-              <Braces size={15} aria-hidden="true" />
-              FORMULA WORKSPACE / 2026
-            </span>
-            <h1 id="hero-title">
-              公式，不止于<span>输入。</span>
-            </h1>
-            <p>
-              快捷符号、可检索模板与 MinerU 图片识别，在一个专注的公式工作台里完成。
-            </p>
-          </div>
-          <div className="hero-stats" aria-label="项目功能统计">
-            <div>
-              <strong>{quickToolCategories.length}</strong>
-              <span>快捷分类</span>
-            </div>
-            <div>
-              <strong>{formulaCategories.length}</strong>
-              <span>模板分类</span>
-            </div>
-            <div>
-              <strong>{formulaTemplateCount}</strong>
-              <span>公式模板</span>
-            </div>
-            <div>
-              <strong>{quickToolCount}</strong>
-              <span>快捷符号</span>
-            </div>
-          </div>
-        </section>
-        )}
-
-        <div className="workspace-grid">
-          <section className="workspace-card input-card" aria-labelledby="input-title">
-            <header className="card-header">
-              <div className="card-title-group">
-                <span className="card-index">01</span>
+          {!extensionMode && (
+            <section className="hero" aria-labelledby="hero-title">
+              <div className="hero-copy">
+                <span className="eyebrow">
+                  <Braces size={15} aria-hidden="true" />
+                  {t('app.workspace')}
+                </span>
+                <h1 id="hero-title">
+                  {t('hero.title')}
+                  <span>{t('hero.accent')}</span>
+                </h1>
+                <p>{t('hero.subtitle')}</p>
+              </div>
+              <div className="hero-stats" aria-label={t('features.aria')}>
                 <div>
-                  <div className="card-title-line">
-                    <h2 id="input-title">输入区域</h2>
-                    <span>INPUT</span>
-                  </div>
-                  <p>选择工具、模板或直接编写源码</p>
+                  <strong>{quickToolCategories.length}</strong>
+                  <span>{t('hero.quickCategories')}</span>
+                </div>
+                <div>
+                  <strong>{formulaCategories.length}</strong>
+                  <span>{t('hero.templateCategories')}</span>
+                </div>
+                <div>
+                  <strong>{formulaTemplateCount}</strong>
+                  <span>{t('hero.templates')}</span>
+                </div>
+                <div>
+                  <strong>{quickToolCount}</strong>
+                  <span>{t('hero.symbols')}</span>
                 </div>
               </div>
-              <span className="source-badge">
-                <span />
-                SOURCE
-              </span>
-            </header>
+            </section>
+          )}
 
-            <div className="tool-tabs" role="tablist" aria-label="输入工具">
-              {TABS.map(({ id, label, hint, icon: Icon }) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === id}
-                  aria-controls={`tool-panel-${id}`}
-                  className={`tool-tab ${activeTab === id ? 'tool-tab--active' : ''}`}
-                  onClick={() => setActiveTab(id)}
-                >
-                  <Icon size={16} aria-hidden="true" />
-                  <span>
-                    <strong>{label}</strong>
-                    <small>{hint}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <div
-              className="tool-content"
-              id={`tool-panel-${activeTab}`}
-              role="tabpanel"
-              aria-live="polite"
-            >
-              {activeTab === 'shortcuts' && <QuickToolsPanel onInsert={insertLatex} />}
-              {activeTab === 'templates' && <FormulaTemplatesPanel onInsert={insertLatex} />}
-              {activeTab === 'ocr' && (
-                <ImageRecognitionPanel
-                  mineruMode={mineruMode}
-                  mineruConfigured={mineruConfigured}
-                  extensionMode={extensionMode}
-                  extensionSettings={extensionSettings}
-                  onInsert={insertLatex}
-                  onNotify={notify}
-                />
-              )}
-            </div>
-
-            <div className="editor-toolbar">
-              <div className="editor-toolbar__left">
-                <span className="toolbar-label">LaTeX SOURCE</span>
-                <span className="toolbar-separator" />
-                <span className="toolbar-meta">
-                  {latex.split(/\r?\n/).length} lines · {latex.length} chars
+          <div className="workspace-grid">
+            <section className="workspace-card input-card" aria-labelledby="input-title">
+              <header className="card-header">
+                <div className="card-title-group">
+                  <span className="card-index">01</span>
+                  <div>
+                    <div className="card-title-line">
+                      <h2 id="input-title">{t('input.title')}</h2>
+                      <span>INPUT</span>
+                    </div>
+                    <p>{t('input.subtitle')}</p>
+                  </div>
+                </div>
+                <span className="source-badge">
+                  <span />
+                  {t('source')}
                 </span>
-              </div>
-              <div className="editor-toolbar__right">
-                <button type="button" className="button button--ghost button--small" onClick={clearEditor}>
-                  <Trash2 size={14} aria-hidden="true" />
-                  清空
-                </button>
-                <button type="button" className="button button--ghost button--small" onClick={copyLatex}>
-                  <Copy size={14} aria-hidden="true" />
-                  复制
-                </button>
-              </div>
-            </div>
+              </header>
 
-            <LatexEditor ref={editorRef} value={latex} onChange={setLatex} />
-          </section>
+              <div className="tool-tabs" role="tablist" aria-label={t('input.aria')}>
+                {tabs.map(({ id, label, hint, icon: Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === id}
+                    aria-controls={`tool-panel-${id}`}
+                    className={`tool-tab ${activeTab === id ? 'tool-tab--active' : ''}`}
+                    onClick={() => setActiveTab(id)}
+                  >
+                    <Icon size={16} aria-hidden="true" />
+                    <span>
+                      <strong>{label}</strong>
+                      <small>{hint}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
 
-          <PreviewPanel
-            latex={latex}
-            scale={previewScale}
-            onScaleChange={setPreviewScale}
-            onCopy={copyLatex}
-          />
-        </div>
+              <div
+                className="tool-content"
+                id={`tool-panel-${activeTab}`}
+                role="tabpanel"
+                aria-live="polite"
+              >
+                {activeTab === 'shortcuts' && <QuickToolsPanel onInsert={insertLatex} />}
+                {activeTab === 'templates' && <FormulaTemplatesPanel onInsert={insertLatex} />}
+                {activeTab === 'ocr' && (
+                  <ImageRecognitionPanel
+                    mineruMode={mineruMode}
+                    mineruConfigured={mineruConfigured}
+                    extensionMode={extensionMode}
+                    extensionSettings={extensionSettings}
+                    onInsert={insertLatex}
+                    onNotify={notify}
+                  />
+                )}
+              </div>
+
+              <div className="editor-toolbar">
+                <div className="editor-toolbar__left">
+                  <span className="toolbar-label">{t('toolbar.source')}</span>
+                  <span className="toolbar-separator" />
+                  <span className="toolbar-meta">
+                    {t('toolbar.linesChars', {
+                      lines: latex.split(/\r?\n/).length,
+                      chars: latex.length,
+                    })}
+                  </span>
+                </div>
+                <div className="editor-toolbar__right">
+                  <button
+                    type="button"
+                    className="button button--ghost button--small"
+                    onClick={clearEditor}
+                  >
+                    <Trash2 size={14} aria-hidden="true" />
+                    {t('toolbar.clear')}
+                  </button>
+                  <button
+                    type="button"
+                    className="button button--ghost button--small"
+                    onClick={() => void copyLatex()}
+                  >
+                    <Copy size={14} aria-hidden="true" />
+                    {t('toolbar.copy')}
+                  </button>
+                </div>
+              </div>
+
+              <LatexEditor
+                ref={editorRef}
+                value={latex}
+                onChange={setLatex}
+                fontSize={editorFontSize}
+              />
+            </section>
+
+            <PreviewPanel
+              latex={latex}
+              scale={previewScale}
+              onScaleChange={setPreviewScale}
+              onCopy={() => void copyLatex()}
+            />
+          </div>
+
+          {!extensionMode && (
+            <section className="feature-strip" aria-label={t('features.aria')}>
+              <article className="feature-card">
+                <span className="feature-number">01</span>
+                <span className="feature-icon">
+                  <Zap size={18} aria-hidden="true" />
+                </span>
+                <div>
+                  <h3>{t('features.quickTitle')}</h3>
+                  <p>{t('features.quickBody', { count: quickToolCount })}</p>
+                </div>
+              </article>
+              <article className="feature-card">
+                <span className="feature-number">02</span>
+                <span className="feature-icon">
+                  <BookOpen size={18} aria-hidden="true" />
+                </span>
+                <div>
+                  <h3>{t('features.templateTitle')}</h3>
+                  <p>{t('features.templateBody', { categories: categoryNames })}</p>
+                </div>
+              </article>
+              <article className="feature-card">
+                <span className="feature-number">03</span>
+                <span className="feature-icon">
+                  <ScanLine size={18} aria-hidden="true" />
+                </span>
+                <div>
+                  <h3>{t('features.ocrTitle')}</h3>
+                  <p>{t('features.ocrBody')}</p>
+                </div>
+              </article>
+            </section>
+          )}
+        </main>
 
         {!extensionMode && (
-        <section className="feature-strip" aria-label="功能概览">
-          <article className="feature-card">
-            <span className="feature-number">01</span>
-            <span className="feature-icon">
-              <Zap size={18} aria-hidden="true" />
-            </span>
+          <footer className="site-footer">
             <div>
-              <h3>快捷工具</h3>
-              <p>按分类浏览 {quickToolCount} 个常用符号与结构，点击即插入光标位置。</p>
+              <span className="footer-mark">∑</span>
+              <span>FormulaDock</span>
+              <small>Focused formula workspace</small>
             </div>
-          </article>
-          <article className="feature-card">
-            <span className="feature-number">02</span>
-            <span className="feature-icon">
-              <BookOpen size={18} aria-hidden="true" />
-            </span>
-            <div>
-              <h3>公式模板</h3>
-              <p>覆盖 {formulaCategories.map((category) => category.title).join('、')} 等分类。</p>
-            </div>
-          </article>
-          <article className="feature-card">
-            <span className="feature-number">03</span>
-            <span className="feature-icon">
-              <ScanLine size={18} aria-hidden="true" />
-            </span>
-            <div>
-              <h3>MinerU 图片识别</h3>
-              <p>支持上传、拖拽与剪贴板粘贴，密钥仅在服务端使用。</p>
-            </div>
-          </article>
-        </section>
+            <p>{t('footer.agent', { path: '.agents/' })}</p>
+          </footer>
         )}
-      </main>
 
-      {!extensionMode && (
-      <footer className="site-footer">
-        <div>
-          <span className="footer-mark">∑</span>
-          <span>FormulaDock</span>
-          <small>Focused formula workspace</small>
-        </div>
-        <p>
-          Agent-led project · 工作流记录在 <code>.agents/</code> · 2026
-        </p>
-      </footer>
-      )}
+        {preferencesOpen && (
+          <PreferencesDialog
+            initialLocale={locale}
+            initialFontSize={editorFontSize}
+            extensionMode={extensionMode}
+            onClose={() => setPreferencesOpen(false)}
+            onSave={savePreferences}
+            onOpenExtensionOptions={openFullExtensionSettings}
+          />
+        )}
 
-      <Toast toast={toast} onClose={() => setToast(null)} />
-    </div>
+        <Toast toast={toast} onClose={() => setToast(null)} />
+      </div>
+    </I18nProvider>
   )
 }

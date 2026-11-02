@@ -55,12 +55,28 @@ try {
         modelVersion: 'vlm',
         language: 'ch',
         insertFormat: 'dollar-inline',
+        uiLocale: 'en',
+        editorFontSize: 18,
       },
     }),
   )
   await page.reload({ waitUntil: 'networkidle' })
-  await page.getByText('MinerU 已配置').waitFor()
+  await page.getByText('MinerU configured').waitFor()
+  await page.getByText('Insert LaTeX into the current page').waitFor()
   assert.match(await page.locator('.api-status').textContent(), /MINERU LIVE/)
+  assert.equal(
+    await page.locator('.latex-editor').evaluate((element) => getComputedStyle(element).fontSize),
+    '18px',
+  )
+  const categoryColumnCount = await page.evaluate(
+    () =>
+      new Set(
+        Array.from(document.querySelectorAll('.quick-category:not(.quick-category--open)')).map(
+          (element) => Math.round(element.getBoundingClientRect().left),
+        ),
+      ).size,
+  )
+  assert.ok(categoryColumnCount >= 2, `Expected block categories in multiple columns, got ${categoryColumnCount}`)
   const sidepanelOverflow = await page.evaluate(() => ({
     viewport: window.innerWidth,
     documentWidth: document.documentElement.scrollWidth,
@@ -80,6 +96,11 @@ try {
   })
   await optionsPage.locator('#settingsForm').waitFor()
   assert.equal(await optionsPage.locator('#mineruToken').inputValue(), 'extension-smoke-test-token')
+  assert.equal(await optionsPage.locator('#uiLocale').inputValue(), 'en')
+  assert.equal(await optionsPage.locator('#editorFontSize').inputValue(), '18')
+  assert.equal(await optionsPage.title(), 'FormulaDock Extension Settings')
+  await optionsPage.getByText('Connect MinerU and choose how formulas are inserted into webpages.').waitFor()
+  assert.equal(await optionsPage.locator('html').getAttribute('lang'), 'en')
   await optionsPage.screenshot({
     path: path.resolve('artifacts/extension-options.png'),
     fullPage: true,
@@ -111,6 +132,10 @@ try {
         sidepanel: true,
         optionsPage: true,
         storageSettings: true,
+        legacySettingsMigration: true,
+        englishLocale: true,
+        editorFontSize: 18,
+        quickCategoryColumns: categoryColumnCount,
         sidepanelWidth: 480,
         sidepanelOverflow: false,
         screenshots: [

@@ -3,7 +3,7 @@
   "name": "FormulaDock 公式助手",
   "short_name": "FormulaDock",
   "description": "快捷公式工具、公式模板、MinerU 图片识别，并可把 LaTeX 插入当前网页。",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",

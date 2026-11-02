@@ -83,14 +83,16 @@ try {
           modelVersion: 'vlm',
           language: 'ch',
           insertFormat: 'raw',
+          uiLocale: 'en',
+          editorFontSize: 16,
         },
       }),
     token,
   )
   await page.reload({ waitUntil: 'networkidle' })
-  await page.getByText('MinerU 已配置').waitFor()
+  await page.getByText('MinerU configured').waitFor()
 
-  const editor = page.locator('textarea[aria-label="LaTeX 源码编辑器"]')
+  const editor = page.locator('.latex-editor')
   await editor.fill(String.raw`x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}`)
   await page.locator('.preview-math .katex').waitFor()
   await page.evaluate(() => {
@@ -101,9 +103,9 @@ try {
   })
   await page.locator('.preview-math').screenshot({ path: inputImagePath })
 
-  await page.getByRole('tab', { name: /图片识别/ }).click()
+  await page.getByRole('tab', { name: /Image recognition/ }).click()
   await page.locator('input[type="file"]').setInputFiles(inputImagePath)
-  await page.getByRole('button', { name: '开始识别', exact: true }).click()
+  await page.getByRole('button', { name: 'Start recognition', exact: true }).click()
 
   const deadline = Date.now() + 210_000
   let completed = false

@@ -12,7 +12,7 @@ npm run build:extension
 Outputs:
 
 - `extension-dist/` — load unpacked for local testing.
-- `release/formuladock-extension-v0.2.0.zip` — upload/package artifact.
+- `release/formuladock-extension-v0.3.0.zip` — upload/package artifact.
 
 ## Install locally
 
@@ -67,3 +67,8 @@ npm test
 ## License
 
 The extension source and packaged build are distributed under the Apache License 2.0. See `LICENSE`, `NOTICE`, and `THIRD_PARTY_NOTICES.md`.
+
+
+## Interface preferences
+
+The settings page supports Chinese and English interfaces plus a 10–24 px LaTeX editor font size. These values are stored with the extension settings and applied to the side panel immediately after saving.

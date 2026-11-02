@@ -20,7 +20,7 @@ The content script tracks the currently focused editable element and caret in pa
 
 ### Local preferences
 
-The extension stores the MinerU model, language, and insertion format in `chrome.storage.local`. The web application stores theme and recent-tool preferences in browser local storage.
+The extension stores the MinerU model, OCR language, insertion format, interface language, and editor font size in `chrome.storage.local`. The web application stores theme, interface language, editor font size, and recent-tool preferences in browser local storage.
 
 ## Data processed by the self-hosted web application
 

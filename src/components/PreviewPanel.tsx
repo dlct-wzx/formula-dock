@@ -1,5 +1,6 @@
 import { Copy, Check, Minus, Plus, Gauge, ShieldCheck } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { useI18n } from '../i18n/I18nContext'
 import { DisplayMath } from './MathMarkup'
 
 interface PreviewPanelProps {
@@ -10,6 +11,7 @@ interface PreviewPanelProps {
 }
 
 export function PreviewPanel({ latex, scale, onScaleChange, onCopy }: PreviewPanelProps) {
+  const { t } = useI18n()
   const decrease = () => onScaleChange(Math.max(0.7, Math.round((scale - 0.1) * 10) / 10))
   const increase = () => onScaleChange(Math.min(1.5, Math.round((scale + 0.1) * 10) / 10))
 
@@ -20,25 +22,35 @@ export function PreviewPanel({ latex, scale, onScaleChange, onCopy }: PreviewPan
           <span className="card-index">02</span>
           <div>
             <div className="card-title-line">
-              <h2 id="output-title">输出区域</h2>
+              <h2 id="output-title">{t('output.title')}</h2>
               <span>OUTPUT</span>
             </div>
-            <p>KaTeX 实时渲染预览</p>
+            <p>{t('output.subtitle')}</p>
           </div>
         </div>
         <div className="preview-controls">
-          <div className="scale-control" aria-label="预览缩放">
-            <button type="button" className="icon-button icon-button--small" onClick={decrease} aria-label="缩小预览">
+          <div className="scale-control" aria-label={t('preview.scaleAria')}>
+            <button
+              type="button"
+              className="icon-button icon-button--small"
+              onClick={decrease}
+              aria-label={t('preview.zoomOut')}
+            >
               <Minus size={14} aria-hidden="true" />
             </button>
             <span>{Math.round(scale * 100)}%</span>
-            <button type="button" className="icon-button icon-button--small" onClick={increase} aria-label="放大预览">
+            <button
+              type="button"
+              className="icon-button icon-button--small"
+              onClick={increase}
+              aria-label={t('preview.zoomIn')}
+            >
               <Plus size={14} aria-hidden="true" />
             </button>
           </div>
           <button type="button" className="button button--ghost button--small" onClick={onCopy}>
             <Copy size={14} aria-hidden="true" />
-            复制 LaTeX
+            {t('preview.copy')}
           </button>
         </div>
       </header>
@@ -57,11 +69,11 @@ export function PreviewPanel({ latex, scale, onScaleChange, onCopy }: PreviewPan
         ) : (
           <div className="preview-empty">
             <span className="preview-empty__mark">∑</span>
-            <h3>等待一个公式</h3>
-            <p>从左侧选择模板或快捷符号，也可以直接输入 LaTeX。</p>
+            <h3>{t('preview.waiting')}</h3>
+            <p>{t('preview.instructions')}</p>
             <div className="preview-empty__hint">
               <Check size={14} aria-hidden="true" />
-              输入、编辑和预览只发生在当前浏览器
+              {t('preview.localOnly')}
             </div>
           </div>
         )}
@@ -70,16 +82,16 @@ export function PreviewPanel({ latex, scale, onScaleChange, onCopy }: PreviewPan
       <footer className="output-footer">
         <div className="output-footer__item">
           <Gauge size={15} aria-hidden="true" />
-          <span>实时渲染</span>
-          <strong>{latex.trim() ? 'READY' : 'IDLE'}</strong>
+          <span>{t('preview.liveRender')}</span>
+          <strong>{latex.trim() ? t('preview.ready') : t('preview.idle')}</strong>
         </div>
         <div className="output-footer__item">
           <ShieldCheck size={15} aria-hidden="true" />
-          <span>编辑数据</span>
-          <strong>LOCAL</strong>
+          <span>{t('preview.editData')}</span>
+          <strong>{t('preview.local')}</strong>
         </div>
         <div className="output-footer__chars">
-          <span>{latex.length}</span> characters
+          {t('preview.characters', { count: latex.length })}
         </div>
       </footer>
     </section>

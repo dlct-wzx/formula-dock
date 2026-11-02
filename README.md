@@ -68,7 +68,7 @@ npm run build:extension
 产物：
 
 - `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/formuladock-extension-v0.2.0.zip`：安装/发布 ZIP。
+- `release/formuladock-extension-v0.3.0.zip`：安装/发布 ZIP。
 
 安装：
 
@@ -203,3 +203,6 @@ Web 端、扩展侧边栏、设置页、页面插入脚本和扩展打包均已�
 ![真实 MinerU 识别结果](docs/screenshots/extension-live-ocr.png)
 
 截图中的 MinerU Token 为测试占位值，不包含真实凭据。
+
+
+The 0.3.0 extension adds Chinese/English interface settings and a 10–24 px LaTeX editor font-size setting in both the in-app preferences dialog and extension options. Quick-tool categories are responsive block cards that wrap into multiple columns instead of stretching into full-width bars.

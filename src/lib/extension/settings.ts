@@ -1,3 +1,6 @@
+import type { UiLocale } from '../../i18n/messages'
+import { normaliseFontSize } from '../preferences'
+
 export const EXTENSION_SETTINGS_KEY = 'formuladock:extension-settings'
 export const LEGACY_EXTENSION_SETTINGS_KEY = 'latexlive-studio:extension-settings'
 
@@ -10,6 +13,8 @@ export interface ExtensionSettings {
   modelVersion: MineruModel
   language: MineruLanguage
   insertFormat: InsertFormat
+  uiLocale: UiLocale
+  editorFontSize: number
 }
 
 export const DEFAULT_EXTENSION_SETTINGS: ExtensionSettings = {
@@ -17,13 +22,8 @@ export const DEFAULT_EXTENSION_SETTINGS: ExtensionSettings = {
   modelVersion: 'vlm',
   language: 'ch',
   insertFormat: 'raw',
-}
-
-export const INSERT_FORMAT_LABELS: Record<InsertFormat, string> = {
-  raw: '原始 LaTeX',
-  'dollar-inline': '$...$ 行内',
-  'dollar-display': '$$...$$ 独立',
-  'bracket-display': '\\[...\\] 独立',
+  uiLocale: 'zh',
+  editorFontSize: 12,
 }
 
 export function isExtensionContext(): boolean {
@@ -47,7 +47,16 @@ export function normaliseExtensionSettings(value: unknown): ExtensionSettings {
       candidate.insertFormat === 'bracket-display'
         ? candidate.insertFormat
         : 'raw',
+    uiLocale: candidate.uiLocale === 'en' ? 'en' : 'zh',
+    editorFontSize: normaliseFontSize(candidate.editorFontSize),
   }
+}
+
+export async function saveExtensionSettings(settings: ExtensionSettings): Promise<ExtensionSettings> {
+  if (!isExtensionContext()) return normaliseExtensionSettings(settings)
+  const normalised = normaliseExtensionSettings(settings)
+  await chrome.storage.local.set({ [EXTENSION_SETTINGS_KEY]: normalised })
+  return normalised
 }
 
 export async function loadExtensionSettings(): Promise<ExtensionSettings> {
@@ -85,14 +94,6 @@ export function subscribeExtensionSettings(
 
   chrome.storage.onChanged.addListener(handleChange)
   return () => chrome.storage.onChanged.removeListener(handleChange)
-}
-
-export function formatLatexForInsertion(latex: string, format: InsertFormat): string {
-  const value = latex.trim()
-  if (format === 'dollar-inline') return `$${value}$`
-  if (format === 'dollar-display') return `$$${value}$$`
-  if (format === 'bracket-display') return `\\[${value}\\]`
-  return value
 }
 
 export async function openExtensionOptions(): Promise<void> {

@@ -6,6 +6,27 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-02
+
+### Added
+
+- Interface language selector with Chinese and English UI.
+- English translations for formula categories, formula templates, quick-tool groups, OCR states, and core controls.
+- Configurable LaTeX editor font size from 10 to 24 px.
+- In-app interface settings dialog available in the web application and extension side panel.
+- `uiLocale` and `editorFontSize` fields in extension-local settings.
+
+### Changed
+
+- Quick-tool categories now use responsive block cards with automatic multi-row wrapping.
+- The extension complete-settings page is fully bilingual.
+- The options page now separates interface language from MinerU OCR language.
+
+### Verified
+
+- Extension smoke test runs in English at 18 px and confirms at least two category columns at 480 px.
+- Web smoke test switches from Chinese to English through the settings dialog and verifies the editor font size.
+
 ## [0.2.0] - 2026-11-02
 
 ### Changed

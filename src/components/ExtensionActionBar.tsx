@@ -7,13 +7,11 @@ import {
   Settings2,
   ShieldCheck,
 } from 'lucide-react'
-import {
-  INSERT_FORMAT_LABELS,
-  openExtensionOptions,
-  type ExtensionSettings,
-} from '../lib/extension/settings'
+import { openExtensionOptions, type ExtensionSettings } from '../lib/extension/settings'
 import { insertLatexIntoActivePage } from '../lib/extension/runtime'
 import type { ToastTone } from '../types'
+import { useI18n } from '../i18n/I18nContext'
+import type { MessageKey } from '../i18n/messages'
 
 interface ExtensionActionBarProps {
   latex: string
@@ -22,24 +20,31 @@ interface ExtensionActionBarProps {
 }
 
 export function ExtensionActionBar({ latex, settings, onNotify }: ExtensionActionBarProps) {
+  const { locale, t } = useI18n()
   const [inserting, setInserting] = useState(false)
 
   const insertIntoPage = async () => {
     if (!latex.trim()) {
-      onNotify('编辑器还是空的，先输入一个公式。', 'info')
+      onNotify(t('ext.empty'), 'info')
       return
     }
     if (!settings) {
-      onNotify('插件设置正在加载，请稍后再试。', 'info')
+      onNotify(t('ext.loading'), 'info')
       return
     }
 
     setInserting(true)
     try {
       const result = await insertLatexIntoActivePage(latex, settings)
-      onNotify(result.message || '公式已插入当前网页。', 'success')
+      onNotify(
+        locale === 'zh' && result.message ? result.message : t('ext.inserted'),
+        'success',
+      )
     } catch (error) {
-      onNotify(error instanceof Error ? error.message : '插入当前网页失败。', 'error')
+      onNotify(
+        locale === 'zh' && error instanceof Error ? error.message : t('ext.insertFailed'),
+        'error',
+      )
     } finally {
       setInserting(false)
     }
@@ -49,33 +54,42 @@ export function ExtensionActionBar({ latex, settings, onNotify }: ExtensionActio
     try {
       await openExtensionOptions()
     } catch (error) {
-      onNotify(error instanceof Error ? error.message : '无法打开插件设置。', 'error')
+      onNotify(
+        locale === 'zh' && error instanceof Error ? error.message : t('ext.optionsError'),
+        'error',
+      )
     }
   }
 
   return (
-    <section className="extension-action-bar" aria-label="浏览器扩展操作">
+    <section className="extension-action-bar" aria-label={t('ext.aria')}>
       <div className="extension-action-copy">
         <span className="extension-action-icon">
           <PanelRight size={17} aria-hidden="true" />
         </span>
         <div>
-          <span className="extension-action-kicker">BROWSER EXTENSION</span>
-          <strong>把 LaTeX 插入当前网页</strong>
-          <small>
+          <span className="extension-action-kicker">{t('ext.kicker')}</span>
+          <strong>{t('ext.title')}</strong>
+          <small
+            className={
+              settings?.mineruToken
+                ? 'extension-action-status--ready'
+                : 'extension-action-status--warning'
+            }
+          >
             {settings?.mineruToken ? (
               <>
                 <ShieldCheck size={12} aria-hidden="true" />
-                MinerU 已配置
+                {t('ext.configured')}
               </>
             ) : (
               <>
                 <AlertCircle size={12} aria-hidden="true" />
-                尚未配置 MinerU Token
+                {t('ext.missing')}
               </>
             )}
             <span>·</span>
-            {settings ? INSERT_FORMAT_LABELS[settings.insertFormat] : '读取设置中'}
+            {settings ? t(`format.${settings.insertFormat}` as MessageKey) : t('common.loading')}
           </small>
         </div>
       </div>
@@ -83,7 +97,7 @@ export function ExtensionActionBar({ latex, settings, onNotify }: ExtensionActio
       <div className="extension-action-buttons">
         <button type="button" className="button button--ghost button--small" onClick={openSettings}>
           <Settings2 size={14} aria-hidden="true" />
-          设置
+          {t('ext.settings')}
         </button>
         <button
           type="button"
@@ -96,7 +110,7 @@ export function ExtensionActionBar({ latex, settings, onNotify }: ExtensionActio
           ) : (
             <ArrowUpRight size={14} aria-hidden="true" />
           )}
-          {inserting ? '插入中' : '插入网页'}
+          {inserting ? t('ext.inserting') : t('ext.insert')}
         </button>
       </div>
     </section>

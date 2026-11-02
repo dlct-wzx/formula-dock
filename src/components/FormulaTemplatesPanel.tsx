@@ -8,12 +8,15 @@ import {
   type FormulaTemplate,
 } from '../data/formulaTemplates'
 import { DisplayMath } from './MathMarkup'
+import { useI18n } from '../i18n/I18nContext'
+import { localisedFormulaCategory, localisedFormulaTemplate } from '../i18n/content'
 
 interface FormulaTemplatesPanelProps {
   onInsert: (latex: string, cursorBack?: number) => void
 }
 
 export function FormulaTemplatesPanel({ onInsert }: FormulaTemplatesPanelProps) {
+  const { locale, t } = useI18n()
   const [selectedCategory, setSelectedCategory] = useState(formulaCategories[0].id)
   const [query, setQuery] = useState('')
 
@@ -23,14 +26,18 @@ export function FormulaTemplatesPanel({ onInsert }: FormulaTemplatesPanelProps) 
       return formulaTemplates.filter((template) => template.category === selectedCategory)
     }
     return formulaTemplates.filter((template) => {
-      const category = formulaCategories.find((item) => item.id === template.category)?.title || ''
-      const haystack = `${template.title} ${template.description} ${template.tags.join(' ')} ${category}`.toLowerCase()
+      const category = formulaCategories.find((item) => item.id === template.category)
+      const localisedCategory = category ? localisedFormulaCategory(category, locale) : null
+      const localisedTemplate = localisedFormulaTemplate(template, locale)
+      const haystack =
+        `${template.title} ${template.description} ${template.tags.join(' ')} ${category?.title || ''} ${localisedTemplate.title} ${localisedTemplate.description} ${localisedCategory?.title || ''}`.toLowerCase()
       return haystack.includes(normalisedQuery)
     })
-  }, [normalisedQuery, selectedCategory])
+  }, [locale, normalisedQuery, selectedCategory])
 
   const activeCategory =
     formulaCategories.find((category) => category.id === selectedCategory) || formulaCategories[0]
+  const localisedActiveCategory = localisedFormulaCategory(activeCategory, locale)
 
   const insertTemplate = (template: FormulaTemplate) => {
     onInsert(template.latex, template.cursorBack)
@@ -41,77 +48,84 @@ export function FormulaTemplatesPanel({ onInsert }: FormulaTemplatesPanelProps) 
       <div className="panel-search-row">
         <label className="search-field">
           <Search size={16} aria-hidden="true" />
-          <span className="sr-only">搜索公式模板</span>
+          <span className="sr-only">{t('templates.searchAria')}</span>
           <input
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="搜索公式名称、标签或描述"
+            placeholder={t('templates.searchPlaceholder')}
           />
           {query && <kbd>{visibleTemplates.length}</kbd>}
         </label>
-        <span className="panel-count">{formulaTemplateCount} 个模板</span>
+        <span className="panel-count">
+          {t('templates.count', { count: formulaTemplateCount })}
+        </span>
       </div>
 
-      <div className="template-category-scroller" role="tablist" aria-label="公式模板分类">
-        {formulaCategories.map((category) => (
-          <button
-            key={category.id}
-            type="button"
-            role="tab"
-            aria-selected={selectedCategory === category.id && !normalisedQuery}
-            className={`template-category-chip ${
-              selectedCategory === category.id && !normalisedQuery ? 'is-active' : ''
-            }`}
-            onClick={() => {
-              setSelectedCategory(category.id)
-              setQuery('')
-            }}
-          >
-            <span>{category.symbol}</span>
-            {category.title}
-            <em>{countTemplatesByCategory(category.id)}</em>
-          </button>
-        ))}
+      <div className="template-category-scroller" role="tablist" aria-label={t('templates.categoriesAria')}>
+        {formulaCategories.map((category) => {
+          const localisedCategory = localisedFormulaCategory(category, locale)
+          return (
+            <button
+              key={category.id}
+              type="button"
+              role="tab"
+              aria-selected={selectedCategory === category.id && !normalisedQuery}
+              className={`template-category-chip ${
+                selectedCategory === category.id && !normalisedQuery ? 'is-active' : ''
+              }`}
+              onClick={() => {
+                setSelectedCategory(category.id)
+                setQuery('')
+              }}
+            >
+              <span>{category.symbol}</span>
+              {localisedCategory.title}
+              <em>{countTemplatesByCategory(category.id)}</em>
+            </button>
+          )
+        })}
       </div>
 
       <div className="section-heading template-heading">
         <div>
           <span className="section-kicker">
-            {normalisedQuery ? '全分类搜索' : '当前分类'}
+            {normalisedQuery ? t('templates.searchAll') : t('templates.current')}
           </span>
-          <h3>{normalisedQuery ? `“${query.trim()}”` : activeCategory.title}</h3>
+          <h3>{normalisedQuery ? `“${query.trim()}”` : localisedActiveCategory.title}</h3>
         </div>
-        <span className="section-note">{activeCategory.description}</span>
+        <span className="section-note">{localisedActiveCategory.description}</span>
       </div>
 
       {visibleTemplates.length > 0 ? (
         <div className="template-grid">
           {visibleTemplates.map((template) => {
             const category = formulaCategories.find((item) => item.id === template.category)
+            const localisedCategory = category ? localisedFormulaCategory(category, locale) : null
+            const localisedTemplate = localisedFormulaTemplate(template, locale)
             return (
               <button
                 key={template.id}
                 type="button"
                 className="template-card"
                 onClick={() => insertTemplate(template)}
-                aria-label={`插入公式模板：${template.title}`}
+                aria-label={t('templates.insertAria', { title: localisedTemplate.title })}
               >
                 <span className="template-card__top">
                   <span className="template-card__category">
-                    {category?.symbol} {category?.title}
+                    {category?.symbol} {localisedCategory?.title}
                   </span>
                   <ArrowUpRight size={16} aria-hidden="true" />
                 </span>
-                <strong className="template-card__title">{template.title}</strong>
+                <strong className="template-card__title">{localisedTemplate.title}</strong>
                 <span className="template-card__preview">
                   <DisplayMath latex={template.latex} />
                 </span>
                 <span className="template-card__footer">
-                  <span>{template.description}</span>
+                  <span>{localisedTemplate.description}</span>
                   <span className="template-insert-cue">
                     <CornerDownLeft size={13} aria-hidden="true" />
-                    插入
+                    {t('templates.insert')}
                   </span>
                 </span>
               </button>
@@ -121,8 +135,8 @@ export function FormulaTemplatesPanel({ onInsert }: FormulaTemplatesPanelProps) 
       ) : (
         <div className="empty-state">
           <Search size={28} aria-hidden="true" />
-          <h3>没有找到公式模板</h3>
-          <p>换一个关键词，或从上方分类中浏览。</p>
+          <h3>{t('templates.noResults')}</h3>
+          <p>{t('templates.noResultsHint')}</p>
         </div>
       )}
     </div>

@@ -287,3 +287,21 @@ code {
   .action-buttons { justify-content: flex-end; }
   .page-footer { flex-direction: column; gap: 6px; }
 }
+
+.input-with-unit {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-unit input {
+  padding-right: 38px;
+}
+
+.input-with-unit > span {
+  position: absolute;
+  right: 13px;
+  color: var(--faint);
+  font-size: 10px;
+  pointer-events: none;
+}

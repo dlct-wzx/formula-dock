@@ -104,12 +104,23 @@ try {
   await resultCards.first().getByRole('button', { name: '插入', exact: true }).click()
   assert.ok((await editor.inputValue()).includes(String.raw`\int_{-\infty}`), 'OCR result was not inserted.')
 
+  await page.getByRole('button', { name: '打开设置' }).click()
+  await page.locator('.preferences-dialog').waitFor()
+  await page.locator('.preferences-dialog select').selectOption('en')
+  await page.locator('.preferences-dialog input[type="number"]').fill('18')
+  await page.locator('.preferences-dialog__footer .button--primary').click()
+  await page.getByRole('heading', { name: /Formulas, beyond/ }).waitFor()
+  assert.equal(
+    await page.locator('.latex-editor').evaluate((element) => getComputedStyle(element).fontSize),
+    '18px',
+  )
+
   await page.screenshot({
     path: path.join(artifactsDir, 'smoke-desktop.png'),
     fullPage: true,
   })
 
-  await page.locator('.theme-button').click()
+  await page.locator('.theme-button').last().click()
   assert.equal(
     await page.locator('html').getAttribute('data-theme'),
     'dark',
@@ -120,11 +131,11 @@ try {
     path: path.join(artifactsDir, 'smoke-dark.png'),
     fullPage: true,
   })
-  await page.locator('.theme-button').click()
+  await page.locator('.theme-button').last().click()
 
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(BASE_URL, { waitUntil: 'networkidle' })
-  await page.getByRole('heading', { name: /公式，不止于/ }).waitFor()
+  await page.getByRole('heading', { name: /Formulas, beyond/ }).waitFor()
   const overflow = await page.evaluate(() => ({
     viewport: window.innerWidth,
     documentWidth: document.documentElement.scrollWidth,
@@ -151,6 +162,9 @@ try {
         mobileOverflow: false,
         katexValidation: true,
         searchValidation: true,
+        interfaceSettings: true,
+        englishLocale: true,
+        editorFontSize: true,
         darkTheme: true,
         screenshots: [
           path.join(artifactsDir, 'smoke-quick-tools.png'),
