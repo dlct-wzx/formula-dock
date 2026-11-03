@@ -6,6 +6,25 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-11-03
+
+### Fixed
+
+- Separate quick-tool display previews from caret-insertion LaTeX so empty superscript, subscript, root, fraction, and bracket skeletons no longer appear as blank cards.
+- Scale each quick-tool formula independently to fit its card under both KaTeX and MathJax 4.
+- Make all quick-tool IDs unique so Recently Used cannot resolve to a different formula with the same ID.
+- Make the per-mille tool portable across both renderers.
+- Correct the nabla label, incomplete power-integral/Jensen/Hölder formulas, and the equilibrium-constant formula.
+- Add explicit formula-data validation that infinity tools use `\infty` and that `\inf` is reserved for the infimum tool.
+- Add a permanent dual-renderer audit for all 284 quick tools and 60 templates.
+- Updated the extension manifest to version 0.8.2.
+
+### Verified
+
+- `npm run verify` passes.
+- `npm run smoke` passes with visible, fitted root/subscript/integral/large-operator previews and unchanged insertion source.
+- `npm run smoke:extension` passes with the shared fitted quick-tool previews.
+
 ## [0.8.1] - 2026-11-03
 
 ### Changed

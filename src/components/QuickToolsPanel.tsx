@@ -6,7 +6,7 @@ import {
   type QuickToolCategory,
   type QuickToolItem,
 } from '../data/quickTools'
-import { InlineMath } from './MathMarkup'
+import { FittedMath, InlineMath } from './MathMarkup'
 import { HoverPanel, useHoverFlyout } from './HoverPanel'
 import { useI18n } from '../i18n/I18nContext'
 import {
@@ -170,7 +170,7 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
                   title={`${localisedQuickItemLabel(item, locale)} · ${localisedQuickCategory(category, locale).title} / ${localisedQuickGroupTitle(groupTitle, locale)} · ${item.latex}`}
                 >
                   <span className="quick-item__math">
-                    <InlineMath latex={item.latex} />
+                    <FittedMath latex={item.previewLatex ?? item.latex} />
                   </span>
                   <span className="quick-item__label">
                     {localisedQuickItemLabel(item, locale)}
@@ -258,7 +258,7 @@ export function QuickToolsPanel({ onInsert }: QuickToolsPanelProps) {
                       tabIndex={-1}
                     >
                       <span className="quick-item__math">
-                        <InlineMath latex={item.latex} />
+                        <FittedMath latex={item.previewLatex ?? item.latex} />
                       </span>
                       <span className="quick-item__label">
                         {localisedQuickItemLabel(item, locale)}

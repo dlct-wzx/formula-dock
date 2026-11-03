@@ -12,7 +12,7 @@ npm run build:extension
 Outputs:
 
 - `extension-dist/` — load unpacked for local testing.
-- `release/formuladock-extension-v0.8.1.zip` — upload/package artifact.
+- `release/formuladock-extension-v0.8.2.zip` — upload/package artifact.
 
 ## Install locally
 
@@ -87,3 +87,9 @@ The Output card provides an Output image menu for `.svg`, `.png`, and `.jpg` dow
 - MathJax uses SVG output, is loaded when the first formula needs rendering, and remains active for the session through the saved extension setting.
 - The MathJax component, NewCM font data, and dynamic glyph scripts are packaged locally. The extension does not load MathJax from a CDN and does not request additional host permissions.
 - MathJax's audio/SRE enrichment path is disabled because its separate worker/mathmap runtime is not bundled; formula markup keeps the raw LaTeX accessible name instead.
+## Quick-tool preview fitting
+
+- Quick-tool cards use a separate preview formula when the inserted source intentionally starts with an empty superscript, subscript, root, fraction, or bracket skeleton.
+- Every MathJax or KaTeX preview is measured after rendering and scaled individually to fit the card without clipping.
+- All 284 quick tools and 60 formula templates are covered by the shared formula-data test against both renderers.
+- Tool IDs are unique so recently used items always resolve to the intended formula.

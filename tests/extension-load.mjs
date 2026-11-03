@@ -128,6 +128,40 @@ try {
   const quickHoverPanel = page.locator('.quick-hover-panel')
   await quickHoverPanel.waitFor({ state: 'visible' })
   await quickHoverPanel.getByText('Binary operators').waitFor()
+  await page.waitForFunction(() => {
+    const items = Array.from(document.querySelectorAll('.quick-hover-panel .quick-item'))
+    return (
+      items.length > 0 &&
+      items.every((item) => {
+        const fitted = item.querySelector('.fitted-math')
+        return (
+          item.querySelector('.math-markup')?.getAttribute('data-math-status') === 'ready' &&
+          Number(fitted?.getAttribute('data-math-scale')) > 0
+        )
+      })
+    )
+  })
+  const extensionQuickPreviewIssues = await page.locator('.quick-hover-panel .quick-item').evaluateAll((items) =>
+    items.flatMap((item) => {
+      const title = item.getAttribute('title') || 'unknown'
+      const fitted = item.querySelector('.fitted-math')
+      const container = item.querySelector('mjx-container')
+      if (!(fitted instanceof HTMLElement) || !(container instanceof HTMLElement)) return [`${title}: missing preview`]
+      const hostRect = fitted.getBoundingClientRect()
+      const formulaRect = container.getBoundingClientRect()
+      if (formulaRect.width < 2 || formulaRect.height < 2) return [`${title}: zero-size preview`]
+      if (
+        formulaRect.left < hostRect.left - 1 ||
+        formulaRect.right > hostRect.right + 1 ||
+        formulaRect.top < hostRect.top - 1 ||
+        formulaRect.bottom > hostRect.bottom + 1
+      ) {
+        return [`${title}: preview overflow`]
+      }
+      return []
+    }),
+  )
+  assert.deepEqual(extensionQuickPreviewIssues, [], `Extension quick preview issues: ${extensionQuickPreviewIssues.join(' | ')}`)
   assert.equal(await page.locator('.quick-category--hovered').count(), 1)
   assert.equal(await page.locator('.quick-category__body').count(), 0)
   assert.equal(await page.locator('.quick-category--open').count(), 0)
@@ -350,6 +384,7 @@ g &=& h + i
         templateCategoryColumnsAt480: templateCategoryColumnCount,
         templateCategoryColumnsAt900: wideTemplateCategoryColumnCount,
         quickToolHoverPanel: true,
+        quickPreviewFitsExtension: true,
         categoryClickExpansion: false,
         templateHoverPanel: true,
         wideFormulaHorizontalScroll: true,

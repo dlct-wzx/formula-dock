@@ -1,7 +1,7 @@
 {
   "name": "formuladock",
   "private": true,
-  "version": "0.8.1",
+  "version": "0.8.2",
   "type": "module",
   "scripts": {
     "dev": "node scripts/prepare-mathjax-fonts.mjs && concurrently -k \"vite\" \"node server/index.mjs\"",

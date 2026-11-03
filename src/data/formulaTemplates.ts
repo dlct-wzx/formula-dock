@@ -182,7 +182,7 @@ export const formulaTemplates: FormulaTemplate[] = [
     'inequality',
     'Jensen 不等式',
     '凸函数在加权平均处的取值估计。',
-    String.raw`f\left(\sum_{i=1}^n \lambda_i x_i\right)\le\sum_{i=1}^n \lambda_i f(x_i)`,
+    String.raw`f\left(\sum_{i=1}^n \lambda_i x_i\right)\le\sum_{i=1}^n \lambda_i f(x_i),\quad \sum_{i=1}^n\lambda_i=1,\ \lambda_i\ge0`,
     ['Jensen', '凸函数'],
   ),
   t(
@@ -190,7 +190,7 @@ export const formulaTemplates: FormulaTemplate[] = [
     'inequality',
     'Hölder 不等式',
     '离散形式，其中 1/p + 1/q = 1。',
-    String.raw`\sum_{i=1}^n |a_i b_i|\le\left(\sum_{i=1}^n |a_i|^p\right)^{1/p}\left(\sum_{i=1}^n |b_i|^q\right)^{1/q}`,
+    String.raw`\sum_{i=1}^n |a_i b_i|\le\left(\sum_{i=1}^n |a_i|^p\right)^{1/p}\left(\sum_{i=1}^n |b_i|^q\right)^{1/q},\quad p,q>1,\ \frac1p+\frac1q=1`,
     ['Hölder', '级数'],
     { displayMode: true },
   ),
@@ -199,7 +199,7 @@ export const formulaTemplates: FormulaTemplate[] = [
     'calculus',
     '幂函数积分',
     'n ≠ -1 时幂函数的不定积分。',
-    String.raw`\int x^n\,\mathrm{d}x=\frac{x^{n+1}}{n+1}+C`,
+    String.raw`\int x^n\,\mathrm{d}x=\frac{x^{n+1}}{n+1}+C,\qquad n\ne-1`,
     ['不定积分', '幂函数'],
   ),
   t(
@@ -503,7 +503,7 @@ export const formulaTemplates: FormulaTemplate[] = [
     'chemistry',
     '平衡常数',
     '反应物与产物活度定义的平衡常数。',
-    String.raw`K=\frac{\prod_i a_i^{\nu_i}}{\prod_j a_j^{\nu_j}}`,
+    String.raw`K=\prod_i a_i^{\nu_i}`,
     ['化学平衡', '活度'],
   ),
   t(

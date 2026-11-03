@@ -2,7 +2,7 @@
 
 一个聚焦公式工作流的 Web 应用和 Chrome/Edge 浏览器扩展，包含：
 
-- **快捷工具**：10 个分类、284 个符号与结构、搜索、最近使用与光标插入。
+- **快捷工具**：10 个分类、284 个符号与结构、搜索、最近使用与光标插入；每张公式卡会自动缩小以完整显示内容。
 - **公式模板**：10 个分类、60 个可检索公式模板，使用当前公式渲染器实时预览。
 - **公式渲染**：默认 MathJax 4，适合 eqnarray、aligned 等多行公式；可在设置中切换到更轻量的 KaTeX。
 - **网页端**：提供快捷工具、公式模板、LaTeX 编辑器、实时预览与公式图片导出。
@@ -48,7 +48,7 @@ npm run build:extension
 产物：
 
 - `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/formuladock-extension-v0.8.1.zip`：安装/发布 ZIP。
+- `release/formuladock-extension-v0.8.2.zip`：安装/发布 ZIP。
 
 安装：
 
@@ -191,6 +191,14 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 
 ![长公式横向滚动](docs/screenshots/extension-wide-formula.png)
 
+### 快捷工具自适应公式预览
+
+![根式与上下标预览](docs/screenshots/quick-previews-roots.png)
+
+![积分公式自适应缩放](docs/screenshots/quick-previews-integrals.png)
+
+![大型运算符自适应缩放](docs/screenshots/quick-previews-large-ops.png)
+
 ### MathJax 多行公式
 
 ![MathJax 多行公式](docs/screenshots/mathjax-multiline.png)
@@ -216,6 +224,6 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 截图中的 MinerU Token 为测试占位值，不包含真实凭据。
 
 
-FormulaDock 0.8.1 now uses MathJax 4 as the default renderer for new and migrated preferences, while KaTeX remains available as a lighter synchronous alternative. MathJax uses SVG output, improves compatibility with multi-line environments such as eqnarray, align, aligned, gathered, cases, split, and array, and loads only when the first formula is rendered. All scripts and NewCM glyph assets remain packaged locally, and transparent PNG/SVG plus white-background JPG export continues to work.
+FormulaDock 0.8.2 fixes quick-tool previews by separating display examples from caret-insertion skeletons, fitting each formula inside its own card, and auditing all 284 quick tools plus 60 templates against both KaTeX and MathJax 4. It also fixes duplicate tool IDs, improves per-mille portability, corrects several incomplete template formulas, and guards against using \inf where \infty is required. MathJax 4 remains the default renderer and all assets stay local.
 
-网页端和扩展设置均提供“公式渲染器”切换，默认 MathJax 4。MathJax 采用 SVG 输出，并会在首次需要渲染公式时按需加载；相关脚本、字体和动态字形均随项目本地打包，不依赖 CDN。需要更轻量、同步启动的渲染路径时，可切换到 KaTeX。源码工具栏的环境菜单和图片导出功能继续可用。
+快捷工具与公式模板中的全部 344 条公式现已通过 KaTeX 和 MathJax 4 双引擎检查。上下标等需要光标定位的条目会使用完整的示例公式作为图标，但点击后仍插入原本的占位源码；积分、矩阵和大型运算符会按所在卡片单独缩放，避免右侧或上下内容被裁切。

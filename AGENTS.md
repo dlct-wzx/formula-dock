@@ -52,7 +52,11 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - Static formula content belongs in `src/data/`, not inside components.
 - Shared Node/browser MinerU extraction logic belongs in `shared/formula-parser.mjs`.
 - Quick tool/template insertion must target the current editor caret.
+- Quick-tool `latex` is the insertion source and may intentionally contain empty caret placeholders; `previewLatex` supplies a complete, renderable example for the card.
+- Quick-tool IDs must remain globally unique because Recently Used stores IDs rather than full objects.
+- Quick-tool previews must fit individually inside their card using measured scaling; do not solve clipping by hiding formula overflow.
 - Formula rendering must stay client-side. MathJax 4 is the default renderer; KaTeX remains available with `throwOnError: false` as the lighter synchronous option.
+- All quick-tool preview/source formulas and all formula templates must pass the dual-renderer data audit in `tests/formula-data.test.mjs`.
 - MathJax 4 uses SVG output, loads lazily when the first formula is rendered, and must use only packaged local components, NewCM fonts, and dynamic glyph scripts.
 - Do not add a MathJax CDN dependency, remote script host, or extra extension host permission.
 - The public web UI must not expose image upload or call OCR endpoints. The Image recognition tab renders extension installation guidance in web mode.

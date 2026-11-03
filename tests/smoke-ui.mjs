@@ -62,6 +62,91 @@ try {
   )
   assert.equal(await defaultPreferences.locator('select').nth(1).locator('option').first().getAttribute('value'), 'mathjax')
   await defaultPreferences.getByRole('button', { name: '取消', exact: true }).click()
+  const quickPreviewCategories = ['根式角标', '积分运算', '大型运算']
+  for (const categoryName of quickPreviewCategories) {
+    await page.mouse.move(0, 0)
+    await page.locator('.quick-hover-panel').waitFor({ state: 'detached' }).catch(() => {})
+    await page.locator('.quick-category__toggle').filter({ hasText: categoryName }).hover()
+    const previewPanel = page.locator('.quick-hover-panel')
+    await previewPanel.waitFor({ state: 'visible' })
+    await page.waitForFunction(
+      () => {
+        const panel = document.querySelector('.quick-hover-panel')
+        const items = Array.from(panel?.querySelectorAll('.quick-item') ?? [])
+        return (
+          items.length > 0 &&
+          items.every((item) => {
+            const fitted = item.querySelector('.fitted-math')
+            return (
+              item.querySelector('.math-markup')?.getAttribute('data-math-status') === 'ready' &&
+              Number(fitted?.getAttribute('data-math-scale')) > 0
+            )
+          })
+        )
+      },
+      undefined,
+      { timeout: 20_000 },
+    )
+    const previewIssues = await previewPanel.evaluate((panel) =>
+      Array.from(panel.querySelectorAll('.quick-item')).flatMap((item) => {
+        const title = item.getAttribute('title') || 'unknown'
+        const container = item.querySelector('mjx-container')
+        const svg = container?.querySelector('svg')
+        const fitted = item.querySelector('.fitted-math')
+        const content = item.querySelector('.fitted-math__content')
+        if (!(container instanceof HTMLElement) || !(svg instanceof SVGSVGElement) || !(fitted instanceof HTMLElement) || !(content instanceof HTMLElement)) {
+          return [`${title}: missing MathJax preview`]
+        }
+        const mathRect = container.getBoundingClientRect()
+        if (mathRect.width < 2 || mathRect.height < 2) return [`${title}: zero-size preview`]
+        if (container.querySelector('[data-mml-node="merror"], merror')) return [`${title}: MathJax error`]
+        const hostRect = fitted.getBoundingClientRect()
+        const wrapperRect = content.getBoundingClientRect()
+        const formulaRect = container.getBoundingClientRect()
+        const svgRect = svg.getBoundingClientRect()
+        const scale = Number(fitted.dataset.mathScale)
+        if (!Number.isFinite(scale) || scale <= 0 || scale > 1.001) return [`${title}: invalid fit scale ${fitted.dataset.mathScale}`]
+        if (
+          wrapperRect.left < hostRect.left - 1 ||
+          wrapperRect.right > hostRect.right + 1 ||
+          wrapperRect.top < hostRect.top - 1 ||
+          wrapperRect.bottom > hostRect.bottom + 1 ||
+          formulaRect.left < hostRect.left - 1 ||
+          formulaRect.right > hostRect.right + 1 ||
+          formulaRect.top < hostRect.top - 1 ||
+          formulaRect.bottom > hostRect.bottom + 1 ||
+          svgRect.left < hostRect.left - 1 ||
+          svgRect.right > hostRect.right + 1 ||
+          svgRect.top < hostRect.top - 1 ||
+          svgRect.bottom > hostRect.bottom + 1
+        ) {
+          return [`${title}: preview overflows host=${hostRect.left.toFixed(1)},${hostRect.right.toFixed(1)},${hostRect.top.toFixed(1)},${hostRect.bottom.toFixed(1)} wrapper=${wrapperRect.left.toFixed(1)},${wrapperRect.right.toFixed(1)},${wrapperRect.top.toFixed(1)},${wrapperRect.bottom.toFixed(1)} formula=${formulaRect.left.toFixed(1)},${formulaRect.right.toFixed(1)},${formulaRect.top.toFixed(1)},${formulaRect.bottom.toFixed(1)} svg=${svgRect.left.toFixed(1)},${svgRect.right.toFixed(1)},${svgRect.top.toFixed(1)},${svgRect.bottom.toFixed(1)} scale=${fitted.dataset.mathScale}`]
+        }
+        return []
+      }),
+    )
+    assert.deepEqual(previewIssues, [], `${categoryName} preview issues: ${previewIssues.join(' | ')}`)
+    const screenshotName =
+      categoryName === '根式角标'
+        ? 'smoke-quick-previews-roots.png'
+        : categoryName === '积分运算'
+          ? 'smoke-quick-previews-integrals.png'
+          : 'smoke-quick-previews-large-ops.png'
+    await previewPanel.screenshot({ path: path.join(artifactsDir, screenshotName) })
+  }
+  await page.mouse.move(0, 0)
+  await page.locator('.quick-hover-panel').waitFor({ state: 'detached' })
+  await page.locator('.quick-category__toggle').filter({ hasText: '根式角标' }).hover()
+  const insertionPreview = page.locator('.quick-hover-panel')
+  await insertionPreview.waitFor({ state: 'visible' })
+  await insertionPreview.locator('button[title^="平方根 ·"]').click()
+  assert.equal(await editor.inputValue(), String.raw`\sqrt{}`, 'The preview must not change the inserted source.')
+  await editor.fill('')
+  await page.locator('.quick-category__toggle').filter({ hasText: '根式角标' }).hover()
+  await insertionPreview.waitFor({ state: 'visible' })
+  await insertionPreview.locator('button[title^="上标 ·"]').click()
+  assert.equal(await editor.inputValue(), String.raw`^{}`, 'Superscript insertion must keep its caret placeholder.')
+  await editor.fill('')
   await page.evaluate(() =>
     localStorage.setItem(
       'formuladock:ui-preferences',
@@ -116,11 +201,38 @@ try {
   assert.equal(await page.locator('.quick-category__body').count(), 0)
   assert.equal(await page.locator('.quick-category--open').count(), 0)
   const quickKatexErrors = []
+  const quickKatexPreviewIssues = []
   const quickCategoryCount = await page.locator('.quick-category__toggle').count()
   for (let index = 0; index < quickCategoryCount; index += 1) {
     await page.locator('.quick-category__toggle').nth(index).hover()
     await quickHoverPanel.waitFor({ state: 'visible' })
     await page.waitForTimeout(60)
+    await page.waitForFunction(() => {
+      const items = Array.from(document.querySelectorAll('.quick-hover-panel .quick-item'))
+      return items.length > 0 && items.every((item) => Number(item.querySelector('.fitted-math')?.getAttribute('data-math-scale')) > 0)
+    })
+    quickKatexPreviewIssues.push(
+      ...(await page.locator('.quick-hover-panel .quick-item').evaluateAll((items) =>
+        items.flatMap((item) => {
+          const title = item.getAttribute('title') || 'unknown'
+          const katexNode = item.querySelector('.katex')
+          const fitted = item.querySelector('.fitted-math')
+          if (!(katexNode instanceof HTMLElement) || !(fitted instanceof HTMLElement)) return [`${title}: missing KaTeX preview`]
+          const mathRect = katexNode.getBoundingClientRect()
+          const hostRect = fitted.getBoundingClientRect()
+          if (mathRect.width < 2 || mathRect.height < 2) return [`${title}: zero-size KaTeX preview`]
+          if (
+            mathRect.left < hostRect.left - 1 ||
+            mathRect.right > hostRect.right + 1 ||
+            mathRect.top < hostRect.top - 1 ||
+            mathRect.bottom > hostRect.bottom + 1
+          ) {
+            return [`${title}: KaTeX preview overflows fitted area`]
+          }
+          return []
+        }),
+      )),
+    )
     quickKatexErrors.push(
       ...(await page.locator('.quick-hover-panel .quick-item:has(.katex-error)').evaluateAll((nodes) =>
         nodes.map((node) => node.getAttribute('title') || node.textContent || 'unknown quick item'),
@@ -128,6 +240,7 @@ try {
     )
   }
   assert.deepEqual(quickKatexErrors, [], `Quick tool KaTeX errors: ${quickKatexErrors.join(' | ')}`)
+  assert.deepEqual(quickKatexPreviewIssues, [], `KaTeX preview fit issues: ${quickKatexPreviewIssues.join(' | ')}`)
   await page.locator('.quick-category__toggle').first().hover()
   await quickHoverPanel.waitFor({ state: 'visible' })
   await page.locator('button[title^="加 ·"]').first().click()
@@ -500,6 +613,9 @@ g &=& h + i
         templateHoverPanel: true,
         interfaceSettings: true,
         defaultMathJax: true,
+        quickPreviewFits: true,
+        quickPreviewInsertionSource: true,
+        quickPreviewFitsKaTeX: true,
         mathJaxRenderer: true,
         mathJaxLocalAssets: true,
         mathJaxMultilineRows: 3,
@@ -523,6 +639,9 @@ g &=& h + i
         darkTheme: true,
         screenshots: [
           path.join(artifactsDir, 'smoke-quick-tools.png'),
+          path.join(artifactsDir, 'smoke-quick-previews-roots.png'),
+          path.join(artifactsDir, 'smoke-quick-previews-integrals.png'),
+          path.join(artifactsDir, 'smoke-quick-previews-large-ops.png'),
           path.join(artifactsDir, 'smoke-templates.png'),
           path.join(artifactsDir, 'smoke-template-hover.png'),
           path.join(artifactsDir, 'smoke-wide-formula.png'),

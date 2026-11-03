@@ -20,6 +20,7 @@ const requiredFiles = [
   '.agents/verification/2026-11-02-extension.yaml',
   '.agents/verification/2026-11-02-extension-live.yaml',
   'scripts/prepare-mathjax-fonts.mjs',
+  'tests/formula-data.test.mjs',
   'extension/manifest.json',
   'LICENSE',
   'NOTICE',
@@ -44,6 +45,7 @@ const requiredFiles = [
   '.agents/decisions/0013-latex-environment-menu.md',
   '.agents/decisions/0014-mathjax-renderer.md',
   '.agents/decisions/0015-default-mathjax.md',
+  '.agents/decisions/0016-quick-tool-preview-audit.md',
 
   '.agents/verification/2026-11-02-open-source.yaml',
   '.agents/verification/2026-11-02-formuladock-rebrand.yaml',
@@ -56,6 +58,7 @@ const requiredFiles = [
   '.agents/verification/2026-11-03-environment-menu.yaml',
   '.agents/verification/2026-11-03-mathjax-renderer.yaml',
   '.agents/verification/2026-11-03-default-mathjax.yaml',
+  '.agents/verification/2026-11-03-quick-tool-preview-audit.yaml',
 
 ]
 
