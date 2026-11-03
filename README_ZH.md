@@ -16,7 +16,7 @@
   </p>
 </div>
 
-![FormulaDock 工作台](docs/screenshots/extension-sidepanel.png)
+![FormulaDock 工作台](docs/screenshots/readme-workspace.png)
 
 FormulaDock 是一个面向日常公式编辑的浏览器 LaTeX 工作台。它将可搜索的符号库、现成公式模板、实时编辑器、高分辨率图片导出，以及可选的 MinerU 图片识别整合到干净的 Chrome/Edge 侧边栏中。
 
@@ -46,13 +46,13 @@ FormulaDock 是一个面向日常公式编辑的浏览器 LaTeX 工作台。它�
 
 按主题浏览模板，或按名称、标签和描述搜索。模板预览会使用当前选择的公式渲染器。
 
-![公式模板预览](docs/screenshots/extension-template-hover.png)
+![公式模板预览](docs/screenshots/readme-template-preview.png)
 
 ### 3. 粘贴或识别图片
 
 在浏览器扩展中上传、拖入或粘贴公式图片。FormulaDock 会使用你自己的 API Key 将图片发送到 MinerU，提取 LaTeX 候选，并支持插入或复制。
 
-![MinerU 识别结果](docs/screenshots/extension-live-ocr.png)
+![MinerU 识别结果](docs/screenshots/readme-ocr.png)
 
 ## 编辑与输出
 
@@ -63,7 +63,9 @@ FormulaDock 是一个面向日常公式编辑的浏览器 LaTeX 工作台。它�
 - 支持预览缩放，便于检查细节。
 - 支持透明 SVG/PNG 和白色背景 JPG 导出。
 
-![MathJax 多行公式](docs/screenshots/mathjax-multiline.png)
+![MathJax 多行公式](docs/screenshots/readme-formula.png)
+
+![公式图片导出](docs/screenshots/readme-export.png)
 
 ## 安装扩展
 
@@ -79,6 +81,8 @@ FormulaDock 是一个面向日常公式编辑的浏览器 LaTeX 工作台。它�
 如需图片识别，请打开 **设置**，填写 MinerU API Key，并选择模型与 OCR 语言。
 
 > FormulaDock 不会读取、修改或向当前网页插入内容，也不会申请访问当前标签页的权限。
+
+![扩展设置](docs/screenshots/readme-settings.png)
 
 ## 隐私与权限
 
@@ -103,18 +107,6 @@ FormulaDock 是一个面向日常公式编辑的浏览器 LaTeX 工作台。它�
 | 本地资源 | KaTeX、MathJax、字体与字形资源均随项目打包 |
 
 全部 284 个快捷工具预览和 60 个公式模板均已通过 KaTeX 与 MathJax 4 双引擎检查。
-
-## 界面截图
-
-| 快捷工具 | 公式模板 |
-|:-:|:-:|
-| ![快捷工具](docs/screenshots/extension-sidepanel.png) | ![公式模板分类](docs/screenshots/extension-template-categories.png) |
-
-| MathJax 公式 | 图片导出 |
-|:-:|:-:|
-| ![MathJax 公式](docs/screenshots/mathjax-multiline.png) | ![公式导出菜单](docs/screenshots/image-export-menu.png) |
-
-![扩展设置](docs/screenshots/extension-options.png)
 
 ## 兼容性
 

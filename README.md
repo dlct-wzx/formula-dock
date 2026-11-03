@@ -16,7 +16,7 @@
   </p>
 </div>
 
-![FormulaDock workspace](docs/screenshots/extension-sidepanel.png)
+![FormulaDock workspace](docs/screenshots/readme-workspace.png)
 
 FormulaDock is a browser-based LaTeX formula workspace built for people who write formulas every day. It combines a searchable symbol library, ready-made formula templates, a live editor, high-resolution image export, and optional MinerU-powered image recognition in a clean Chrome/Edge side panel.
 
@@ -46,13 +46,13 @@ Hover over a category to open its formula grid. Cards are sized to keep the comp
 
 Browse templates by topic or search by name, tag, and description. Each preview uses the renderer selected in Settings.
 
-![Formula template previews](docs/screenshots/extension-template-hover.png)
+![Formula template previews](docs/screenshots/readme-template-preview.png)
 
 ### 3. Paste or recognize an image
 
 In the browser extension, upload, drag, or paste a formula image. FormulaDock sends it to MinerU using your own API key, extracts the LaTeX candidates, and lets you insert or copy the result.
 
-![MinerU recognition result](docs/screenshots/extension-live-ocr.png)
+![MinerU recognition result](docs/screenshots/readme-ocr.png)
 
 ## Editor and output
 
@@ -63,7 +63,9 @@ In the browser extension, upload, drag, or paste a formula image. FormulaDock se
 - Preview zoom controls for checking fine details.
 - Transparent SVG/PNG export and white-background JPG export.
 
-![MathJax multi-line formula](docs/screenshots/mathjax-multiline.png)
+![MathJax multi-line formula](docs/screenshots/readme-formula.png)
+
+![Formula image export](docs/screenshots/readme-export.png)
 
 ## Install the extension
 
@@ -79,6 +81,8 @@ FormulaDock currently installs from the repository's GitHub Releases page.
 For image recognition, open **Settings**, paste your MinerU API key, and choose the model and OCR language.
 
 > FormulaDock does not read, modify, or insert content into the current webpage. The extension does not request access to the active tab.
+
+![Extension settings](docs/screenshots/readme-settings.png)
 
 ## Privacy and permissions
 
@@ -103,18 +107,6 @@ See [PRIVACY.md](PRIVACY.md), [SECURITY.md](SECURITY.md), and the extension perm
 | Local rendering | KaTeX, MathJax, fonts, and glyph assets are packaged with the app |
 
 All 284 quick-tool previews and 60 formula templates are checked against both rendering engines.
-
-## Screenshots
-
-| Quick tools | Formula templates |
-|:-:|:-:|
-| ![Quick tools](docs/screenshots/extension-sidepanel.png) | ![Template categories](docs/screenshots/extension-template-categories.png) |
-
-| MathJax preview | Image export |
-|:-:|:-:|
-| ![MathJax formula](docs/screenshots/mathjax-multiline.png) | ![Formula export menu](docs/screenshots/image-export-menu.png) |
-
-![Extension settings](docs/screenshots/extension-options.png)
 
 ## Compatibility
 

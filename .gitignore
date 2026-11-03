@@ -18,3 +18,4 @@ latexlive-assistant-0.1.5/
 *.key
 *.crt
 public/mathjax-fonts/
+.agents/

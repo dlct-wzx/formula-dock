@@ -51,7 +51,6 @@ Never place the token in source, test fixtures, terminal output, or screenshots.
 - `server/`: self-hosted web API
 - `scripts/`: build and package tooling
 - `tests/`: parser, content-script, and browser smoke tests
-- `.agents/`: project state, decisions, tasks, and verification evidence
 
 ## Contribution guidelines
 
@@ -60,7 +59,7 @@ Never place the token in source, test fixtures, terminal output, or screenshots.
 - Preserve keyboard accessibility and responsive behaviour.
 - Keep the extension permissions minimal. Permission changes require documentation and tests.
 - Add tests for formula parsing, provider-state mapping, category interaction, layout, or build packaging changes.
-- Update `.agents/tasks/backlog.yaml` and relevant verification notes when changing project state.
+- Update user-facing documentation when behaviour, setup, or permissions change.
 - Do not commit generated ZIPs, browser profiles, uploaded images, or secrets.
 - Use Conventional Commit-style messages when practical.
 

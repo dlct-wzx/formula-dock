@@ -41,10 +41,19 @@ assert.ok(chinese.includes('href="README.md"'), 'Chinese README must link to the
       }
       if (target.startsWith('../../issues')) continue
       const withoutAnchor = target.split('#')[0]
-      assert.ok(
-        fs.existsSync(path.join(root, withoutAnchor)),
-        `${file} references a missing local file: ${target}`,
-      )
+      const localPath = path.join(root, withoutAnchor)
+      assert.ok(fs.existsSync(localPath), `${file} references a missing local file: ${target}`)
+      if (withoutAnchor.startsWith('docs/screenshots/') && withoutAnchor.endsWith('.png')) {
+        const buffer = fs.readFileSync(localPath)
+        assert.equal(buffer.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', `Invalid PNG: ${target}`)
+        const width = buffer.readUInt32BE(16)
+        const height = buffer.readUInt32BE(20)
+        assert.ok(width >= 400, `README screenshot is too narrow: ${target} (${width}px)`)
+        assert.ok(
+          width / height >= 0.9,
+          `README screenshot is too tall and narrow: ${target} (${width}x${height})`,
+        )
+      }
     }
   }
 })

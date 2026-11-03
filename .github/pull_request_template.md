@@ -17,7 +17,6 @@ Describe the problem and the implemented change.
 - [ ] Browser permission changes are documented and limited in scope.
 - [ ] Tests cover the changed behaviour.
 - [ ] UI changes include screenshots or a short recording.
-- [ ] `.agents/tasks/backlog.yaml` and verification notes are updated when project state changed.
 - [ ] The extension version was bumped when the packaged extension changed.
 
 ## Screenshots
