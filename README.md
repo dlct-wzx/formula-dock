@@ -5,7 +5,8 @@
 - **快捷工具**：10 个分类、284 个符号与结构、搜索、最近使用与光标插入。
 - **公式模板**：10 个分类、60 个可检索公式模板、KaTeX 实时预览。
 - **网页端**：提供快捷工具、公式模板、LaTeX 编辑器、实时预览与公式图片导出。
-- **图片导出**：输出卡片支持直接下载 SVG、PNG、JPG 三种格式。
+- **图片导出**：输出卡片支持直接下载 SVG、PNG、JPG 三种格式，其中 PNG/SVG 使用透明背景。
+- **LaTeX 环境**：源码工具栏支持 align、aligned、cases、array 等 8 种环境快捷插入。
 - **图片识别**：仅在浏览器扩展侧边栏中提供；安装扩展并配置自己的 MinerU API Key 后使用。
 - **浏览器扩展**：Manifest V3 侧边栏，提供完整快捷工具、公式模板和 MinerU 图片识别。
 
@@ -46,7 +47,7 @@ npm run build:extension
 产物：
 
 - `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/formuladock-extension-v0.6.0.zip`：安装/发布 ZIP。
+- `release/formuladock-extension-v0.7.0.zip`：安装/发布 ZIP。
 
 安装：
 
@@ -189,11 +190,15 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 
 ![长公式横向滚动](docs/screenshots/extension-wide-formula.png)
 
+### LaTeX 环境
+
+![LaTeX 环境菜单](docs/screenshots/environment-menu.png)
+
 ### 输出图片
 
 ![输出图片菜单](docs/screenshots/image-export-menu.png)
 
-![公式图片导出示例](docs/screenshots/formula-export-example.png)
+![公式图片导出示例](docs/screenshots/formula-export-example.jpg)
 
 ### 扩展设置
 
@@ -206,6 +211,6 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 截图中的 MinerU Token 为测试占位值，不包含真实凭据。
 
 
-FormulaDock 0.6.0 replaces the output-card Copy LaTeX button with an Output image menu for SVG, PNG, and JPG downloads in both the web workspace and extension. FormulaDock 0.5.0 moved OCR to the browser extension, where users configure their own MinerU API key. The web editor and preview remain stacked vertically, wide formulas scroll horizontally with a contextual hint, and interface text supports independent 90–160% presets.
+FormulaDock 0.7.0 makes PNG/SVG exports transparent, keeps JPG white, and adds an Environment menu to the LaTeX Source toolbar with none, eqnarray, align, aligned, gathered, cases, split, and array choices. Selected content can be wrapped, empty environments can be inserted with the caret inside, and none removes an existing wrapper. The web editor and preview remain stacked vertically, wide formulas scroll horizontally with a contextual hint, and interface text supports independent 90–160% presets.
 
-输出区域右上角现在提供“输出图片”菜单，可下载 SVG、PNG 或 JPG 格式的公式图片。网页端图片识别入口仍只显示扩展安装和 API Key 配置说明；长公式超出宽度时可横向滑动查看。
+源码工具栏现在提供“环境”菜单，可将选中内容包裹到 align、aligned、cases、array 等 LaTeX 环境中。输出区域右上角提供“输出图片”菜单，PNG/SVG 使用透明背景，JPG 使用白色背景。网页端图片识别入口仍只显示扩展安装和 API Key 配置说明。

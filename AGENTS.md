@@ -69,6 +69,9 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - Wide formulas may scroll horizontally inside the output preview. Do not solve width overflow by clipping the formula or forcing page-level horizontal scrolling.
 - The output-card primary action is an Output image menu for SVG, PNG, and JPG. Keep LaTeX copy available in the editor toolbar.
 - Formula image exports must preserve KaTeX rendering and produce non-empty image content.
+- SVG and PNG formula exports must keep transparent backgrounds; JPG uses a white background.
+- The LaTeX Source toolbar must keep an Environment menu with none, eqnarray, align, aligned, gathered, cases, split, and array.
+- Environment selection must wrap selected editor content; `none` must remove an existing wrapper when present.
 - Quick-tool and formula-template categories must use the same responsive block-card layout.
 - Category content opens only on hover and uses a blue hover state. Do not restore click-to-expand or click-to-select category state.
 - Interface text-size presets are 90, 100, 110, 140, and 160 percent, independent from the LaTeX editor font size.

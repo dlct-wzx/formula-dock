@@ -3,7 +3,7 @@
   "name": "FormulaDock 公式助手",
   "short_name": "FormulaDock",
   "description": "快捷公式工具、公式模板与 MinerU 图片识别侧边栏。",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "minimum_chrome_version": "116",
   "permissions": [
     "declarativeNetRequestWithHostAccess",

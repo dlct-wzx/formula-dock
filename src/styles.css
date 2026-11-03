@@ -1031,6 +1031,43 @@ textarea:focus-visible,
   margin: 14px 1px 8px;
 }
 .editor-toolbar__left, .editor-toolbar__right { display: flex; align-items: center; gap: 8px; }
+.environment-menu { position: relative; }
+.environment-menu__trigger { white-space: nowrap; }
+.environment-menu__chevron { transition: transform 160ms ease; }
+.environment-menu__trigger[aria-expanded="true"] .environment-menu__chevron { transform: rotate(180deg); }
+.environment-menu__list {
+  position: fixed;
+  z-index: 90;
+  max-height: min(360px, calc(100vh - 20px));
+  display: grid;
+  gap: 5px;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  box-shadow: 0 16px 36px rgb(13 25 48 / 16%);
+  overflow-y: auto;
+}
+.environment-menu__item {
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--bg-subtle);
+  cursor: pointer;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: calc(10px * var(--ui-font-scale, 1));
+  font-weight: 650;
+  text-align: left;
+}
+.environment-menu__item:hover,
+.environment-menu__item:focus-visible {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  background: var(--accent-soft);
+}
 .toolbar-label { color: var(--text-muted); font-size: calc(9px * var(--ui-font-scale, 1)); font-weight: 800; letter-spacing: 0.08em; }
 .toolbar-separator { width: 1px; height: 12px; background: var(--border); }
 .toolbar-meta { color: var(--text-faint); font-size: calc(9px * var(--ui-font-scale, 1)); font-variant-numeric: tabular-nums; }

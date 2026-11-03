@@ -12,7 +12,7 @@ npm run build:extension
 Outputs:
 
 - `extension-dist/` — load unpacked for local testing.
-- `release/formuladock-extension-v0.6.0.zip` — upload/package artifact.
+- `release/formuladock-extension-v0.7.0.zip` — upload/package artifact.
 
 ## Install locally
 
@@ -78,4 +78,4 @@ Both quick-tool and formula-template categories open a shared blue-highlighted p
 
 ## Formula image export
 
-The Output card provides an Output image menu for `.svg`, `.png`, and `.jpg` downloads. Copy LaTeX remains available from the editor toolbar.
+The Output card provides an Output image menu for `.svg`, `.png`, and `.jpg` downloads. SVG and PNG use transparent backgrounds; JPG uses a white background. Copy LaTeX remains available from the editor toolbar. The source toolbar includes an Environment menu for wrapping selected content in common LaTeX environments.

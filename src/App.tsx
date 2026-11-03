@@ -20,6 +20,7 @@ import { OcrExtensionNotice } from './components/OcrExtensionNotice'
 import { PreviewPanel } from './components/PreviewPanel'
 import { Toast, type ToastState } from './components/Toast'
 import { PreferencesDialog } from './components/PreferencesDialog'
+import { EnvironmentMenu } from './components/EnvironmentMenu'
 import { formulaCategories, formulaTemplateCount } from './data/formulaTemplates'
 import { quickToolCategories, quickToolCount } from './data/quickTools'
 import type { ToastTone, ToolTab } from './types'
@@ -345,6 +346,9 @@ export default function App() {
                   </span>
                 </div>
                 <div className="editor-toolbar__right">
+                  <EnvironmentMenu
+                    onSelect={(environment) => editorRef.current?.wrapEnvironment(environment)}
+                  />
                   <button
                     type="button"
                     className="button button--ghost button--small"

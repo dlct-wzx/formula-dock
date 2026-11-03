@@ -6,6 +6,27 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-03
+
+### Added
+
+- PNG and SVG formula exports now use transparent backgrounds; JPG remains white.
+- Added an Environment menu to the LaTeX Source toolbar.
+- Environment options include none, eqnarray, align, aligned, gathered, cases, split, and array.
+- Selected source can be wrapped in an environment, empty environments place the caret inside, and none removes an existing wrapper.
+- The environment menu uses a viewport-aware floating portal so it is not clipped by the workspace card.
+
+### Changed
+
+- Image rendering remains on demand through `html2canvas`.
+- Updated the extension manifest to version 0.7.0.
+
+### Verified
+
+- `npm run verify` passes.
+- Web regression confirms transparent PNG pixels, JPG white background, selected-content wrapping, none-unwrapping, array insertion, and all eight menu options.
+- Extension regression confirms the Environment menu and PNG export remain available in the side panel.
+
 ## [0.6.0] - 2026-11-03
 
 ### Added
@@ -27,7 +48,6 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 - Browser regression downloads all three formats.
 - SVG contains an embedded rendered image; PNG and JPG signatures and visible formula pixels are validated.
 - Extension regression confirms PNG download from the side panel.
-
 ## [0.5.0] - 2026-11-03
 
 ### Changed

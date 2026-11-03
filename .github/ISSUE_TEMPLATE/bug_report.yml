@@ -46,7 +46,7 @@ body:
     id: version
     attributes:
       label: Project or extension version
-      placeholder: 0.6.0
+      placeholder: 0.7.0
     validations:
       required: true
 

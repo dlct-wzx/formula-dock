@@ -39,7 +39,7 @@ async function createCanvas(target: HTMLElement, format: ExportFormat) {
   host.style.top = '0'
   host.style.display = 'inline-block'
   host.style.padding = '28px'
-  host.style.background = '#ffffff'
+  host.style.background = format === 'jpg' ? '#ffffff' : 'transparent'
   host.style.color = '#111827'
 
   const clone = source.cloneNode(true) as HTMLElement
@@ -52,7 +52,7 @@ async function createCanvas(target: HTMLElement, format: ExportFormat) {
   try {
     const { default: html2canvas } = await import('html2canvas')
     return await html2canvas(host, {
-      backgroundColor: '#ffffff',
+      backgroundColor: format === 'jpg' ? '#ffffff' : null,
       scale: 3,
       useCORS: true,
       logging: false,

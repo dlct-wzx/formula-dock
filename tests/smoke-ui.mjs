@@ -200,7 +200,7 @@ try {
       }
       const imageFormat = item.signature === 'jpg' ? 'jpeg' : 'png'
       const dataUrl = `data:image/${imageFormat};base64,${bytes.toString('base64')}`
-      const visiblePixels = await page.evaluate(async (source) => {
+      const pixelStats = await page.evaluate(async (source) => {
         const image = new Image()
         image.src = source
         await image.decode()
@@ -208,18 +208,59 @@ try {
         canvas.width = image.naturalWidth
         canvas.height = image.naturalHeight
         const context = canvas.getContext('2d')
-        if (!context) return 0
+        if (!context) return { visible: 0, transparent: 0 }
         context.drawImage(image, 0, 0)
         const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data
-        let count = 0
+        let visible = 0
+        let transparent = 0
         for (let offset = 0; offset < pixels.length; offset += 4) {
-          if (pixels[offset] < 245 || pixels[offset + 1] < 245 || pixels[offset + 2] < 245) count += 1
+          if (pixels[offset + 3] < 20) transparent += 1
+          if (pixels[offset + 3] > 20 && (pixels[offset] < 245 || pixels[offset + 1] < 245 || pixels[offset + 2] < 245)) {
+            visible += 1
+          }
         }
-        return count
+        return { visible, transparent }
       }, dataUrl)
-      assert.ok(visiblePixels > 100, `${item.format.toUpperCase()} export contains no visible formula pixels.`)
+      assert.ok(pixelStats.visible > 100, `${item.format.toUpperCase()} export contains no visible formula pixels.`)
+      if (item.format === 'png') {
+        assert.ok(pixelStats.transparent > 100, 'PNG export background must be transparent.')
+      }
     }
   }
+
+  const environmentButton = page.getByRole('button', { name: '环境', exact: true })
+  await editor.fill('x+y')
+  await editor.evaluate((element) => {
+    element.focus()
+    element.setSelectionRange(0, 3)
+  })
+  const environmentToastClose = page.locator('.toast__close')
+  if (await environmentToastClose.isVisible().catch(() => false)) await environmentToastClose.click()
+  await environmentButton.click()
+  const environmentMenu = page.locator('.environment-menu__list')
+  await environmentMenu.waitFor()
+  assert.equal(await environmentMenu.getByRole('menuitem').count(), 8)
+  await page.screenshot({
+    path: path.join(artifactsDir, 'smoke-environment-menu.png'),
+    fullPage: true,
+  })
+  await environmentMenu.getByRole('menuitem', { name: 'align环境', exact: true }).click()
+  assert.equal(
+    await editor.inputValue(),
+    '\\begin{align}\n  x+y\n\\end{align}',
+    'Selected content was not wrapped in an align environment.',
+  )
+
+  await editor.fill('\\begin{align}\n  x+y\n\\end{align}')
+  await environmentButton.click()
+  await environmentMenu.getByRole('menuitem', { name: 'none环境', exact: true }).click()
+  assert.equal(await editor.inputValue(), 'x+y', 'none environment did not unwrap the existing environment.')
+
+  await editor.fill('')
+  await environmentButton.click()
+  await environmentMenu.getByRole('menuitem', { name: 'array环境', exact: true }).click()
+  assert.match(await editor.inputValue(), /\\begin\{array\}\{c\}[\s\S]*\\end\{array\}/)
+  await editor.fill('x^2')
 
   await page.getByRole('tab', { name: /公式模板/ }).click()
   await page.getByPlaceholder('搜索公式名称、标签或描述').fill('高斯')
@@ -375,7 +416,12 @@ try {
         wideFormulaHorizontalScroll: true,
         conditionalHorizontalScrollHint: true,
         webWorkspaceStacked: true,
+        environmentMenuOptions: 8,
+        environmentWrapping: true,
+        environmentUnwrap: true,
         imageExportFormats: ['svg', 'png', 'jpg'],
+        pngTransparentBackground: true,
+        jpgWhiteBackground: true,
         darkTheme: true,
         screenshots: [
           path.join(artifactsDir, 'smoke-quick-tools.png'),
@@ -384,6 +430,7 @@ try {
           path.join(artifactsDir, 'smoke-wide-formula.png'),
           path.join(artifactsDir, 'smoke-ocr-extension-notice.png'),
           path.join(artifactsDir, 'smoke-image-export-menu.png'),
+          path.join(artifactsDir, 'smoke-environment-menu.png'),
           path.join(artifactsDir, 'formula-export.svg'),
           path.join(artifactsDir, 'formula-export.png'),
           path.join(artifactsDir, 'formula-export.jpg'),
