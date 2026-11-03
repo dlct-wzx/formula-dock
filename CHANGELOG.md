@@ -6,6 +6,11 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+### Added
+
+- Published the web workspace to GitHub Pages at https://dlct-wzx.github.io/formula-dock/ and linked it from both READMEs.
+- Added tag-driven GitHub Release automation that verifies the repository and attaches the extension ZIP.
+
 ### Changed
 
 - Replaced the developer-oriented root README with a user-facing English GitHub introduction and added a matching Chinese guide in README_ZH.md.

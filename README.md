@@ -2,6 +2,7 @@
   <img src="extension/icons/icon128.png" width="96" height="96" alt="FormulaDock icon" />
   <h1>FormulaDock</h1>
   <p><strong>Write, preview, export, and recognize LaTeX formulas in one focused workspace.</strong></p>
+  <p><a href="https://dlct-wzx.github.io/formula-dock/"><strong>Open the live demo →</strong></a></p>
   <p>
     <a href="README.md">English</a> ·
     <a href="README_ZH.md">简体中文</a> ·

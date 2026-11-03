@@ -2,6 +2,7 @@
   <img src="extension/icons/icon128.png" width="96" height="96" alt="FormulaDock 图标" />
   <h1>FormulaDock</h1>
   <p><strong>在一个专注的工作台中编写、预览、导出与识别 LaTeX 公式。</strong></p>
+  <p><a href="https://dlct-wzx.github.io/formula-dock/"><strong>打开在线示例 →</strong></a></p>
   <p>
     <a href="README.md">English</a> ·
     <a href="README_ZH.md">简体中文</a> ·

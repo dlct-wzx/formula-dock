@@ -63,6 +63,23 @@ Never place the token in source, test fixtures, terminal output, or screenshots.
 - Do not commit generated ZIPs, browser profiles, uploaded images, or secrets.
 - Use Conventional Commit-style messages when practical.
 
+## Releases
+
+Before creating a release:
+
+1. Update the matching version in `package.json` and `extension/manifest.json`.
+2. Update `CHANGELOG.md`.
+3. Run `npm run verify`.
+4. Commit the version changes, then create and push a matching tag:
+
+```powershell
+git tag v0.8.3
+git push origin v0.8.3
+```
+
+The tag starts the `Release extension` workflow. It repeats verification, builds
+`release/formuladock-extension-v<version>.zip`, and publishes the ZIP in a GitHub
+Release with generated notes. A tag must match both version files.
 ## Pull requests
 
 A pull request should include:
