@@ -6,6 +6,28 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-03
+
+### Added
+
+- Added MathJax 4 as an opt-in SVG formula renderer for multi-line LaTeX.
+- Added a Formula renderer selector to the simple web settings dialog and the full extension settings page.
+- Added KaTeX and MathJax regression coverage for multi-line `eqnarray` output, preference persistence, local asset loading, and image export.
+
+### Changed
+
+- KaTeX remains the default renderer, preserving existing saved preferences and startup cost.
+- MathJax loads only after the user selects it.
+- MathJax scripts, NewCM font data, and dynamic glyph modules are packaged locally; the renderer does not use a CDN or add extension host permissions.
+- Formula image export continues to work with the active renderer, including transparent PNG/SVG and white-background JPG output.
+- Updated the extension manifest to version 0.8.0.
+
+### Verified
+
+- `npm run verify` passes.
+- Web regression confirms MathJax multi-line rows, one-time lazy loading, local-only requests, persisted renderer selection, and non-empty transparent PNG export.
+- Extension regression confirms the detailed setting read/write path, side-panel MathJax rendering, local packaged fonts under extension CSP, and PNG export.
+
 ## [0.7.0] - 2026-11-03
 
 ### Added

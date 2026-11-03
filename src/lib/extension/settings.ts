@@ -1,4 +1,5 @@
 import type { UiLocale } from '../../i18n/messages'
+import { normaliseMathRenderer, type MathRenderer } from '../mathRenderer'
 import { normaliseFontSize, normaliseInterfaceScale } from '../preferences'
 
 export const EXTENSION_SETTINGS_KEY = 'formuladock:extension-settings'
@@ -14,6 +15,7 @@ export interface ExtensionSettings {
   uiLocale: UiLocale
   interfaceScale: number
   editorFontSize: number
+  mathRenderer: MathRenderer
 }
 
 export const DEFAULT_EXTENSION_SETTINGS: ExtensionSettings = {
@@ -23,6 +25,7 @@ export const DEFAULT_EXTENSION_SETTINGS: ExtensionSettings = {
   uiLocale: 'zh',
   interfaceScale: 100,
   editorFontSize: 12,
+  mathRenderer: 'katex',
 }
 
 export function isExtensionContext(): boolean {
@@ -43,6 +46,7 @@ export function normaliseExtensionSettings(value: unknown): ExtensionSettings {
     uiLocale: candidate.uiLocale === 'en' ? 'en' : 'zh',
     interfaceScale: normaliseInterfaceScale(candidate.interfaceScale),
     editorFontSize: normaliseFontSize(candidate.editorFontSize),
+    mathRenderer: normaliseMathRenderer(candidate.mathRenderer),
   }
 }
 

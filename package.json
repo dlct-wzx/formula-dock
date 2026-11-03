@@ -1,13 +1,13 @@
 {
   "name": "formuladock",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.8.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k \"vite\" \"node server/index.mjs\"",
-    "dev:client": "vite",
+    "dev": "node scripts/prepare-mathjax-fonts.mjs && concurrently -k \"vite\" \"node server/index.mjs\"",
+    "dev:client": "node scripts/prepare-mathjax-fonts.mjs && vite",
     "dev:server": "node server/index.mjs",
-    "build": "tsc --noEmit && vite build && node scripts/copy-legal-files.mjs",
+    "build": "node scripts/prepare-mathjax-fonts.mjs && tsc --noEmit && vite build && node scripts/copy-legal-files.mjs",
     "preview": "vite preview",
     "check": "tsc --noEmit",
     "test": "node --test server/*.test.mjs tests/*.test.mjs",
@@ -16,7 +16,7 @@
     "smoke": "node scripts/run-web-smoke.mjs",
     "start": "node server/index.mjs",
     "generate:icons": "node scripts/generate-extension-icons.mjs",
-    "build:extension": "tsc --noEmit && vite build && node scripts/copy-legal-files.mjs && node scripts/build-extension.mjs",
+    "build:extension": "node scripts/prepare-mathjax-fonts.mjs && tsc --noEmit && vite build && node scripts/copy-legal-files.mjs && node scripts/build-extension.mjs",
     "verify:extension": "node scripts/verify-extension.mjs",
     "package:extension": "npm run build:extension",
     "smoke:extension": "node tests/extension-load.mjs",
@@ -24,10 +24,12 @@
     "smoke:ui": "node tests/smoke-ui.mjs"
   },
   "dependencies": {
+    "@mathjax/mathjax-newcm-font": "^4.1.3",
     "fflate": "^0.8.3",
     "html2canvas": "^1.4.1",
     "katex": "^0.19.1",
     "lucide-react": "^1.66.0",
+    "mathjax": "^4.1.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },
@@ -51,9 +53,10 @@
   "keywords": [
     "latex",
     "katex",
+    "mathjax",
     "browser-extension",
     "mineru",
     "formula-editor"
   ],
-  "description": "Open-source LaTeX formula workspace with quick tools, templates, and a Manifest V3 extension for MinerU image recognition."
+  "description": "Open-source LaTeX formula workspace with quick tools, templates, switchable KaTeX/MathJax rendering, and a Manifest V3 extension for MinerU image recognition."
 }

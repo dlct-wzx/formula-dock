@@ -17,7 +17,7 @@
             <small data-i18n="subtitle">浏览器扩展设置</small>
           </span>
         </a>
-        <span class="version-pill">v<span id="version">0.7.0</span></span>
+        <span class="version-pill">v<span id="version">0.8.0</span></span>
       </div>
     </header>
 
@@ -36,7 +36,7 @@
             <div>
               <span class="section-number">01</span>
               <h2 data-i18n="interfaceTitle">界面设置</h2>
-              <p data-i18n="interfaceDesc">调整界面语言和 LaTeX 编辑器字号。</p>
+              <p data-i18n="interfaceDesc">调整界面语言、公式渲染器、界面字号和 LaTeX 编辑器字号。</p>
             </div>
           </div>
 
@@ -67,6 +67,16 @@
             </label>
           </div>
 
+          <label class="field field--wide">
+            <span class="field-label">
+              <span data-i18n="mathRenderer">公式渲染器</span>
+              <small data-i18n="mathRendererHint">选择适合当前公式的排版引擎</small>
+            </span>
+            <select id="mathRenderer" name="mathRenderer">
+              <option value="katex" data-i18n="rendererKatex">KaTeX（默认）</option>
+              <option value="mathjax" data-i18n="rendererMathJax">MathJax 4</option>
+            </select>
+          </label>
           <label class="field field--wide">
             <span class="field-label">
               <span data-i18n="editorFontSize">编辑器字号</span>

@@ -19,6 +19,7 @@ const requiredFiles = [
   '.agents/verification/2026-11-02-local.yaml',
   '.agents/verification/2026-11-02-extension.yaml',
   '.agents/verification/2026-11-02-extension-live.yaml',
+  'scripts/prepare-mathjax-fonts.mjs',
   'extension/manifest.json',
   'LICENSE',
   'NOTICE',
@@ -41,6 +42,7 @@ const requiredFiles = [
   '.agents/decisions/0011-extension-only-ocr.md',
   '.agents/decisions/0012-formula-image-export.md',
   '.agents/decisions/0013-latex-environment-menu.md',
+  '.agents/decisions/0014-mathjax-renderer.md',
 
   '.agents/verification/2026-11-02-open-source.yaml',
   '.agents/verification/2026-11-02-formuladock-rebrand.yaml',
@@ -51,6 +53,7 @@ const requiredFiles = [
   '.agents/verification/2026-11-03-extension-only-web-ocr.yaml',
   '.agents/verification/2026-11-03-formula-image-export.yaml',
   '.agents/verification/2026-11-03-environment-menu.yaml',
+  '.agents/verification/2026-11-03-mathjax-renderer.yaml',
 
 ]
 
@@ -76,4 +79,5 @@ for (const command of ['npm run dev', 'npm run verify', 'MINERU_API_TOKEN']) {
   assert.ok(agents.includes(command), `AGENTS.md must mention ${command}.`)
 }
 
+assert.ok(agents.includes('MathJax 4'), 'AGENTS.md must record the MathJax 4 renderer boundary.')
 console.log(`Agent project check passed (${requiredFiles.length} required files).`)

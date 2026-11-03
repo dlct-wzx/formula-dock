@@ -29,6 +29,7 @@ const consoleErrors = []
 const pageErrors = []
 const failedResponses = []
 const webOcrRequests = []
+const externalMathJaxRequests = []
 
 page.on('console', (message) => {
   if (message.type() !== 'error') return
@@ -40,6 +41,7 @@ page.on('response', (response) => {
   if (response.status() >= 400) failedResponses.push(`${response.status()} ${response.url()}`)
 })
 page.on('request', (request) => {
+  if (/mathjax/i.test(request.url()) && !request.url().startsWith(BASE_URL)) externalMathJaxRequests.push(request.url())
   if (/\/api\/(?:ocr|health)(?:\/|$)/.test(new URL(request.url()).pathname)) {
     webOcrRequests.push(request.url())
   }
@@ -49,6 +51,7 @@ const editor = page.locator('textarea[aria-label="LaTeX 源码编辑器"]')
 
 try {
   await page.goto(BASE_URL, { waitUntil: 'networkidle' })
+  assert.equal(await page.locator('script[data-formuladock-mathjax]').count(), 0, 'MathJax must stay lazy until selected.')
   await page.getByRole('heading', { name: /公式，不止于/ }).waitFor()
   assert.equal((await page.locator('.site-footer').innerText()).includes('.agents/'), false)
   const workspaceLayout = await page.evaluate(() => {
@@ -329,8 +332,10 @@ try {
   const preferences = page.locator('.preferences-dialog')
   await preferences.waitFor()
   await preferences.locator('select').nth(0).selectOption('en')
-  assert.equal(await preferences.locator('select').nth(1).locator('option[value="160"]').count(), 1)
-  await preferences.locator('select').nth(1).selectOption('140')
+  assert.equal(await preferences.locator('select').nth(1).locator('option[value="mathjax"]').count(), 1)
+  await preferences.locator('select').nth(1).selectOption('mathjax')
+  assert.equal(await preferences.locator('select').nth(2).locator('option[value="160"]').count(), 1)
+  await preferences.locator('select').nth(2).selectOption('140')
   await preferences.locator('input[type="number"]').fill('18')
   await preferences.locator('.preferences-dialog__footer .button--primary').click()
   await page.getByRole('heading', { name: /Formulas, beyond/ }).waitFor()
@@ -347,10 +352,75 @@ try {
     .first()
     .evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize))
   assert.ok(interfaceFontSize > 16, `Expected interface text to scale, got ${interfaceFontSize}px`)
+  const multilineFormula = String.raw`\begin{eqnarray}
+a &=& b + c \\
+d &=& e + f \\
+g &=& h + i
+\end{eqnarray}`
+  await page.locator('.latex-editor').fill(multilineFormula)
+  const mathJaxPreview = page.locator(
+    '.preview-math [data-math-renderer="mathjax"][data-math-status="ready"] mjx-container',
+  )
+  await mathJaxPreview.waitFor({ timeout: 20_000 })
+  const mathJaxDetails = await page.locator('.preview-math').evaluate((element) => {
+    const container = element.querySelector('mjx-container')
+    const script = document.querySelector('script[data-formuladock-mathjax]')
+    return {
+      hasSvg: Boolean(container?.querySelector('svg')),
+      rowCount: container?.querySelectorAll('g[data-mml-node="mtr"]').length ?? 0,
+      scriptOrigin: script instanceof HTMLScriptElement ? new URL(script.src).origin : '',
+      mathJaxScriptCount: document.querySelectorAll('script[data-formuladock-mathjax]').length,
+      pageOrigin: window.location.origin,
+    }
+  })
+  assert.equal(mathJaxDetails.hasSvg, true, 'MathJax must produce SVG output.')
+  assert.ok(mathJaxDetails.rowCount >= 3, `Expected three MathJax rows, got ${mathJaxDetails.rowCount}`)
+  assert.equal(mathJaxDetails.mathJaxScriptCount, 1, 'MathJax must load exactly once.')
+  assert.deepEqual(externalMathJaxRequests, [], `MathJax made external requests: ${externalMathJaxRequests.join(' | ')}`)
+  assert.equal(mathJaxDetails.scriptOrigin, mathJaxDetails.pageOrigin, 'MathJax must load locally.')
+  const toastAfterSettings = page.locator('.toast__close')
+  if (await toastAfterSettings.isVisible().catch(() => false)) await toastAfterSettings.click()
+  await page.locator('.preview-surface').screenshot({
+    path: path.join(artifactsDir, 'smoke-mathjax-multiline.png'),
+  })
+
+  const mathJaxExportButton = page.getByRole('button', { name: 'Export image', exact: true })
+  await mathJaxExportButton.click()
+  const mathJaxDownloadPromise = page.waitForEvent('download', { timeout: 15_000 })
+  await page.getByRole('menuitem', { name: 'Export as PNG', exact: true }).click()
+  const mathJaxDownload = await mathJaxDownloadPromise
+  const mathJaxExportPath = path.join(artifactsDir, 'smoke-mathjax-export.png')
+  await mathJaxDownload.saveAs(mathJaxExportPath)
+  const mathJaxExportBytes = fs.readFileSync(mathJaxExportPath)
+  assert.deepEqual([...mathJaxExportBytes.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10])
+  assert.ok(mathJaxExportBytes.length > 1_000, 'MathJax PNG export is unexpectedly small.')
+  const mathJaxDataUrl = `data:image/png;base64,${mathJaxExportBytes.toString('base64')}`
+  const mathJaxPixelStats = await page.evaluate(async (source) => {
+    const image = new Image()
+    image.src = source
+    await image.decode()
+    const canvas = document.createElement('canvas')
+    canvas.width = image.naturalWidth
+    canvas.height = image.naturalHeight
+    const context = canvas.getContext('2d')
+    if (!context) return { visible: 0, transparent: 0 }
+    context.drawImage(image, 0, 0)
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data
+    let visible = 0
+    let transparent = 0
+    for (let offset = 0; offset < pixels.length; offset += 4) {
+      if (pixels[offset + 3] < 20) transparent += 1
+      if (pixels[offset + 3] > 20 && (pixels[offset] < 245 || pixels[offset + 1] < 245 || pixels[offset + 2] < 245)) visible += 1
+    }
+    return { visible, transparent }
+  }, mathJaxDataUrl)
+  assert.ok(mathJaxPixelStats.visible > 100, 'MathJax PNG export contains no visible formula pixels.')
+  assert.ok(mathJaxPixelStats.transparent > 100, 'MathJax PNG export background must be transparent.')
   await page.getByRole('button', { name: 'Open settings' }).click()
   const reopenedPreferences = page.locator('.preferences-dialog')
   await reopenedPreferences.waitFor()
-  assert.equal(await reopenedPreferences.locator('select').nth(1).inputValue(), '140')
+  assert.equal(await reopenedPreferences.locator('select').nth(1).inputValue(), 'mathjax')
+  assert.equal(await reopenedPreferences.locator('select').nth(2).inputValue(), '140')
   assert.equal(await reopenedPreferences.locator('input[type="number"]').inputValue(), '18')
   await reopenedPreferences.getByRole('button', { name: 'Cancel', exact: true }).click()
 
@@ -407,6 +477,11 @@ try {
         quickToolHoverPanel: true,
         templateHoverPanel: true,
         interfaceSettings: true,
+        mathJaxRenderer: true,
+        mathJaxLocalAssets: true,
+        mathJaxMultilineRows: 3,
+        mathJaxPreferencePersistence: true,
+        mathJaxPngExport: true,
         englishLocale: true,
         interfaceScale: 140,
         editorFontSize: true,
@@ -431,6 +506,8 @@ try {
           path.join(artifactsDir, 'smoke-ocr-extension-notice.png'),
           path.join(artifactsDir, 'smoke-image-export-menu.png'),
           path.join(artifactsDir, 'smoke-environment-menu.png'),
+          path.join(artifactsDir, 'smoke-mathjax-multiline.png'),
+          path.join(artifactsDir, 'smoke-mathjax-export.png'),
           path.join(artifactsDir, 'formula-export.svg'),
           path.join(artifactsDir, 'formula-export.png'),
           path.join(artifactsDir, 'formula-export.jpg'),

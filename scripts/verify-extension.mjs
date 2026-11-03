@@ -68,6 +68,18 @@ for (const file of requiredFiles) {
   assert.ok(fs.existsSync(path.join(outputDir, file)), `Missing extension file: ${file}`)
 }
 
+const builtAssets = await fsPromises.readdir(path.join(outputDir, 'assets'))
+assert.ok(
+  builtAssets.some((name) => /^tex-svg-.*\.js$/.test(name)),
+  'The built extension is missing the local MathJax tex-svg component.',
+)
+const mathJaxDynamicDir = path.join(outputDir, 'mathjax-fonts', 'svg', 'dynamic')
+assert.ok(fs.existsSync(mathJaxDynamicDir), 'The built extension is missing local MathJax dynamic fonts.')
+const mathJaxDynamicFiles = (await fsPromises.readdir(mathJaxDynamicDir)).filter((name) => name.endsWith('.js'))
+assert.ok(mathJaxDynamicFiles.length >= 40, `Expected at least 40 MathJax dynamic font scripts, got ${mathJaxDynamicFiles.length}.`)
+for (const name of ['math.js', 'script.js', 'shapes.js']) {
+  assert.ok(mathJaxDynamicFiles.includes(name), `The built extension is missing MathJax dynamic font: ${name}`)
+}
 const sidepanelHtml = await fsPromises.readFile(path.join(outputDir, 'sidepanel.html'), 'utf8')
 assert.match(sidepanelHtml, /<script[^>]+src="\/assets\//, 'sidepanel.html must load the built Vite bundle')
 assert.doesNotMatch(sidepanelHtml, /\/src\/main\.tsx/, 'sidepanel.html must not reference Vite source entry')

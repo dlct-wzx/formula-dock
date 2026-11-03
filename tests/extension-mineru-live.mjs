@@ -84,6 +84,7 @@ try {
           language: 'ch',
           uiLocale: 'en',
           editorFontSize: 16,
+          mathRenderer: 'katex',
         },
       }),
     token,

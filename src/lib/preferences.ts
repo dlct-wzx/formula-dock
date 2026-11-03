@@ -1,9 +1,15 @@
 import type { UiLocale } from '../i18n/messages'
+import {
+  DEFAULT_MATH_RENDERER,
+  normaliseMathRenderer,
+  type MathRenderer,
+} from './mathRenderer'
 
 export interface UiPreferences {
   uiLocale: UiLocale
   interfaceScale: number
   editorFontSize: number
+  mathRenderer: MathRenderer
 }
 
 const STORAGE_KEY = 'formuladock:ui-preferences'
@@ -11,6 +17,7 @@ const DEFAULT_PREFERENCES: UiPreferences = {
   uiLocale: 'zh',
   interfaceScale: 100,
   editorFontSize: 12,
+  mathRenderer: DEFAULT_MATH_RENDERER,
 }
 
 const INTERFACE_SCALE_PRESETS = [90, 100, 110, 140, 160]
@@ -36,6 +43,7 @@ export function normaliseUiPreferences(value: unknown): UiPreferences {
     uiLocale: candidate.uiLocale === 'en' ? 'en' : 'zh',
     interfaceScale: normaliseInterfaceScale(candidate.interfaceScale),
     editorFontSize: normaliseFontSize(candidate.editorFontSize),
+    mathRenderer: normaliseMathRenderer(candidate.mathRenderer),
   }
 }
 

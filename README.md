@@ -3,7 +3,8 @@
 一个聚焦公式工作流的 Web 应用和 Chrome/Edge 浏览器扩展，包含：
 
 - **快捷工具**：10 个分类、284 个符号与结构、搜索、最近使用与光标插入。
-- **公式模板**：10 个分类、60 个可检索公式模板、KaTeX 实时预览。
+- **公式模板**：10 个分类、60 个可检索公式模板，使用当前公式渲染器实时预览。
+- **公式渲染**：默认 KaTeX；可在设置中切换到 MathJax 4，以更好地显示 eqnarray、aligned 等多行公式。
 - **网页端**：提供快捷工具、公式模板、LaTeX 编辑器、实时预览与公式图片导出。
 - **图片导出**：输出卡片支持直接下载 SVG、PNG、JPG 三种格式，其中 PNG/SVG 使用透明背景。
 - **LaTeX 环境**：源码工具栏支持 align、aligned、cases、array 等 8 种环境快捷插入。
@@ -15,7 +16,7 @@
 ## 技术栈
 
 - React + Vite + TypeScript
-- KaTeX
+- KaTeX（默认）+ MathJax 4（可选，本地懒加载）
 - Manifest V3 + Side Panel API
 - Node.js HTTP API service
 - MinerU 精准解析 API
@@ -47,7 +48,7 @@ npm run build:extension
 产物：
 
 - `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/formuladock-extension-v0.7.0.zip`：安装/发布 ZIP。
+- `release/formuladock-extension-v0.8.0.zip`：安装/发布 ZIP。
 
 安装：
 
@@ -93,7 +94,7 @@ npm run build
 npm run smoke
 ```
 
-`npm run smoke` 会自动启动一个隔离的 Mock API 服务，不会使用 `.env.local` 中的真实 MinerU 模式；覆盖 Web 三项核心流程、公式搜索、全部 KaTeX 渲染、深色主题和 390px 移动端布局。
+`npm run smoke` 会自动启动一个隔离的 Mock API 服务，不会使用 `.env.local` 中的真实 MinerU 模式；覆盖 Web 三项核心流程、公式搜索、KaTeX 与 MathJax 4 渲染、多行公式、图片导出、深色主题和 390px 移动端布局。
 
 `npm run smoke:extension` 会实际加载 `extension-dist`，验证侧边栏、设置页、Chrome Storage、仅悬停分类、140% 大字号和 480px 布局，并生成：
 
@@ -106,7 +107,7 @@ npm run smoke
 src/
   components/          React UI
   data/                快捷工具与公式模板数据
-  lib/                 KaTeX、扩展设置、扩展直连 OCR
+  lib/                 KaTeX/MathJax、扩展设置、扩展直连 OCR
 server/
   index.mjs            Web API + 静态文件服务
   mineru.mjs           MinerU Provider（扩展端逻辑共享）
@@ -190,6 +191,10 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 
 ![长公式横向滚动](docs/screenshots/extension-wide-formula.png)
 
+### MathJax 多行公式
+
+![MathJax 多行公式](docs/screenshots/mathjax-multiline.png)
+
 ### LaTeX 环境
 
 ![LaTeX 环境菜单](docs/screenshots/environment-menu.png)
@@ -211,6 +216,6 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 截图中的 MinerU Token 为测试占位值，不包含真实凭据。
 
 
-FormulaDock 0.7.0 makes PNG/SVG exports transparent, keeps JPG white, and adds an Environment menu to the LaTeX Source toolbar with none, eqnarray, align, aligned, gathered, cases, split, and array choices. Selected content can be wrapped, empty environments can be inserted with the caret inside, and none removes an existing wrapper. The web editor and preview remain stacked vertically, wide formulas scroll horizontally with a contextual hint, and interface text supports independent 90–160% presets.
+FormulaDock 0.8.0 adds an opt-in MathJax 4 SVG renderer alongside the default KaTeX renderer. Both the simple web settings dialog and the full extension settings page persist the choice. MathJax improves compatibility with multi-line environments such as eqnarray, align, aligned, gathered, cases, split, and array; it remains lazy-loaded, uses only packaged local assets, and continues to support transparent PNG/SVG plus white-background JPG export.
 
-源码工具栏现在提供“环境”菜单，可将选中内容包裹到 align、aligned、cases、array 等 LaTeX 环境中。输出区域右上角提供“输出图片”菜单，PNG/SVG 使用透明背景，JPG 使用白色背景。网页端图片识别入口仍只显示扩展安装和 API Key 配置说明。
+网页端和扩展设置均新增“公式渲染器”切换，默认 KaTeX，可切换到 MathJax 4。MathJax 采用 SVG 输出并按需加载，适合多行公式；相关脚本、字体和动态字形均随项目本地打包，不依赖 CDN。源码工具栏的环境菜单、透明 PNG/SVG 导出和白色背景 JPG 导出继续可用。

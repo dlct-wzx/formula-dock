@@ -21,6 +21,7 @@ import { PreviewPanel } from './components/PreviewPanel'
 import { Toast, type ToastState } from './components/Toast'
 import { PreferencesDialog } from './components/PreferencesDialog'
 import { EnvironmentMenu } from './components/EnvironmentMenu'
+import { MathRendererProvider } from './components/MathRendererProvider'
 import { formulaCategories, formulaTemplateCount } from './data/formulaTemplates'
 import { quickToolCategories, quickToolCount } from './data/quickTools'
 import type { ToastTone, ToolTab } from './types'
@@ -39,6 +40,7 @@ import {
 import { I18nProvider } from './i18n/I18nContext'
 import { translate, type UiLocale } from './i18n/messages'
 import { localisedFormulaCategory } from './i18n/content'
+import { DEFAULT_MATH_RENDERER } from './lib/mathRenderer'
 
 const TAB_DEFINITIONS: Array<{ id: ToolTab; icon: typeof Zap }> = [
   { id: 'shortcuts', icon: Zap },
@@ -78,6 +80,9 @@ export default function App() {
   const editorFontSize = extensionMode
     ? extensionSettings?.editorFontSize ?? 12
     : webPreferences.editorFontSize
+  const mathRenderer = extensionMode
+    ? extensionSettings?.mathRenderer ?? DEFAULT_MATH_RENDERER
+    : webPreferences.mathRenderer
   const t = (key: Parameters<typeof translate>[1], values?: Record<string, string | number>) =>
     translate(locale, key, values)
 
@@ -189,6 +194,7 @@ export default function App() {
 
   return (
     <I18nProvider locale={locale}>
+      <MathRendererProvider renderer={mathRenderer}>
       <div className={`app ${extensionMode ? 'app--extension' : ''}`} id="top">
         <header className="site-header">
           <a className="brand" href={extensionMode ? '#top' : '/'} aria-label={t('app.home')}>
@@ -436,6 +442,7 @@ export default function App() {
             initialLocale={locale}
             initialInterfaceScale={interfaceScale}
             initialFontSize={editorFontSize}
+            initialMathRenderer={mathRenderer}
             extensionMode={extensionMode}
             onClose={() => setPreferencesOpen(false)}
             onSave={savePreferences}
@@ -445,6 +452,7 @@ export default function App() {
 
         <Toast toast={toast} onClose={() => setToast(null)} />
       </div>
+      </MathRendererProvider>
     </I18nProvider>
   )
 }

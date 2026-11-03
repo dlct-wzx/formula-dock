@@ -38,11 +38,15 @@ try {
   const page = await context.newPage()
   await page.setViewportSize({ width: 480, height: 900 })
   const consoleErrors = []
+  const externalMathJaxRequests = []
   const pageErrors = []
   page.on('console', (message) => {
     if (message.type() === 'error') consoleErrors.push(message.text())
   })
   page.on('pageerror', (error) => pageErrors.push(error.message))
+  page.on('request', (request) => {
+    if (/mathjax/i.test(request.url()) && !request.url().startsWith('chrome-extension://')) externalMathJaxRequests.push(request.url())
+  })
 
   await page.goto(`chrome-extension://${extensionId}/sidepanel.html`, {
     waitUntil: 'networkidle',
@@ -58,6 +62,7 @@ try {
         uiLocale: 'en',
         interfaceScale: 140,
         editorFontSize: 18,
+        mathRenderer: 'mathjax',
       },
     }),
   )
@@ -181,6 +186,7 @@ try {
   await page.getByRole('button', { name: 'Open settings', exact: true }).click()
   await page.locator('.preferences-dialog').waitFor()
   assert.equal(await page.locator('#preferences-title').textContent(), 'Interface settings')
+  assert.equal(await page.locator('.preferences-dialog select').nth(1).inputValue(), 'mathjax')
   const optionsPagePromise = context.waitForEvent('page')
   await page.locator('.preferences-dialog__link').click()
   const optionsPage = await optionsPagePromise
@@ -189,7 +195,28 @@ try {
   await optionsPage.locator('#settingsForm').waitFor()
   assert.equal(await optionsPage.locator('#mineruToken').inputValue(), 'extension-smoke-test-token')
   assert.equal(await optionsPage.locator('#uiLocale').inputValue(), 'en')
+  assert.equal(await optionsPage.locator('#mathRenderer').inputValue(), 'mathjax')
   assert.equal(await optionsPage.locator('#interfaceScale').inputValue(), '140')
+  await optionsPage.locator('#mathRenderer').selectOption('katex')
+  await optionsPage.locator('#saveButton').click()
+await optionsPage.waitForFunction(async () => {
+    const settings = (await chrome.storage.local.get('formuladock:extension-settings'))['formuladock:extension-settings']
+    return settings?.mathRenderer === 'katex' && !document.getElementById('saveButton')?.disabled
+  })
+  assert.equal(
+    await optionsPage.evaluate(async () => (await chrome.storage.local.get('formuladock:extension-settings'))['formuladock:extension-settings']?.mathRenderer),
+    'katex',
+  )
+  await optionsPage.locator('#mathRenderer').selectOption('mathjax')
+  await optionsPage.locator('#saveButton').click()
+await optionsPage.waitForFunction(async () => {
+    const settings = (await chrome.storage.local.get('formuladock:extension-settings'))['formuladock:extension-settings']
+    return settings?.mathRenderer === 'mathjax' && !document.getElementById('saveButton')?.disabled
+  })
+  assert.equal(
+    await optionsPage.evaluate(async () => (await chrome.storage.local.get('formuladock:extension-settings'))['formuladock:extension-settings']?.mathRenderer),
+    'mathjax',
+  )
   assert.equal(await optionsPage.locator('#interfaceScale option[value="160"]').count(), 1)
   await optionsPage.locator('#interfaceScale').selectOption('160')
   assert.equal(
@@ -211,16 +238,45 @@ try {
   await page.getByRole('button', { name: 'Open settings', exact: true }).click()
   await page.locator('.preferences-dialog').waitFor()
   assert.equal(await page.locator('#preferences-title').textContent(), 'Interface settings')
+  assert.equal(await page.locator('.preferences-dialog select').nth(1).inputValue(), 'mathjax')
   await page.getByRole('button', { name: 'Close settings' }).click()
   await page.locator('.preferences-dialog').waitFor({ state: 'detached' })
 
   await page.mouse.move(0, 0)
   await page.locator('.quick-hover-panel').waitFor({ state: 'detached' }).catch(() => {})
+  const extensionMultilineFormula = String.raw`\begin{eqnarray}
+a &=& b + c \\
+d &=& e + f \\
+g &=& h + i
+\end{eqnarray}`
+  await page.locator('.latex-editor').fill(extensionMultilineFormula)
+  const extensionMathJax = page.locator(
+    '.preview-math [data-math-renderer="mathjax"][data-math-status="ready"] mjx-container',
+  )
+  await extensionMathJax.waitFor({ timeout: 20_000 })
+  const extensionMathJaxDetails = await page.locator('.preview-math').evaluate((element) => {
+    const container = element.querySelector('mjx-container')
+    const script = document.querySelector('script[data-formuladock-mathjax]')
+    return {
+      hasSvg: Boolean(container?.querySelector('svg')),
+      rowCount: container?.querySelectorAll('g[data-mml-node="mtr"]').length ?? 0,
+      scriptProtocol: script instanceof HTMLScriptElement ? new URL(script.src).protocol : '',
+      pageProtocol: window.location.protocol,
+    }
+  })
+  assert.equal(extensionMathJaxDetails.hasSvg, true, 'Extension MathJax must produce SVG output.')
+  assert.ok(extensionMathJaxDetails.rowCount >= 3, `Expected three extension MathJax rows, got ${extensionMathJaxDetails.rowCount}`)
+  assert.equal(extensionMathJaxDetails.scriptProtocol, extensionMathJaxDetails.pageProtocol)
+  assert.deepEqual(externalMathJaxRequests, [], `Extension MathJax made external requests: ${externalMathJaxRequests.join(' | ')}`)
+  await page.locator('.preview-surface').screenshot({
+    path: path.resolve('artifacts/extension-mathjax-multiline.png'),
+  })
   const wideFormula = Array.from(
     { length: 16 },
     (_, index) => `\\frac{x_{${index + 1}}}{y_{${index + 1}}}`,
   ).join('+')
   await page.locator('.latex-editor').fill(wideFormula)
+  await page.locator('.preview-math [data-math-renderer="mathjax"][data-math-status="ready"] mjx-container').waitFor({ timeout: 20_000 })
   await page.waitForTimeout(120)
   const widePreview = await page.locator('.preview-math').evaluate((element) => ({
     overflowX: getComputedStyle(element).overflowX,
@@ -277,6 +333,11 @@ try {
         sidepanel: true,
         optionsPage: true,
         storageSettings: true,
+        mathJaxRenderer: true,
+        mathJaxOptionsPersistence: true,
+        mathJaxMultilineRows: 3,
+        mathJaxLocalAssets: true,
+        mathJaxPngExport: true,
         pageInsertionUiRemoved: true,
         legacySettingsMigration: true,
         englishLocale: true,
@@ -301,6 +362,7 @@ try {
           'artifacts/extension-sidepanel.png',
           'artifacts/extension-template-categories.png',
           'artifacts/extension-template-hover.png',
+          'artifacts/extension-mathjax-multiline.png',
           'artifacts/extension-options.png',
           'artifacts/extension-wide-formula.png',
           'artifacts/extension-formula-export.png',

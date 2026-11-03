@@ -6,6 +6,7 @@ const form = document.getElementById('settingsForm')
 const tokenInput = document.getElementById('mineruToken')
 const toggleTokenButton = document.getElementById('toggleToken')
 const uiLocaleSelect = document.getElementById('uiLocale')
+const mathRendererSelect = document.getElementById('mathRenderer')
 const editorFontSizeInput = document.getElementById('editorFontSize')
 const interfaceScaleSelect = document.getElementById('interfaceScale')
 const modelSelect = document.getElementById('modelVersion')
@@ -22,11 +23,15 @@ const I18N = {
     introTitle: '连接 MinerU，并为公式工作台设置舒适的界面。',
     introBody: 'Token 只保存在当前浏览器的 <code>chrome.storage.local</code>，不会写入项目源码，也不会上传到本项目的 Web 服务。',
     interfaceTitle: '界面设置',
-    interfaceDesc: '调整界面语言、界面字号和 LaTeX 编辑器字号。',
+    interfaceDesc: '调整界面语言、公式渲染器、界面字号和 LaTeX 编辑器字号。',
     uiLanguage: '界面语言',
     uiLanguageHint: '切换侧边栏和设置页语言',
     interfaceScale: '界面字号',
     interfaceScaleHint: '调整工具、按钮和说明文字',
+    mathRenderer: '公式渲染器',
+    mathRendererHint: '选择适合当前公式的排版引擎',
+    rendererKatex: 'KaTeX（默认）',
+    rendererMathJax: 'MathJax 4',
     scaleSmall: '小（90%）',
     scaleStandard: '标准（100%）',
     scaleComfortable: '较大（110%）',
@@ -73,11 +78,15 @@ const I18N = {
     introTitle: 'Connect MinerU and tune the formula workspace for comfortable reading.',
     introBody: 'The token is stored only in <code>chrome.storage.local</code>. It is not written to the project source or uploaded to the FormulaDock web service.',
     interfaceTitle: 'Interface',
-    interfaceDesc: 'Adjust the interface language, interface text size, and LaTeX editor font size.',
+    interfaceDesc: 'Adjust the interface language, formula renderer, interface text size, and LaTeX editor font size.',
     uiLanguage: 'Interface language',
     uiLanguageHint: 'Changes the side panel and settings page',
     interfaceScale: 'Interface text size',
     interfaceScaleHint: 'Changes tools, buttons, and labels',
+    mathRenderer: 'Formula renderer',
+    mathRendererHint: 'Choose the typesetting engine that fits the formula',
+    rendererKatex: 'KaTeX (default)',
+    rendererMathJax: 'MathJax 4',
     scaleSmall: 'Small (90%)',
     scaleStandard: 'Standard (100%)',
     scaleComfortable: 'Comfortable (110%)',
@@ -191,6 +200,7 @@ function normaliseSettings(value) {
     language: candidate.language === 'en' ? 'en' : 'ch',
 
     uiLocale: candidate.uiLocale === 'en' ? 'en' : 'zh',
+    mathRenderer: candidate.mathRenderer === 'mathjax' ? 'mathjax' : 'katex',
     interfaceScale: normaliseInterfaceScale(candidate.interfaceScale),
     editorFontSize: normaliseFontSize(candidate.editorFontSize),
   }
@@ -202,6 +212,7 @@ function readForm() {
     modelVersion: modelSelect.value,
     language: languageSelect.value,
     uiLocale: uiLocaleSelect.value,
+    mathRenderer: mathRendererSelect.value,
     interfaceScale: interfaceScaleSelect.value,
     editorFontSize: editorFontSizeInput.value,
   })
@@ -219,6 +230,7 @@ async function loadSettings() {
     }
     tokenInput.value = settings.mineruToken
     uiLocaleSelect.value = settings.uiLocale
+    mathRendererSelect.value = settings.mathRenderer
     interfaceScaleSelect.value = String(settings.interfaceScale)
     applyInterfaceScale(settings.interfaceScale)
     editorFontSizeInput.value = String(settings.editorFontSize)

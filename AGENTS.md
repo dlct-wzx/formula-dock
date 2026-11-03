@@ -52,7 +52,9 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - Static formula content belongs in `src/data/`, not inside components.
 - Shared Node/browser MinerU extraction logic belongs in `shared/formula-parser.mjs`.
 - Quick tool/template insertion must target the current editor caret.
-- KaTeX rendering must stay client-side and use `throwOnError: false`.
+- Formula rendering must stay client-side. KaTeX uses `throwOnError: false` and remains the default renderer.
+- MathJax 4 is opt-in, uses SVG output, loads lazily, and must use only packaged local components, NewCM fonts, and dynamic glyph scripts.
+- Do not add a MathJax CDN dependency, remote script host, or extra extension host permission.
 - The public web UI must not expose image upload or call OCR endpoints. The Image recognition tab renders extension installation guidance in web mode.
 - Extension direct OCR mode stores the user token in `chrome.storage.local`; never bundle it, log it, expose it to page scripts, or include it in the ZIP.
 - Retained internal server OCR tests may read `MINERU_API_TOKEN` from the server environment only; never expose it through Vite variables, browser responses, or logs.
@@ -68,13 +70,14 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - The tool panel and output preview must keep content-driven height; do not reintroduce fixed-height internal vertical scrolling.
 - Wide formulas may scroll horizontally inside the output preview. Do not solve width overflow by clipping the formula or forcing page-level horizontal scrolling.
 - The output-card primary action is an Output image menu for SVG, PNG, and JPG. Keep LaTeX copy available in the editor toolbar.
-- Formula image exports must preserve KaTeX rendering and produce non-empty image content.
+- Formula image exports must preserve the active KaTeX or MathJax rendering and produce non-empty image content.
 - SVG and PNG formula exports must keep transparent backgrounds; JPG uses a white background.
 - The LaTeX Source toolbar must keep an Environment menu with none, eqnarray, align, aligned, gathered, cases, split, and array.
 - Environment selection must wrap selected editor content; `none` must remove an existing wrapper when present.
 - Quick-tool and formula-template categories must use the same responsive block-card layout.
 - Category content opens only on hover and uses a blue hover state. Do not restore click-to-expand or click-to-select category state.
 - Interface text-size presets are 90, 100, 110, 140, and 160 percent, independent from the LaTeX editor font size.
+- The web and extension settings surfaces must both expose the KaTeX/MathJax 4 renderer choice and persist it without changing the default KaTeX behaviour.
 
 ## Engineering rules
 

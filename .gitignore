@@ -17,3 +17,4 @@ latexlive-assistant-0.1.5/
 *.pem
 *.key
 *.crt
+public/mathjax-fonts/

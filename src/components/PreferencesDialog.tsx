@@ -2,19 +2,17 @@ import { useEffect, useState } from 'react'
 import { ExternalLink, Settings2, X } from 'lucide-react'
 import { useI18n } from '../i18n/I18nContext'
 import type { UiLocale } from '../i18n/messages'
-import { normaliseFontSize } from '../lib/preferences'
+import type { MathRenderer } from '../lib/mathRenderer'
+import { normaliseFontSize, type UiPreferences } from '../lib/preferences'
 
 interface PreferencesDialogProps {
   initialLocale: UiLocale
   initialInterfaceScale: number
   initialFontSize: number
+  initialMathRenderer: MathRenderer
   extensionMode: boolean
   onClose: () => void
-  onSave: (preferences: {
-    uiLocale: UiLocale
-    interfaceScale: number
-    editorFontSize: number
-  }) => Promise<void>
+  onSave: (preferences: UiPreferences) => Promise<void>
   onOpenExtensionOptions: () => Promise<void>
 }
 
@@ -22,6 +20,7 @@ export function PreferencesDialog({
   initialLocale,
   initialInterfaceScale,
   initialFontSize,
+  initialMathRenderer,
   extensionMode,
   onClose,
   onSave,
@@ -31,6 +30,7 @@ export function PreferencesDialog({
   const [uiLocale, setUiLocale] = useState<UiLocale>(initialLocale)
   const [interfaceScale, setInterfaceScale] = useState(initialInterfaceScale)
   const [editorFontSize, setEditorFontSize] = useState(initialFontSize)
+  const [mathRenderer, setMathRenderer] = useState<MathRenderer>(initialMathRenderer)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -48,6 +48,7 @@ export function PreferencesDialog({
         uiLocale,
         interfaceScale,
         editorFontSize: normaliseFontSize(editorFontSize),
+        mathRenderer,
       })
       onClose()
     } finally {
@@ -95,6 +96,20 @@ export function PreferencesDialog({
             >
               <option value="zh">中文</option>
               <option value="en">English</option>
+            </select>
+          </label>
+
+          <label className="field">
+            <span className="field-label">
+              {t('settings.mathRenderer')}
+              <small>{t('settings.mathRendererHint')}</small>
+            </span>
+            <select
+              value={mathRenderer}
+              onChange={(event) => setMathRenderer(event.target.value as MathRenderer)}
+            >
+              <option value="katex">{t('settings.rendererKatex')}</option>
+              <option value="mathjax">{t('settings.rendererMathJax')}</option>
             </select>
           </label>
 

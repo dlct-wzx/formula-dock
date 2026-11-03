@@ -9,10 +9,13 @@ This project includes or depends on the following third-party software. All list
 | react | 19.3.1 | MIT | https://react.dev/ |
 | react-dom | 19.3.1 | MIT | https://react.dev/ |
 | katex | 0.19.1 | MIT | https://katex.org |
+| mathjax | 4.1.3 | Apache-2.0 | https://www.mathjax.org |
+| @mathjax/mathjax-newcm-font | 4.1.3 | Apache-2.0 | https://github.com/mathjax/MathJax-fonts |
 | lucide-react | 1.66.0 | ISC | https://lucide.dev |
 | fflate | 0.8.3 | MIT | https://101arrowz.github.io/fflate |
 | html2canvas | 1.4.1 | MIT | https://html2canvas.hertzen.com/ |
 
+MathJax and its NewCM font assets are bundled locally for opt-in formula rendering in the web and extension builds. They are lazily loaded and are not fetched from a CDN at runtime.
 MinerU is accessed as an external service through its documented HTTP API. Its SDK or server source is not bundled in this repository.
 
 ## Development dependencies
@@ -228,3 +231,11 @@ SOFTWARE.
 ## KaTeX fonts
 
 KaTeX ships the font files used by its formula renderer with the KaTeX package. The KaTeX package license and third-party notices apply to those assets.
+
+## MathJax 4.1.3 and MathJax NewCM Font 4.1.3
+
+License: Apache License 2.0
+
+MathJax and the MathJax NewCM font are Copyright the MathJax Consortium and contributors. The bundled `tex-svg.js` component and the NewCM SVG dynamic font scripts remain under the Apache License 2.0. A copy of that license is included in the repository's `LICENSE` file.
+
+The packaged dynamic font scripts are generated into `public/mathjax-fonts/` during development and build preparation from the direct `@mathjax/mathjax-newcm-font` dependency.

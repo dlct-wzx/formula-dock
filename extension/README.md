@@ -12,7 +12,7 @@ npm run build:extension
 Outputs:
 
 - `extension-dist/` — load unpacked for local testing.
-- `release/formuladock-extension-v0.7.0.zip` — upload/package artifact.
+- `release/formuladock-extension-v0.8.0.zip` — upload/package artifact.
 
 ## Install locally
 
@@ -28,7 +28,7 @@ Outputs:
 
 - `manifest.json`: MV3 declaration, side-panel permissions, and options entry points.
 - `background.js`: toolbar/command handling and MinerU network proxying.
-- `options.html/js/css`: local MinerU, interface, and editor settings.
+- `options.html/js/css`: local MinerU, interface, renderer, and editor settings.
 - `sidepanel.html` in the built output: the React application.
 - `icons/`: generated PNG icons for toolbar and store listing.
 
@@ -59,7 +59,7 @@ npm run smoke:extension
 npm test
 ```
 
-`smoke:extension` loads the built extension into Playwright-controlled Edge, validates the side panel and options page, checks responsive layout and large interface text, and verifies that category click-expansion and page-insertion UI are absent.
+`smoke:extension` loads the built extension into Playwright-controlled Edge, validates the side panel and options page, checks responsive layout and large interface text, exercises both KaTeX and MathJax 4 setting paths, verifies MathJax multi-line rendering and PNG export under the extension CSP, and confirms that category click-expansion and page-insertion UI are absent.
 
 
 
@@ -70,7 +70,7 @@ The extension source and packaged build are distributed under the Apache License
 
 ## Interface preferences
 
-The settings page supports Chinese and English interfaces, 90/100/110/140/160% interface text-size presets, and an independent 10–24 px LaTeX editor font size. These values are stored with the extension settings and applied to the side panel immediately after saving. Output formulas grow vertically with their content and use horizontal scrolling only when wider than the preview.
+The settings page supports Chinese and English interfaces, a KaTeX/MathJax 4 formula-renderer choice, 90/100/110/140/160% interface text-size presets, and an independent 10–24 px LaTeX editor font size. These values are stored with the extension settings and applied to the side panel immediately after saving. KaTeX remains the default. Output formulas grow vertically with their content and use horizontal scrolling only when wider than the preview.
 
 ## Category hover previews
 
@@ -78,4 +78,12 @@ Both quick-tool and formula-template categories open a shared blue-highlighted p
 
 ## Formula image export
 
-The Output card provides an Output image menu for `.svg`, `.png`, and `.jpg` downloads. SVG and PNG use transparent backgrounds; JPG uses a white background. Copy LaTeX remains available from the editor toolbar. The source toolbar includes an Environment menu for wrapping selected content in common LaTeX environments.
+The Output card provides an Output image menu for `.svg`, `.png`, and `.jpg` downloads. Exports use the active KaTeX or MathJax renderer. SVG and PNG use transparent backgrounds; JPG uses a white background. Copy LaTeX remains available from the editor toolbar. The source toolbar includes an Environment menu for wrapping selected content in common LaTeX environments.
+
+## Formula rendering
+
+- KaTeX remains the default renderer and keeps the existing lightweight startup path.
+- MathJax 4 is opt-in from the simple settings dialog or the full extension options page.
+- MathJax uses SVG output, is loaded only when selected, and remains active for the session through the saved extension setting.
+- The MathJax component, NewCM font data, and dynamic glyph scripts are packaged locally. The extension does not load MathJax from a CDN and does not request additional host permissions.
+- MathJax's audio/SRE enrichment path is disabled because its separate worker/mathmap runtime is not bundled; formula markup keeps the raw LaTeX accessible name instead.

@@ -1,13 +1,5 @@
 import katex from 'katex'
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;')
-}
+import { escapeLatexHtml } from './mathRenderer'
 
 export function renderLatex(latex: string, displayMode = false): string {
   if (!latex.trim()) return ''
@@ -25,7 +17,7 @@ export function renderLatex(latex: string, displayMode = false): string {
       },
     })
   } catch {
-    return `<span class="math-render-error">${escapeHtml(latex)}</span>`
+    return `<span class="math-render-error">${escapeLatexHtml(latex)}</span>`
   }
 }
 
