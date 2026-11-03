@@ -16,12 +16,13 @@ import { LatexEditor, type LatexEditorHandle } from './components/LatexEditor'
 import { QuickToolsPanel } from './components/QuickToolsPanel'
 import { FormulaTemplatesPanel } from './components/FormulaTemplatesPanel'
 import { ImageRecognitionPanel } from './components/ImageRecognitionPanel'
+import { OcrExtensionNotice } from './components/OcrExtensionNotice'
 import { PreviewPanel } from './components/PreviewPanel'
 import { Toast, type ToastState } from './components/Toast'
 import { PreferencesDialog } from './components/PreferencesDialog'
 import { formulaCategories, formulaTemplateCount } from './data/formulaTemplates'
 import { quickToolCategories, quickToolCount } from './data/quickTools'
-import type { ApiHealth, ToastTone, ToolTab } from './types'
+import type { ToastTone, ToolTab } from './types'
 import {
   DEFAULT_EXTENSION_SETTINGS,
   isExtensionContext,
@@ -62,8 +63,6 @@ export default function App() {
   const [previewScale, setPreviewScale] = useState(1)
   const [theme, setTheme] = useState<'light' | 'dark'>(initialTheme)
   const [toast, setToast] = useState<ToastState | null>(null)
-  const [health, setHealth] = useState<ApiHealth | null>(null)
-  const [apiOffline, setApiOffline] = useState(false)
   const [webPreferences, setWebPreferences] = useState<UiPreferences>(loadUiPreferences)
   const [preferencesOpen, setPreferencesOpen] = useState(false)
   const extensionMode = isExtensionContext()
@@ -103,26 +102,6 @@ export default function App() {
     document.title = locale === 'en' ? 'FormulaDock · Formula workspace' : 'FormulaDock · 公式工作台'
   }, [interfaceScale, locale])
 
-  useEffect(() => {
-    if (extensionMode) return
-    let active = true
-    fetch('/api/health')
-      .then(async (response) => {
-        if (!response.ok) throw new Error('health request failed')
-        return (await response.json()) as ApiHealth
-      })
-      .then((payload) => {
-        if (!active) return
-        setHealth(payload)
-        setApiOffline(false)
-      })
-      .catch(() => {
-        if (active) setApiOffline(true)
-      })
-    return () => {
-      active = false
-    }
-  }, [extensionMode])
 
   useEffect(
     () => () => {
@@ -178,28 +157,10 @@ export default function App() {
   }
 
   const extensionMineruReady = Boolean(extensionSettings?.mineruToken)
-  const mineruMode = extensionMode
-    ? extensionMineruReady
-      ? 'live'
-      : 'mock'
-    : health?.mineru.mode || (apiOffline ? undefined : 'mock')
-  const mineruConfigured = extensionMode ? extensionMineruReady : health?.mineru.configured
-  const statusText = extensionMode
-    ? extensionMineruReady
-      ? t('status.live')
-      : t('status.setup')
-    : apiOffline
-      ? t('status.offline')
-      : mineruMode === 'live'
-        ? t('status.live')
-        : t('status.mock')
-  const statusTitle = extensionMode
-    ? extensionMineruReady
-      ? t('status.liveTitle')
-      : t('status.setupTitle')
-    : apiOffline
-      ? t('status.offlineTitle')
-      : t('status.mockTitle', { mode: mineruMode || 'loading' })
+  const mineruMode = extensionMineruReady ? 'live' : 'mock'
+  const mineruConfigured = extensionMineruReady
+  const statusText = extensionMineruReady ? t('status.live') : t('status.setup')
+  const statusTitle = extensionMineruReady ? t('status.liveTitle') : t('status.setupTitle')
 
   const tabs = TAB_DEFINITIONS.map(({ id, icon }) => ({
     id,
@@ -215,7 +176,9 @@ export default function App() {
         ? t('tabs.shortcutsHint', { count: quickToolCount })
         : id === 'templates'
           ? t('tabs.templatesHint', { count: formulaTemplateCount })
-          : t('tabs.ocrHint'),
+          : extensionMode
+            ? t('tabs.ocrHint')
+            : t('tabs.ocrExtensionHint'),
   }))
 
   const categorySeparator = locale === 'zh' ? '、' : ', '
@@ -244,15 +207,15 @@ export default function App() {
                 {t('app.agent')}
               </span>
             )}
-            <span
-              className={`api-status ${
-                apiOffline ? 'api-status--offline' : mineruMode === 'live' ? 'api-status--live' : ''
-              }`}
-              title={statusTitle}
-            >
-              <Server size={14} aria-hidden="true" />
-              {statusText}
-            </span>
+            {extensionMode && (
+              <span
+                className={`api-status ${mineruMode === 'live' ? 'api-status--live' : ''}`}
+                title={statusTitle}
+              >
+                <Server size={14} aria-hidden="true" />
+                {statusText}
+              </span>
+            )}
             <button
               type="button"
               className="theme-button"
@@ -355,16 +318,19 @@ export default function App() {
               >
                 {activeTab === 'shortcuts' && <QuickToolsPanel onInsert={insertLatex} />}
                 {activeTab === 'templates' && <FormulaTemplatesPanel onInsert={insertLatex} />}
-                {activeTab === 'ocr' && (
-                  <ImageRecognitionPanel
-                    mineruMode={mineruMode}
-                    mineruConfigured={mineruConfigured}
-                    extensionMode={extensionMode}
-                    extensionSettings={extensionSettings}
-                    onInsert={insertLatex}
-                    onNotify={notify}
-                  />
-                )}
+                {activeTab === 'ocr' &&
+                  (extensionMode ? (
+                    <ImageRecognitionPanel
+                      mineruMode={mineruMode}
+                      mineruConfigured={mineruConfigured}
+                      extensionMode
+                      extensionSettings={extensionSettings}
+                      onInsert={insertLatex}
+                      onNotify={notify}
+                    />
+                  ) : (
+                    <OcrExtensionNotice />
+                  ))}
               </div>
 
               <div className="editor-toolbar">

@@ -18,10 +18,6 @@ assert.ok(executablePath, 'No Edge/Chrome executable found. Set BROWSER_PATH.')
 const artifactsDir = path.resolve('artifacts')
 await fsPromises.mkdir(artifactsDir, { recursive: true })
 
-const png = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
-  'base64',
-)
 
 const browser = await chromium.launch({ headless: true, executablePath })
 const context = await browser.newContext({
@@ -32,6 +28,7 @@ const page = await context.newPage()
 const consoleErrors = []
 const pageErrors = []
 const failedResponses = []
+const webOcrRequests = []
 
 page.on('console', (message) => {
   if (message.type() !== 'error') return
@@ -41,6 +38,11 @@ page.on('console', (message) => {
 page.on('pageerror', (error) => pageErrors.push(error.message))
 page.on('response', (response) => {
   if (response.status() >= 400) failedResponses.push(`${response.status()} ${response.url()}`)
+})
+page.on('request', (request) => {
+  if (/\/api\/(?:ocr|health)(?:\/|$)/.test(new URL(request.url()).pathname)) {
+    webOcrRequests.push(request.url())
+  }
 })
 
 const editor = page.locator('textarea[aria-label="LaTeX 源码编辑器"]')
@@ -200,17 +202,19 @@ try {
   assert.ok(afterTemplate.includes(String.raw`\sin^2 x+\cos^2 x=1`), 'Template was not inserted.')
 
   await page.getByRole('tab', { name: /图片识别/ }).click()
-  await page.locator('input[type="file"]').setInputFiles({
-    name: 'formula-mock.png',
-    mimeType: 'image/png',
-    buffer: png,
+  const ocrNotice = page.locator('.ocr-extension-notice')
+  await ocrNotice.waitFor()
+  await ocrNotice.getByText('图片识别仅在浏览器扩展中提供').waitFor()
+  await ocrNotice.getByText('配置自己的 API Key').waitFor()
+  assert.equal(await page.locator('input[type="file"]').count(), 0)
+  assert.equal(await page.locator('.ocr-dropzone').count(), 0)
+  assert.deepEqual(webOcrRequests, [], `Web OCR boundary made network requests: ${webOcrRequests.join(' | ')}`)
+  const toastClose = page.locator('.toast__close')
+  if (await toastClose.isVisible().catch(() => false)) await toastClose.click()
+  await page.screenshot({
+    path: path.join(artifactsDir, 'smoke-ocr-extension-notice.png'),
+    fullPage: true,
   })
-  await page.getByRole('button', { name: '开始识别', exact: true }).click()
-  await page.locator('.ocr-results').waitFor({ state: 'visible', timeout: 10_000 })
-  const resultCards = page.locator('.ocr-formula-card')
-  assert.ok((await resultCards.count()) >= 1, 'Mock OCR returned no formulas.')
-  await resultCards.first().getByRole('button', { name: '插入', exact: true }).click()
-  assert.ok((await editor.inputValue()).includes(String.raw`\int_{-\infty}`), 'OCR result was not inserted.')
 
   await page.getByRole('button', { name: '打开设置' }).click()
   const preferences = page.locator('.preferences-dialog')
@@ -284,7 +288,9 @@ try {
         status: 'passed',
         quickToolInsertion: true,
         templateInsertion: true,
-        mockOcrInsertion: true,
+        webOcrExtensionNotice: true,
+        webOcrUploadUnavailable: true,
+        webOcrNetworkRequests: 0,
         mobileOverflow: false,
         katexValidation: true,
         searchValidation: true,
@@ -307,6 +313,7 @@ try {
           path.join(artifactsDir, 'smoke-templates.png'),
           path.join(artifactsDir, 'smoke-template-hover.png'),
           path.join(artifactsDir, 'smoke-wide-formula.png'),
+          path.join(artifactsDir, 'smoke-ocr-extension-notice.png'),
           path.join(artifactsDir, 'smoke-desktop.png'),
           path.join(artifactsDir, 'smoke-dark.png'),
           path.join(artifactsDir, 'smoke-mobile.png'),

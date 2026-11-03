@@ -4,8 +4,9 @@
 
 - **快捷工具**：10 个分类、284 个符号与结构、搜索、最近使用与光标插入。
 - **公式模板**：10 个分类、60 个可检索公式模板、KaTeX 实时预览。
-- **图片识别**：上传、拖拽、剪贴板粘贴，接入 MinerU 精准解析 API。
-- **浏览器扩展**：Manifest V3 侧边栏，直接复用快捷工具、公式模板和 MinerU 图片识别。
+- **网页端**：提供快捷工具、公式模板、LaTeX 编辑器与实时预览。
+- **图片识别**：仅在浏览器扩展侧边栏中提供；安装扩展并配置自己的 MinerU API Key 后使用。
+- **浏览器扩展**：Manifest V3 侧边栏，提供完整快捷工具、公式模板和 MinerU 图片识别。
 
 网页版输入与输出采用上下布局；超宽公式支持横向滚动。支持浅色/深色主题和响应式布局。
 
@@ -29,33 +30,9 @@ npm run dev
 - 前端：http://localhost:5173
 - API：http://localhost:8787
 
-未配置任何环境变量时，Web 图片识别运行在 Mock 模式。
+## 网页端与图片识别
 
-## Web 端 MinerU 配置
-
-创建 `.env.local`：
-
-```powershell
-Copy-Item .env.example .env.local
-```
-
-填写：
-
-```env
-MINERU_API_TOKEN=你的服务端Token
-MINERU_MODEL_VERSION=vlm
-MINERU_LANGUAGE=ch
-MINERU_MOCK_MODE=false
-PORT=8787
-```
-
-安全要求：
-
-- Web 端 Token 只由 Node 服务读取。
-- 不要写入 `VITE_*`、前端源码或响应内容。
-- `.env.local` 已被 `.gitignore` 忽略。
-- 图片默认不落盘，也不写入数据库。
-- 仅允许 PNG、JPEG、WebP，单文件最大 10 MB。
+网页端不提供图片上传或 OCR 请求，也不会接收、保存或上传图片。需要使用图片识别时，请安装 FormulaDock 浏览器扩展，并在扩展设置中配置你自己的 MinerU API Key。
 
 ## 浏览器扩展
 
@@ -68,7 +45,7 @@ npm run build:extension
 产物：
 
 - `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/formuladock-extension-v0.4.1.zip`：安装/发布 ZIP。
+- `release/formuladock-extension-v0.5.0.zip`：安装/发布 ZIP。
 
 安装：
 
@@ -127,10 +104,10 @@ npm run smoke
 src/
   components/          React UI
   data/                快捷工具与公式模板数据
-  lib/                 KaTeX、Extension 设置、直连 OCR
+  lib/                 KaTeX、扩展设置、扩展直连 OCR
 server/
   index.mjs            Web API + 静态文件服务
-  mineru.mjs           Web MinerU Provider
+  mineru.mjs           MinerU Provider（扩展端逻辑共享）
   ocr-utils.mjs        图片校验 + 共享解析器导出
   mock-ocr.mjs         本地演示 Provider
 shared/
@@ -203,6 +180,10 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 ![公式模板悬停预览](docs/screenshots/extension-template-hover.png)
 
 
+### 网页端图片识别提示
+
+![网页端图片识别提示](docs/screenshots/web-ocr-extension-notice.png)
+
 ### 长公式横向滚动
 
 ![长公式横向滚动](docs/screenshots/extension-wide-formula.png)
@@ -218,6 +199,6 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 截图中的 MinerU Token 为测试占位值，不包含真实凭据。
 
 
-FormulaDock 0.4.1 places the web input and output cards in a vertical stack and adds horizontal scrolling only when a rendered formula is wider than the preview. FormulaDock 0.4.0 removed active-page insertion and its website permissions; categories remain hover-only with blue highlighting, the output grows vertically with content, and interface text supports 90/100/110/140/160% presets independently from the 10–24 px LaTeX editor font size.
+FormulaDock 0.5.0 moves OCR out of the public website: the web Image recognition tab now explains how to install the browser extension and configure a personal MinerU API key. The extension keeps the complete OCR workflow. The web editor and preview remain stacked vertically, wide formulas scroll horizontally with a contextual hint, and interface text supports independent 90–160% presets.
 
-网页版现在将输入区与输出区上下排列，长公式超出显示宽度时可横向滑动。快捷工具和公式模板分类仍只通过鼠标悬停打开内容预览；需要较大文字时可在设置中选择 140% 或 160%。
+网页端图片识别入口现在只显示安装扩展、配置个人 MinerU API Key 的三步说明，不再提供图片上传或 OCR 请求。扩展侧边栏继续提供完整图片识别；长公式超出宽度时可横向滑动查看。

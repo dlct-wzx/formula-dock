@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes are supported for the latest `0.4.x` release and the current default branch.
+Security fixes are supported for the latest `0.5.x` release and the current default branch.
 
 ## Reporting a vulnerability
 
@@ -18,7 +18,7 @@ Do not open a public issue containing:
 
 ## Sensitive data handling
 
-- Web-mode MinerU tokens belong in server environment variables, never `VITE_*` variables.
+- Retained internal server OCR APIs, if enabled, must read MinerU tokens from server environment variables, never `VITE_*` variables.
 - Extension tokens belong only in `chrome.storage.local`.
 - Tokens must not be logged, included in screenshots, committed, or packaged.
 - `npm run verify` includes package checks intended to catch accidental token inclusion.
@@ -26,6 +26,7 @@ Do not open a public issue containing:
 
 ## Extension security model
 
+- The public web UI does not expose image uploads or OCR controls.
 - The extension does not request access to websites, active tabs, or content scripts.
 - Host permissions are limited to MinerU API, upload, and result-download infrastructure.
 - The side panel is a privileged extension page.

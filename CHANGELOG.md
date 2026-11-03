@@ -6,6 +6,23 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-03
+
+### Changed
+
+- The public web Image recognition tab now explains that OCR is available only in the browser extension.
+- The web page no longer renders an OCR upload tool, reads image files, checks OCR health, or calls OCR endpoints.
+- The replacement panel explains extension installation, configuring a personal MinerU API key, and recognizing images from the side panel.
+- Website hero, feature cards, metadata, privacy policy, documentation, and tests now reflect the extension-only OCR boundary.
+- Updated the extension manifest to version 0.5.0.
+
+### Verified
+
+- `npm run verify` passes.
+- Web regression confirms the OCR tab shows extension guidance with no file input or upload dropzone.
+- Extension-side MinerU OCR implementation remains available.
+- Existing quick-tool, template, editor, preview, responsive-layout, and extension regressions pass.
+
 ## [0.4.1] - 2026-11-03
 
 ### Changed

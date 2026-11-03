@@ -19,9 +19,9 @@ The extension stores the MinerU API token in `chrome.storage.local`. The token i
 
 The extension stores the MinerU model, OCR language, interface language, interface text size, and editor font size in `chrome.storage.local`. The web application stores theme, interface language, interface text size, editor font size, and recent-tool preferences in browser local storage.
 
-## Data processed by the self-hosted web application
+## Website OCR boundary
 
-When the web application is run in live mode, the Node API service receives the uploaded image in memory and sends it to MinerU. The service does not persist uploaded images or recognition results. The MinerU token is read from the server environment and is not returned to the browser.
+The public web application does not expose image upload or OCR controls, does not receive image files, and does not send OCR requests. Image recognition is available only after the user installs the browser extension and configures a MinerU API key in extension storage.
 
 ## Third parties
 

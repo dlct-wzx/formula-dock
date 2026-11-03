@@ -1,7 +1,7 @@
 {
   "name": "formuladock",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.5.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently -k \"vite\" \"node server/index.mjs\"",
@@ -54,5 +54,5 @@
     "mineru",
     "formula-editor"
   ],
-  "description": "Open-source LaTeX formula workspace and Manifest V3 browser extension with MinerU image recognition."
+  "description": "Open-source LaTeX formula workspace with quick tools, templates, and a Manifest V3 extension for MinerU image recognition."
 }

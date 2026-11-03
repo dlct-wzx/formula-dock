@@ -6,8 +6,8 @@ FormulaDock is an **agent-led open-source project**. The default operator is an 
 
 The product combines:
 
-1. A standalone web workspace with quick tools, formula templates, and MinerU image recognition.
-2. A Manifest V3 browser extension side panel that reuses the workspace without requesting access to webpages.
+1. A standalone web workspace with quick tools, formula templates, a LaTeX editor, and preview.
+2. A Manifest V3 browser extension side panel that reuses the workspace, adds MinerU image recognition, and does not request access to webpages.
 
 The application intentionally excludes accounts, payment, document recognition, favorites, AI formula chat, and Office export unless a new decision record is added.
 
@@ -35,7 +35,7 @@ npm run build             # production web frontend
 npm run build:extension   # web build + MV3 package
 npm run verify            # check + tests + extension build + static checks
 npm run verify:extension  # manifest/package/security validation
-npm run smoke             # isolated Mock server + web browser regression
+npm run smoke             # isolated server + web browser regression
 npm run smoke:extension   # load extension-dist in headless Edge
 npm run smoke:extension:live # real MinerU OCR using local token (generated test image)
 npm start                 # serve ./dist and API together
@@ -53,16 +53,14 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - Shared Node/browser MinerU extraction logic belongs in `shared/formula-parser.mjs`.
 - Quick tool/template insertion must target the current editor caret.
 - KaTeX rendering must stay client-side and use `throwOnError: false`.
-- Web mode MinerU access is server-only. Never expose web `MINERU_API_TOKEN` through Vite variables, JSON responses, or logs.
+- The public web UI must not expose image upload or call OCR endpoints. The Image recognition tab renders extension installation guidance in web mode.
 - Extension direct OCR mode stores the user token in `chrome.storage.local`; never bundle it, log it, expose it to page scripts, or include it in the ZIP.
+- Retained internal server OCR tests may read `MINERU_API_TOKEN` from the server environment only; never expose it through Vite variables, browser responses, or logs.
 - Direct MinerU JSON, signed upload, and ZIP download requests run through the extension service worker. Do not move them back into page-origin fetch paths.
 - The DNR rules may remove `Origin`/`Referer` only for the MinerU API, Aliyun upload infrastructure, and OpenXLab result CDN. Adding broader URL filters requires a decision record.
 - Public consumer extension distribution should move OCR behind a controlled backend instead of asking each user for a MinerU token.
-- `MINERU_MOCK_MODE=true` or a missing web token must keep the web product usable.
 - Do not persist uploaded images by default.
-- Keep the internal web OCR API stable:
-  - `POST /api/ocr` with a raw image body.
-  - `GET /api/ocr/:taskId` for live task polling.
+- Retained server OCR endpoints are development infrastructure and must not be wired back into the public web UI without a new decision record.
 - Provider-specific response handling belongs in provider modules, not UI components.
 - The browser extension does not inject content scripts, read the active page, or insert LaTeX into websites.
 - Do not add `activeTab`, `scripting`, `tabs`, `<all_urls>`, or optional webpage host permissions.
@@ -111,4 +109,4 @@ A task is done only when:
 
 ## Current known boundary
 
-The web app and Manifest V3 extension share tested MinerU extraction logic. A generated test formula has passed real extension-side MinerU OCR, signed upload, polling, ZIP download, extraction, and rendering. Chrome Web Store registration and public listing are still not completed. Public distribution should move OCR credentials behind a controlled backend rather than asking every user for a MinerU token.
+The web app provides quick tools, templates, editing, and preview without image upload. MinerU OCR is available only in the Manifest V3 extension, where the user configures their own API key in extension storage. A generated test formula has passed real extension-side OCR, signed upload, polling, ZIP download, extraction, and rendering. Chrome Web Store registration and public listing are still not completed.

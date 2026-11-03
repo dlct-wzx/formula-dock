@@ -30,17 +30,3 @@ export interface OcrResponse {
     totalPages?: number
   }
 }
-
-export interface ApiHealth {
-  ok: boolean
-  service: string
-  mineru: {
-    configured: boolean
-    mode: 'mock' | 'live'
-    model: 'pipeline' | 'vlm'
-  }
-  limits: {
-    maxImageBytes: number
-    acceptedTypes: string[]
-  }
-}

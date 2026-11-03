@@ -12,7 +12,7 @@ npm run build:extension
 Outputs:
 
 - `extension-dist/` — load unpacked for local testing.
-- `release/formuladock-extension-v0.4.1.zip` — upload/package artifact.
+- `release/formuladock-extension-v0.5.0.zip` — upload/package artifact.
 
 ## Install locally
 
