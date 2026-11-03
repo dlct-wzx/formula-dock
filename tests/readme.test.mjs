@@ -18,10 +18,8 @@ test('README language guides are user-facing and have valid local links', () => 
   const english = fs.readFileSync(path.join(root, 'README.md'), 'utf8')
   const chinese = fs.readFileSync(path.join(root, 'README_ZH.md'), 'utf8')
 
-  assert.ok(english.includes('href="README_ZH.md"'), 'English README must link to the Chinese guide.')
-  assert.ok(chinese.includes('href="README.md"'), 'Chinese README must link to the English guide.')
-  assert.ok(english.includes('readme-placeholder.svg'), 'English README must use the screenshot placeholder until final images are supplied.')
-  assert.ok(chinese.includes('readme-placeholder.svg'), 'Chinese README must use the screenshot placeholder until final images are supplied.')
+assert.ok(english.includes('href="README_ZH.md"'), 'English README must link to the Chinese guide.')
+assert.ok(chinese.includes('href="README.md"'), 'Chinese README must link to the English guide.')
 
   for (const [file, markdown] of [
     ['README.md', english],

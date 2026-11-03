@@ -16,9 +16,7 @@
   </p>
 </div>
 
-![FormulaDock workspace](docs/screenshots/readme-placeholder.svg)
-
-> **Screenshot note:** The screenshots below are placeholders. Final product captures will replace them.
+![FormulaDock workspace](docs/screenshots/extension-sidepanel.png)
 
 FormulaDock is a browser-based LaTeX formula workspace built for people who write formulas every day. It combines a searchable symbol library, ready-made formula templates, a live editor, high-resolution image export, and optional MinerU-powered image recognition in a clean Chrome/Edge side panel.
 
@@ -42,19 +40,19 @@ No account is required. Formula editing, rendering, templates, and exports stay 
 
 Hover over a category to open its formula grid. Cards are sized to keep the complete formula visible, then insert the selected symbol directly at the editor caret.
 
-![Quick-tool formula previews](docs/screenshots/readme-placeholder.svg)
+![Quick-tool formula previews](docs/screenshots/quick-previews-roots.png)
 
 ### 2. Start from a template
 
 Browse templates by topic or search by name, tag, and description. Each preview uses the renderer selected in Settings.
 
-![Formula template previews](docs/screenshots/readme-placeholder.svg)
+![Formula template previews](docs/screenshots/extension-template-hover.png)
 
 ### 3. Paste or recognize an image
 
 In the browser extension, upload, drag, or paste a formula image. FormulaDock sends it to MinerU using your own API key, extracts the LaTeX candidates, and lets you insert or copy the result.
 
-![MinerU recognition result](docs/screenshots/readme-placeholder.svg)
+![MinerU recognition result](docs/screenshots/extension-live-ocr.png)
 
 ## Editor and output
 
@@ -65,7 +63,7 @@ In the browser extension, upload, drag, or paste a formula image. FormulaDock se
 - Preview zoom controls for checking fine details.
 - Transparent SVG/PNG export and white-background JPG export.
 
-![MathJax multi-line formula](docs/screenshots/readme-placeholder.svg)
+![MathJax multi-line formula](docs/screenshots/mathjax-multiline.png)
 
 ## Install the extension
 
@@ -110,13 +108,13 @@ All 284 quick-tool previews and 60 formula templates are checked against both re
 
 | Quick tools | Formula templates |
 |:-:|:-:|
-| ![Quick tools](docs/screenshots/readme-placeholder.svg) | ![Template categories](docs/screenshots/readme-placeholder.svg) |
+| ![Quick tools](docs/screenshots/extension-sidepanel.png) | ![Template categories](docs/screenshots/extension-template-categories.png) |
 
 | MathJax preview | Image export |
 |:-:|:-:|
-| ![MathJax formula](docs/screenshots/readme-placeholder.svg) | ![Formula export menu](docs/screenshots/readme-placeholder.svg) |
+| ![MathJax formula](docs/screenshots/mathjax-multiline.png) | ![Formula export menu](docs/screenshots/image-export-menu.png) |
 
-![Extension settings](docs/screenshots/readme-placeholder.svg)
+![Extension settings](docs/screenshots/extension-options.png)
 
 ## Compatibility
 

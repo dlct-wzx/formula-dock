@@ -16,9 +16,7 @@
   </p>
 </div>
 
-![FormulaDock 工作台](docs/screenshots/readme-placeholder.svg)
-
-> **截图说明：** 文中的图片暂为占位符，后续会替换为最终产品截图。
+![FormulaDock 工作台](docs/screenshots/extension-sidepanel.png)
 
 FormulaDock 是一个面向日常公式编辑的浏览器 LaTeX 工作台。它将可搜索的符号库、现成公式模板、实时编辑器、高分辨率图片导出，以及可选的 MinerU 图片识别整合到干净的 Chrome/Edge 侧边栏中。
 
@@ -42,19 +40,19 @@ FormulaDock 是一个面向日常公式编辑的浏览器 LaTeX 工作台。它�
 
 将鼠标移到分类卡片上即可展开公式面板。每张卡片都会完整显示公式，点击后从编辑器光标处插入。
 
-![快捷工具公式预览](docs/screenshots/readme-placeholder.svg)
+![快捷工具公式预览](docs/screenshots/quick-previews-roots.png)
 
 ### 2. 使用公式模板
 
 按主题浏览模板，或按名称、标签和描述搜索。模板预览会使用当前选择的公式渲染器。
 
-![公式模板预览](docs/screenshots/readme-placeholder.svg)
+![公式模板预览](docs/screenshots/extension-template-hover.png)
 
 ### 3. 粘贴或识别图片
 
 在浏览器扩展中上传、拖入或粘贴公式图片。FormulaDock 会使用你自己的 API Key 将图片发送到 MinerU，提取 LaTeX 候选，并支持插入或复制。
 
-![MinerU 识别结果](docs/screenshots/readme-placeholder.svg)
+![MinerU 识别结果](docs/screenshots/extension-live-ocr.png)
 
 ## 编辑与输出
 
@@ -65,7 +63,7 @@ FormulaDock 是一个面向日常公式编辑的浏览器 LaTeX 工作台。它�
 - 支持预览缩放，便于检查细节。
 - 支持透明 SVG/PNG 和白色背景 JPG 导出。
 
-![MathJax 多行公式](docs/screenshots/readme-placeholder.svg)
+![MathJax 多行公式](docs/screenshots/mathjax-multiline.png)
 
 ## 安装扩展
 
@@ -110,13 +108,13 @@ FormulaDock 是一个面向日常公式编辑的浏览器 LaTeX 工作台。它�
 
 | 快捷工具 | 公式模板 |
 |:-:|:-:|
-| ![快捷工具](docs/screenshots/readme-placeholder.svg) | ![公式模板分类](docs/screenshots/readme-placeholder.svg) |
+| ![快捷工具](docs/screenshots/extension-sidepanel.png) | ![公式模板分类](docs/screenshots/extension-template-categories.png) |
 
 | MathJax 公式 | 图片导出 |
 |:-:|:-:|
-| ![MathJax 公式](docs/screenshots/readme-placeholder.svg) | ![公式导出菜单](docs/screenshots/readme-placeholder.svg) |
+| ![MathJax 公式](docs/screenshots/mathjax-multiline.png) | ![公式导出菜单](docs/screenshots/image-export-menu.png) |
 
-![扩展设置](docs/screenshots/readme-placeholder.svg)
+![扩展设置](docs/screenshots/extension-options.png)
 
 ## 兼容性
 
