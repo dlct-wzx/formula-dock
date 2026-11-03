@@ -6,6 +6,10 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- Replaced the developer-oriented root README with a user-facing English GitHub introduction and added a matching Chinese guide in `README_ZH.md`.
+
 ## [0.8.2] - 2026-11-03
 
 ### Fixed

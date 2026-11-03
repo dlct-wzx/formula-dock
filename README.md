@@ -1,229 +1,165 @@
-# FormulaDock
+<div align="center">
+  <img src="extension/icons/icon128.png" width="96" height="96" alt="FormulaDock icon" />
+  <h1>FormulaDock</h1>
+  <p><strong>Write, preview, export, and recognize LaTeX formulas in one focused workspace.</strong></p>
+  <p>
+    <a href="README.md">English</a> ·
+    <a href="README_ZH.md">简体中文</a> ·
+    <a href="../../releases/latest">Download</a> ·
+    <a href="#install-the-extension">Install</a>
+  </p>
+  <p>
+    <img alt="MathJax 4" src="https://img.shields.io/badge/MathJax-4-1f5f9e?style=flat-square" />
+    <img alt="KaTeX" src="https://img.shields.io/badge/KaTeX-optional-16a34a?style=flat-square" />
+    <img alt="Chrome and Edge" src="https://img.shields.io/badge/Chrome%20%2F%20Edge-116%2B-4285f4?style=flat-square&logo=googlechrome&logoColor=white" />
+    <img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-2563eb?style=flat-square" />
+  </p>
+</div>
 
-一个聚焦公式工作流的 Web 应用和 Chrome/Edge 浏览器扩展，包含：
+![FormulaDock workspace](docs/screenshots/extension-sidepanel.png)
 
-- **快捷工具**：10 个分类、284 个符号与结构、搜索、最近使用与光标插入；每张公式卡会自动缩小以完整显示内容。
-- **公式模板**：10 个分类、60 个可检索公式模板，使用当前公式渲染器实时预览。
-- **公式渲染**：默认 MathJax 4，适合 eqnarray、aligned 等多行公式；可在设置中切换到更轻量的 KaTeX。
-- **网页端**：提供快捷工具、公式模板、LaTeX 编辑器、实时预览与公式图片导出。
-- **图片导出**：输出卡片支持直接下载 SVG、PNG、JPG 三种格式，其中 PNG/SVG 使用透明背景。
-- **LaTeX 环境**：源码工具栏支持 align、aligned、cases、array 等 8 种环境快捷插入。
-- **图片识别**：仅在浏览器扩展侧边栏中提供；安装扩展并配置自己的 MinerU API Key 后使用。
-- **浏览器扩展**：Manifest V3 侧边栏，提供完整快捷工具、公式模板和 MinerU 图片识别。
+FormulaDock is a browser-based LaTeX formula workspace built for people who write formulas every day. It combines a searchable symbol library, ready-made formula templates, a live editor, high-resolution image export, and optional MinerU-powered image recognition in a clean Chrome/Edge side panel.
 
-网页版输入与输出采用上下布局；超宽公式支持横向滚动。支持浅色/深色主题和响应式布局。
+No account is required. Formula editing, rendering, templates, and exports stay in your browser.
 
-## 技术栈
+## Highlights
 
-- React + Vite + TypeScript
-- MathJax 4（默认，本地懒加载）+ KaTeX（可选）
-- Manifest V3 + Side Panel API
-- Node.js HTTP API service
-- MinerU 精准解析 API
-- `fflate` ZIP 解包
-- Playwright + Node 内置测试运行器
-
-## Web 启动
-
-```powershell
-npm install
-npm run dev
-```
-
-- 前端：http://localhost:5173
-- API：http://localhost:8787
-
-## 网页端与图片识别
-
-网页端不提供图片上传或 OCR 请求，也不会接收、保存或上传图片。需要使用图片识别时，请安装 FormulaDock 浏览器扩展，并在扩展设置中配置你自己的 MinerU API Key。
-
-## 浏览器扩展
+- **284 quick tools across 10 categories** — Find common symbols, operators, roots, scripts, integrals, matrices, and more.
+- **60 formula templates across 10 topics** — Start quickly with algebra, geometry, calculus, matrices, trigonometry, statistics, sequences, physics, and chemistry.
+- **MathJax 4 by default, KaTeX optional** — Switch renderers in settings. MathJax 4 handles complex multi-line formulas especially well.
+- **Built for real formula layouts** — Every quick-tool card measures and scales its own preview, so wide or tall formulas remain fully visible.
+- **Part of the keyboard workflow** — Open the side panel with `Ctrl+Shift+L` on Windows/Linux or `Command+Shift+L` on macOS.
+- **Formula image export** — Download transparent SVG or PNG, or a white-background JPG.
+- **Image recognition in the extension** — Configure your own MinerU API key and turn formula screenshots into editable LaTeX.
+- **Chinese and English UI** — Adjust interface language, interface text size, and editor font size independently.
+- **Light and dark themes** — Follow your preference in both the web workspace and side panel.
 
-构建：
+## Three ways to start a formula
 
-```powershell
-npm run build:extension
-```
-
-产物：
-
-- `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/formuladock-extension-v0.8.2.zip`：安装/发布 ZIP。
-
-安装：
-
-1. 打开 `chrome://extensions` 或 `edge://extensions`。
-2. 开启“开发者模式”。
-3. 点击“加载已解压的扩展程序”。
-4. 选择 `E:\code\LatexLive\extension-dist`。
-5. 打开扩展“设置”，填写 MinerU Token。
-6. 从工具栏或 `Ctrl+Shift+L` / `Command+Shift+L` 打开侧边栏。
-7. 使用快捷工具、公式模板、公式编辑器或 MinerU 图片识别。
-
-扩展 Token 模式：
-
-- Token 保存在 `chrome.storage.local`。
-- 不会打入 ZIP、写入源码或输出到日志。
-- 侧边栏优先，所有 MinerU API、签名上传和 ZIP 下载请求都经过扩展 Service Worker 代理。
-- 为兼容 MinerU/OSS 的浏览器来源限制，扩展仅对三个受信任域名范围移除 `Origin`/`Referer`：
-  - `mineru.net/api/v4/*`
-  - `*.aliyuncs.com/*`
-  - `*.openxlab.org.cn/*`
-- 该模式适合个人/内部安装；若公开分发，应改为你自己的后端代理 MinerU。
+### 1. Pick a symbol
 
-扩展支持：
+Hover over a category to open its formula grid. Cards are sized to keep the complete formula visible, then insert the selected symbol directly at the editor caret.
 
-- 快捷工具与公式模板的响应式块状分类
-- 鼠标悬停分类时显示蓝色高亮和内容预览
-- 搜索、最近使用和点击结果插入编辑器光标处
-- `Ctrl+Shift+L` / `Command+Shift+L` 打开侧边栏
-- 不请求当前网页访问权限，也不提供网页插入功能
+![Quick-tool formula previews](docs/screenshots/quick-previews-roots.png)
 
-## 验证
+### 2. Start from a template
 
-```powershell
-npm run verify
-npm run smoke:extension
-npm test
-```
+Browse templates by topic or search by name, tag, and description. Each preview uses the renderer selected in Settings.
 
-Web 浏览器回归：
+![Formula template previews](docs/screenshots/extension-template-hover.png)
 
-```powershell
-npm run build
-npm run smoke
-```
+### 3. Paste or recognize an image
 
-`npm run smoke` 会自动启动一个隔离的 Mock API 服务，不会使用 `.env.local` 中的真实 MinerU 模式；覆盖 Web 三项核心流程、公式搜索、KaTeX 与 MathJax 4 渲染、多行公式、图片导出、深色主题和 390px 移动端布局。
+In the browser extension, upload, drag, or paste a formula image. FormulaDock sends it to MinerU using your own API key, extracts the LaTeX candidates, and lets you insert or copy the result.
 
-`npm run smoke:extension` 会实际加载 `extension-dist`，验证侧边栏、设置页、Chrome Storage、仅悬停分类、140% 大字号和 480px 布局，并生成：
+![MinerU recognition result](docs/screenshots/extension-live-ocr.png)
 
-- `artifacts/extension-sidepanel.png`
-- `artifacts/extension-options.png`
+## Editor and output
 
-## 目录
+- Live MathJax 4 or KaTeX preview.
+- Multi-line LaTeX environments, including `align`, `aligned`, `eqnarray`, `gathered`, `cases`, `split`, and `array`.
+- One-click environment insertion from the LaTeX Source toolbar.
+- Wide formulas scroll horizontally inside the output card without stretching the page.
+- Preview zoom controls for checking fine details.
+- Transparent SVG/PNG export and white-background JPG export.
 
-```text
-src/
-  components/          React UI
-  data/                快捷工具与公式模板数据
-  lib/                 KaTeX/MathJax、扩展设置、扩展直连 OCR
-server/
-  index.mjs            Web API + 静态文件服务
-  mineru.mjs           MinerU Provider（扩展端逻辑共享）
-  ocr-utils.mjs        图片校验 + 共享解析器导出
-  mock-ocr.mjs         本地演示 Provider
-shared/
-  formula-parser.mjs   Node/浏览器共用公式提取器
-extension/
-  manifest.json        Manifest V3
-  background.js        侧边栏与 MinerU 代理
-  options.*            扩展设置页
-  icons/               PNG 图标
-extension-dist/        生成的可加载扩展
-release/               生成的 ZIP
-.agents/
-  project.yaml         项目状态与命令
-  architecture.md      架构和请求流
-  tasks/               agent 任务看板
-  decisions/           架构决策记录
-  verification/        验证证据
-```
+![MathJax multi-line formula](docs/screenshots/mathjax-multiline.png)
 
-Agent 协作以 [AGENTS.md](./AGENTS.md) 为准。
+## Install the extension
 
-## 当前验证边界
+FormulaDock currently installs from the repository's GitHub Releases page.
 
-Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真实 MinerU OCR 已用一张自动生成的测试公式图完成上传、轮询、ZIP 下载、公式提取和渲染。Chrome Web Store 注册和公开发布仍需要开发者账号、商店截图与隐私政策材料。
+1. Open [GitHub Releases](../../releases/latest).
+2. Download the latest `formuladock-extension-v*.zip` package and unzip it.
+3. Open `chrome://extensions` in Chrome or `edge://extensions` in Edge.
+4. Enable **Developer mode**.
+5. Choose **Load unpacked** and select the unzipped folder.
+6. Pin FormulaDock and click its toolbar icon to open the side panel.
 
-## 开源与许可证
+For image recognition, open **Settings**, paste your MinerU API key, and choose the model and OCR language.
 
-本项目以 **Apache License 2.0** 开源。
+> FormulaDock does not read, modify, or insert content into the current webpage. The extension does not request access to the active tab.
 
-- [LICENSE](LICENSE)
-- [NOTICE](NOTICE)
-- [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
-- [PRIVACY.md](PRIVACY.md)
-- [SECURITY.md](SECURITY.md)
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- [CHANGELOG.md](CHANGELOG.md)
+## Privacy and permissions
 
-## 不进入源码仓库的内容
+- The web workspace does **not** upload images or expose OCR controls.
+- Formula images are uploaded only when you explicitly start recognition in the extension.
+- Your MinerU API key is stored locally in `chrome.storage.local`.
+- FormulaDock does not include analytics, advertising, telemetry, or user accounts.
+- The extension requests only side-panel, storage, and MinerU-network permissions. It does not request webpage access.
+- Uploaded images are processed for the recognition request and are not written to project storage by FormulaDock.
 
-以下内容已通过 `.gitignore` 排除：
+See [PRIVACY.md](PRIVACY.md), [SECURITY.md](SECURITY.md), and the extension permission details for more information.
 
-- `.env.local` 中的真实 Token
-- `latexlive-assistant-0.1.5/` 第三方参考扩展
-- `node_modules/`
-- `dist/`、`extension-dist/`
-- `release/` 安装 ZIP
-- `artifacts/` 测试截图和浏览器临时配置
+## Rendering and exports
 
-安装 ZIP 应作为独立发布产物分发，而不是提交到源码历史。若需要在 Git 历史中加入发布包，也应先确认其中没有 Token、用户图片或签名上传 URL。
+| Capability | Details |
+|---|---|
+| Default renderer | MathJax 4 with SVG output |
+| Alternate renderer | KaTeX |
+| Multi-line environments | `align`, `aligned`, `eqnarray`, `gathered`, `cases`, `split`, and `array` |
+| Output formats | SVG, PNG, JPG |
+| Transparency | Transparent SVG and PNG; JPG uses white |
+| Local rendering | KaTeX, MathJax, fonts, and glyph assets are packaged with the app |
 
-## 贡献与安全问题
+All 284 quick-tool previews and 60 formula templates are checked against both rendering engines.
 
-- 功能与缺陷修复请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
-- 安全漏洞请按照 [SECURITY.md](SECURITY.md) 私下报告。
-- 不要在 Issue、PR、截图或日志中公开 MinerU Token、签名URL、私有图片或个人信息。
+## Screenshots
 
-## 界面截图
+| Quick tools | Formula templates |
+|:-:|:-:|
+| ![Quick tools](docs/screenshots/extension-sidepanel.png) | ![Template categories](docs/screenshots/extension-template-categories.png) |
 
-### 快捷工具悬停预览
+| MathJax preview | Image export |
+|:-:|:-:|
+| ![MathJax formula](docs/screenshots/mathjax-multiline.png) | ![Formula export menu](docs/screenshots/image-export-menu.png) |
 
-![快捷工具悬停预览](docs/screenshots/extension-sidepanel.png)
+![Extension settings](docs/screenshots/extension-options.png)
 
-### 公式模板分类
+## Compatibility
 
-![公式模板响应式分类](docs/screenshots/extension-template-categories.png)
+- Chrome 116+
+- Microsoft Edge 116+
+- Modern browsers for the web workspace
+- MinerU API access is required only for image recognition
+- The editor, templates, local rendering, and exports do not require an account
 
-### 公式模板悬停预览
+## FAQ
 
-![公式模板悬停预览](docs/screenshots/extension-template-hover.png)
+### Is image recognition available on the website?
 
+No. Recognition is available only in the browser extension. The website explains how to install the extension and configure a personal MinerU API key.
 
-### 网页端图片识别提示
+### Do I need a MinerU API key?
 
-![网页端图片识别提示](docs/screenshots/web-ocr-extension-notice.png)
+Only if you want to use image recognition. Editing, templates, MathJax/KaTeX rendering, and image export do not require a key.
 
-### 长公式横向滚动
+### Does FormulaDock change the page I am visiting?
 
-![长公式横向滚动](docs/screenshots/extension-wide-formula.png)
+No. It works in a dedicated side panel and does not request active-page access.
 
-### 快捷工具自适应公式预览
+### Can I use it offline?
 
-![根式与上下标预览](docs/screenshots/quick-previews-roots.png)
+The editor, formula data, local renderers, and exports are packaged locally. MinerU image recognition requires an internet connection.
 
-![积分公式自适应缩放](docs/screenshots/quick-previews-integrals.png)
+### Which renderer should I use?
 
-![大型运算符自适应缩放](docs/screenshots/quick-previews-large-ops.png)
+MathJax 4 is the default and is the better choice for complex multi-line environments. KaTeX offers a lighter, synchronous rendering path and can be selected in Settings.
 
-### MathJax 多行公式
+## Contributing
 
-![MathJax 多行公式](docs/screenshots/mathjax-multiline.png)
+Bug reports, formula corrections, and feature suggestions are welcome through [GitHub Issues](../../issues). Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a pull request.
 
-### LaTeX 环境
+For security-sensitive reports, follow [SECURITY.md](SECURITY.md). Never post API keys, private images, or signed upload URLs publicly.
 
-![LaTeX 环境菜单](docs/screenshots/environment-menu.png)
+## License
 
-### 输出图片
+FormulaDock is open source under the [Apache License 2.0](LICENSE).
 
-![输出图片菜单](docs/screenshots/image-export-menu.png)
+Third-party trademarks and licenses remain with their respective owners. See [NOTICE](NOTICE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
 
-![公式图片导出示例](docs/screenshots/formula-export-example.jpg)
+---
 
-### 扩展设置
-
-![扩展设置](docs/screenshots/extension-options.png)
-
-### 真实 MinerU 识别结果
-
-![真实 MinerU 识别结果](docs/screenshots/extension-live-ocr.png)
-
-截图中的 MinerU Token 为测试占位值，不包含真实凭据。
-
-
-FormulaDock 0.8.2 fixes quick-tool previews by separating display examples from caret-insertion skeletons, fitting each formula inside its own card, and auditing all 284 quick tools plus 60 templates against both KaTeX and MathJax 4. It also fixes duplicate tool IDs, improves per-mille portability, corrects several incomplete template formulas, and guards against using \inf where \infty is required. MathJax 4 remains the default renderer and all assets stay local.
-
-快捷工具与公式模板中的全部 344 条公式现已通过 KaTeX 和 MathJax 4 双引擎检查。上下标等需要光标定位的条目会使用完整的示例公式作为图标，但点击后仍插入原本的占位源码；积分、矩阵和大型运算符会按所在卡片单独缩放，避免右侧或上下内容被裁切。
+<div align="center">
+  <sub>FormulaDock · A focused workspace for formulas</sub>
+</div>

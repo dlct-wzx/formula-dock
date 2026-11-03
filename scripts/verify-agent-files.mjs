@@ -5,6 +5,7 @@ import { promises as fsPromises } from 'node:fs'
 const requiredFiles = [
   'AGENTS.md',
   'README.md',
+  'README_ZH.md',
   '.agents/README.md',
   '.agents/project.yaml',
   '.agents/architecture.md',
@@ -21,6 +22,7 @@ const requiredFiles = [
   '.agents/verification/2026-11-02-extension-live.yaml',
   'scripts/prepare-mathjax-fonts.mjs',
   'tests/formula-data.test.mjs',
+  'tests/readme.test.mjs',
   'extension/manifest.json',
   'LICENSE',
   'NOTICE',
@@ -59,6 +61,7 @@ const requiredFiles = [
   '.agents/verification/2026-11-03-mathjax-renderer.yaml',
   '.agents/verification/2026-11-03-default-mathjax.yaml',
   '.agents/verification/2026-11-03-quick-tool-preview-audit.yaml',
+  '.agents/verification/2026-11-03-bilingual-readme.yaml',
 
 ]
 

@@ -21,7 +21,7 @@ In this order:
 2. `.agents/architecture.md` — runtime boundaries and request flows.
 3. `.agents/tasks/backlog.yaml` — active tasks and acceptance criteria.
 4. Relevant files under `.agents/decisions/`.
-5. README.md — human-facing setup instructions.
+5. README.md / README_ZH.md — human-facing product introductions.
 
 If these documents conflict, prefer the newest decision record and update the stale document in the same change.
 
