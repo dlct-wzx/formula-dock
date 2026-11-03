@@ -198,6 +198,7 @@ try {
   )
   await optionsPage.locator('#interfaceScale').selectOption('140')
   assert.equal(await optionsPage.locator('#editorFontSize').inputValue(), '18')
+  assert.equal(await optionsPage.locator('.security-note').count(), 0)
   assert.equal(await optionsPage.title(), 'FormulaDock Extension Settings')
   await optionsPage.getByText('Connect MinerU and tune the formula workspace for comfortable reading.').waitFor()
   assert.equal(await optionsPage.locator('html').getAttribute('lang'), 'en')

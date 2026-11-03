@@ -50,8 +50,6 @@ const I18N = {
     ocrLanguageHint: '影响中文/英文识别',
     ocrLanguageCh: '中文 + English',
     ocrLanguageEn: 'English',
-    securityTitle: '安全边界',
-    securityBody: 'Token 可以读取扩展存储或被扩展内部脚本使用。此模式适合个人/内部安装；若发布给不受信任的公开用户，应改为由你的后端保管 Token。',
 
     testToken: '测试 Token',
     testing: '测试中…',
@@ -103,8 +101,6 @@ const I18N = {
     ocrLanguageHint: 'Affects Chinese and English recognition',
     ocrLanguageCh: 'Chinese + English',
     ocrLanguageEn: 'English',
-    securityTitle: 'Security boundary',
-    securityBody: 'The token can be read by the extension storage or internal extension scripts. This mode is intended for personal or internal installations. Public releases should keep the token on your own backend.',
 
     testToken: 'Test token',
     testing: 'Testing…',

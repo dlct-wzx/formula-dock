@@ -191,17 +191,6 @@ code {
 }
 .inline-button:hover { background: color-mix(in srgb, var(--accent) 16%, var(--card)); }
 
-.security-note {
-  margin-top: 18px;
-  padding: 13px 14px;
-  border: 1px solid color-mix(in srgb, var(--warning) 20%, var(--border));
-  border-radius: 12px;
-  background: var(--warning-soft);
-}
-.security-note strong { color: var(--warning); font-size: calc(10px * var(--ui-font-scale, 1)); }
-.security-note p { margin: 5px 0 0; color: var(--muted); font-size: calc(9px * var(--ui-font-scale, 1)); line-height: 1.65; }
-
-
 .settings-actions {
   display: flex;
   align-items: center;
