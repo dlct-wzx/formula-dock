@@ -62,7 +62,6 @@ try {
         uiLocale: 'en',
         interfaceScale: 140,
         editorFontSize: 18,
-        mathRenderer: 'mathjax',
       },
     }),
   )
@@ -196,10 +195,11 @@ try {
   assert.equal(await optionsPage.locator('#mineruToken').inputValue(), 'extension-smoke-test-token')
   assert.equal(await optionsPage.locator('#uiLocale').inputValue(), 'en')
   assert.equal(await optionsPage.locator('#mathRenderer').inputValue(), 'mathjax')
+  assert.equal(await optionsPage.locator('#mathRenderer option').first().getAttribute('value'), 'mathjax')
   assert.equal(await optionsPage.locator('#interfaceScale').inputValue(), '140')
   await optionsPage.locator('#mathRenderer').selectOption('katex')
   await optionsPage.locator('#saveButton').click()
-await optionsPage.waitForFunction(async () => {
+  await optionsPage.waitForFunction(async () => {
     const settings = (await chrome.storage.local.get('formuladock:extension-settings'))['formuladock:extension-settings']
     return settings?.mathRenderer === 'katex' && !document.getElementById('saveButton')?.disabled
   })
@@ -314,6 +314,7 @@ g &=& h + i
     ]),
   )
   assert.equal(migrated['formuladock:extension-settings']?.mineruToken, 'extension-smoke-test-token')
+  assert.equal(migrated['formuladock:extension-settings']?.mathRenderer, 'mathjax')
   assert.equal(migrated['latexlive-studio:extension-settings'], undefined)
   await page.evaluate(() =>
     chrome.storage.local.remove([
@@ -333,6 +334,7 @@ g &=& h + i
         sidepanel: true,
         optionsPage: true,
         storageSettings: true,
+        defaultMathJaxMigration: true,
         mathJaxRenderer: true,
         mathJaxOptionsPersistence: true,
         mathJaxMultilineRows: 3,

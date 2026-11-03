@@ -51,7 +51,29 @@ const editor = page.locator('textarea[aria-label="LaTeX 源码编辑器"]')
 
 try {
   await page.goto(BASE_URL, { waitUntil: 'networkidle' })
-  assert.equal(await page.locator('script[data-formuladock-mathjax]').count(), 0, 'MathJax must stay lazy until selected.')
+  assert.equal(await page.locator('script[data-formuladock-mathjax]').count(), 0, 'MathJax must stay lazy until a formula is rendered.')
+  await page.getByRole('button', { name: '打开设置', exact: true }).click()
+  const defaultPreferences = page.locator('.preferences-dialog')
+  await defaultPreferences.waitFor()
+  assert.equal(
+    await defaultPreferences.locator('select').nth(1).inputValue(),
+    'mathjax',
+    'New installations must default to MathJax 4.',
+  )
+  assert.equal(await defaultPreferences.locator('select').nth(1).locator('option').first().getAttribute('value'), 'mathjax')
+  await defaultPreferences.getByRole('button', { name: '取消', exact: true }).click()
+  await page.evaluate(() =>
+    localStorage.setItem(
+      'formuladock:ui-preferences',
+      JSON.stringify({
+        uiLocale: 'zh',
+        interfaceScale: 100,
+        editorFontSize: 12,
+        mathRenderer: 'katex',
+      }),
+    ),
+  )
+  await page.reload({ waitUntil: 'networkidle' })
   await page.getByRole('heading', { name: /公式，不止于/ }).waitFor()
   assert.equal((await page.locator('.site-footer').innerText()).includes('.agents/'), false)
   const workspaceLayout = await page.evaluate(() => {
@@ -477,6 +499,7 @@ g &=& h + i
         quickToolHoverPanel: true,
         templateHoverPanel: true,
         interfaceSettings: true,
+        defaultMathJax: true,
         mathJaxRenderer: true,
         mathJaxLocalAssets: true,
         mathJaxMultilineRows: 3,

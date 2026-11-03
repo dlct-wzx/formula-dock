@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react'
-import type { MathRenderer } from '../lib/mathRenderer'
+import { DEFAULT_MATH_RENDERER, type MathRenderer } from '../lib/mathRenderer'
 
-const MathRendererContext = createContext<MathRenderer>('katex')
+const MathRendererContext = createContext<MathRenderer>(DEFAULT_MATH_RENDERER)
 
 export function MathRendererProvider({
   renderer,

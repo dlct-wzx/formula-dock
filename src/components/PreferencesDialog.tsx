@@ -108,8 +108,8 @@ export function PreferencesDialog({
               value={mathRenderer}
               onChange={(event) => setMathRenderer(event.target.value as MathRenderer)}
             >
-              <option value="katex">{t('settings.rendererKatex')}</option>
               <option value="mathjax">{t('settings.rendererMathJax')}</option>
+              <option value="katex">{t('settings.rendererKatex')}</option>
             </select>
           </label>
 

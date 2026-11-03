@@ -6,6 +6,21 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-11-03
+
+### Changed
+
+- MathJax 4 is now the default renderer for new installations and missing/migrated renderer preferences.
+- KaTeX remains available as the lighter synchronous option, and explicitly saved KaTeX preferences are preserved.
+- Updated the web and extension settings labels, option order, tests, documentation, and screenshots for the new default.
+- Updated the extension manifest to version 0.8.1.
+
+### Verified
+
+- `npm run verify` passes.
+- Web regression verifies a fresh profile selects MathJax 4 by default, while an explicit KaTeX preference still renders through KaTeX.
+- Extension regression verifies legacy settings without a renderer migrate to MathJax 4 and can still switch to and from KaTeX in the full options page.
+
 ## [0.8.0] - 2026-11-03
 
 ### Added

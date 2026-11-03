@@ -2,10 +2,10 @@ import mathJaxComponentUrl from 'mathjax/tex-svg.js?url'
 
 export type MathRenderer = 'katex' | 'mathjax'
 
-export const DEFAULT_MATH_RENDERER: MathRenderer = 'katex'
+export const DEFAULT_MATH_RENDERER: MathRenderer = 'mathjax'
 
 export function normaliseMathRenderer(value: unknown): MathRenderer {
-  return value === 'mathjax' ? 'mathjax' : DEFAULT_MATH_RENDERER
+  return value === 'katex' ? 'katex' : DEFAULT_MATH_RENDERER
 }
 
 interface MathJaxAdaptor {

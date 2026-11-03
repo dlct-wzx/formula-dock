@@ -43,6 +43,7 @@ const requiredFiles = [
   '.agents/decisions/0012-formula-image-export.md',
   '.agents/decisions/0013-latex-environment-menu.md',
   '.agents/decisions/0014-mathjax-renderer.md',
+  '.agents/decisions/0015-default-mathjax.md',
 
   '.agents/verification/2026-11-02-open-source.yaml',
   '.agents/verification/2026-11-02-formuladock-rebrand.yaml',
@@ -54,6 +55,7 @@ const requiredFiles = [
   '.agents/verification/2026-11-03-formula-image-export.yaml',
   '.agents/verification/2026-11-03-environment-menu.yaml',
   '.agents/verification/2026-11-03-mathjax-renderer.yaml',
+  '.agents/verification/2026-11-03-default-mathjax.yaml',
 
 ]
 

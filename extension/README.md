@@ -12,7 +12,7 @@ npm run build:extension
 Outputs:
 
 - `extension-dist/` — load unpacked for local testing.
-- `release/formuladock-extension-v0.8.0.zip` — upload/package artifact.
+- `release/formuladock-extension-v0.8.1.zip` — upload/package artifact.
 
 ## Install locally
 
@@ -70,7 +70,7 @@ The extension source and packaged build are distributed under the Apache License
 
 ## Interface preferences
 
-The settings page supports Chinese and English interfaces, a KaTeX/MathJax 4 formula-renderer choice, 90/100/110/140/160% interface text-size presets, and an independent 10–24 px LaTeX editor font size. These values are stored with the extension settings and applied to the side panel immediately after saving. KaTeX remains the default. Output formulas grow vertically with their content and use horizontal scrolling only when wider than the preview.
+The settings page supports Chinese and English interfaces, a KaTeX/MathJax 4 formula-renderer choice, 90/100/110/140/160% interface text-size presets, and an independent 10–24 px LaTeX editor font size. These values are stored with the extension settings and applied to the side panel immediately after saving. MathJax 4 is the default; KaTeX remains available as a lighter synchronous alternative. Output formulas grow vertically with their content and use horizontal scrolling only when wider than the preview.
 
 ## Category hover previews
 
@@ -82,8 +82,8 @@ The Output card provides an Output image menu for `.svg`, `.png`, and `.jpg` dow
 
 ## Formula rendering
 
-- KaTeX remains the default renderer and keeps the existing lightweight startup path.
-- MathJax 4 is opt-in from the simple settings dialog or the full extension options page.
-- MathJax uses SVG output, is loaded only when selected, and remains active for the session through the saved extension setting.
+- MathJax 4 is the default renderer for new and migrated preferences.
+- KaTeX is opt-in from the simple settings dialog or the full extension options page and keeps the lighter synchronous startup path.
+- MathJax uses SVG output, is loaded when the first formula needs rendering, and remains active for the session through the saved extension setting.
 - The MathJax component, NewCM font data, and dynamic glyph scripts are packaged locally. The extension does not load MathJax from a CDN and does not request additional host permissions.
 - MathJax's audio/SRE enrichment path is disabled because its separate worker/mathmap runtime is not bundled; formula markup keeps the raw LaTeX accessible name instead.

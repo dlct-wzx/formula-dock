@@ -52,8 +52,8 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - Static formula content belongs in `src/data/`, not inside components.
 - Shared Node/browser MinerU extraction logic belongs in `shared/formula-parser.mjs`.
 - Quick tool/template insertion must target the current editor caret.
-- Formula rendering must stay client-side. KaTeX uses `throwOnError: false` and remains the default renderer.
-- MathJax 4 is opt-in, uses SVG output, loads lazily, and must use only packaged local components, NewCM fonts, and dynamic glyph scripts.
+- Formula rendering must stay client-side. MathJax 4 is the default renderer; KaTeX remains available with `throwOnError: false` as the lighter synchronous option.
+- MathJax 4 uses SVG output, loads lazily when the first formula is rendered, and must use only packaged local components, NewCM fonts, and dynamic glyph scripts.
 - Do not add a MathJax CDN dependency, remote script host, or extra extension host permission.
 - The public web UI must not expose image upload or call OCR endpoints. The Image recognition tab renders extension installation guidance in web mode.
 - Extension direct OCR mode stores the user token in `chrome.storage.local`; never bundle it, log it, expose it to page scripts, or include it in the ZIP.
@@ -77,7 +77,7 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - Quick-tool and formula-template categories must use the same responsive block-card layout.
 - Category content opens only on hover and uses a blue hover state. Do not restore click-to-expand or click-to-select category state.
 - Interface text-size presets are 90, 100, 110, 140, and 160 percent, independent from the LaTeX editor font size.
-- The web and extension settings surfaces must both expose the KaTeX/MathJax 4 renderer choice and persist it without changing the default KaTeX behaviour.
+- The web and extension settings surfaces must both expose the KaTeX/MathJax 4 renderer choice, default missing values to MathJax 4, and preserve explicitly saved user choices.
 
 ## Engineering rules
 

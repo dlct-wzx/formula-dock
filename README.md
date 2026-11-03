@@ -4,7 +4,7 @@
 
 - **快捷工具**：10 个分类、284 个符号与结构、搜索、最近使用与光标插入。
 - **公式模板**：10 个分类、60 个可检索公式模板，使用当前公式渲染器实时预览。
-- **公式渲染**：默认 KaTeX；可在设置中切换到 MathJax 4，以更好地显示 eqnarray、aligned 等多行公式。
+- **公式渲染**：默认 MathJax 4，适合 eqnarray、aligned 等多行公式；可在设置中切换到更轻量的 KaTeX。
 - **网页端**：提供快捷工具、公式模板、LaTeX 编辑器、实时预览与公式图片导出。
 - **图片导出**：输出卡片支持直接下载 SVG、PNG、JPG 三种格式，其中 PNG/SVG 使用透明背景。
 - **LaTeX 环境**：源码工具栏支持 align、aligned、cases、array 等 8 种环境快捷插入。
@@ -16,7 +16,7 @@
 ## 技术栈
 
 - React + Vite + TypeScript
-- KaTeX（默认）+ MathJax 4（可选，本地懒加载）
+- MathJax 4（默认，本地懒加载）+ KaTeX（可选）
 - Manifest V3 + Side Panel API
 - Node.js HTTP API service
 - MinerU 精准解析 API
@@ -48,7 +48,7 @@ npm run build:extension
 产物：
 
 - `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/formuladock-extension-v0.8.0.zip`：安装/发布 ZIP。
+- `release/formuladock-extension-v0.8.1.zip`：安装/发布 ZIP。
 
 安装：
 
@@ -216,6 +216,6 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 截图中的 MinerU Token 为测试占位值，不包含真实凭据。
 
 
-FormulaDock 0.8.0 adds an opt-in MathJax 4 SVG renderer alongside the default KaTeX renderer. Both the simple web settings dialog and the full extension settings page persist the choice. MathJax improves compatibility with multi-line environments such as eqnarray, align, aligned, gathered, cases, split, and array; it remains lazy-loaded, uses only packaged local assets, and continues to support transparent PNG/SVG plus white-background JPG export.
+FormulaDock 0.8.1 now uses MathJax 4 as the default renderer for new and migrated preferences, while KaTeX remains available as a lighter synchronous alternative. MathJax uses SVG output, improves compatibility with multi-line environments such as eqnarray, align, aligned, gathered, cases, split, and array, and loads only when the first formula is rendered. All scripts and NewCM glyph assets remain packaged locally, and transparent PNG/SVG plus white-background JPG export continues to work.
 
-网页端和扩展设置均新增“公式渲染器”切换，默认 KaTeX，可切换到 MathJax 4。MathJax 采用 SVG 输出并按需加载，适合多行公式；相关脚本、字体和动态字形均随项目本地打包，不依赖 CDN。源码工具栏的环境菜单、透明 PNG/SVG 导出和白色背景 JPG 导出继续可用。
+网页端和扩展设置均提供“公式渲染器”切换，默认 MathJax 4。MathJax 采用 SVG 输出，并会在首次需要渲染公式时按需加载；相关脚本、字体和动态字形均随项目本地打包，不依赖 CDN。需要更轻量、同步启动的渲染路径时，可切换到 KaTeX。源码工具栏的环境菜单和图片导出功能继续可用。
