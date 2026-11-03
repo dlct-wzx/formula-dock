@@ -457,7 +457,7 @@ export default function App() {
               <span>FormulaDock</span>
               <small>Focused formula workspace</small>
             </div>
-            <p>{t('footer.agent', { path: '.agents/' })}</p>
+            <p>{t('footer.agent')}</p>
           </footer>
         )}
 

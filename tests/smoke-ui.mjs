@@ -48,6 +48,7 @@ const editor = page.locator('textarea[aria-label="LaTeX 源码编辑器"]')
 try {
   await page.goto(BASE_URL, { waitUntil: 'networkidle' })
   await page.getByRole('heading', { name: /公式，不止于/ }).waitFor()
+  assert.equal((await page.locator('.site-footer').innerText()).includes('.agents/'), false)
 
   await page.getByRole('tab', { name: /快捷工具/ }).click()
   await page.getByPlaceholder('搜索符号、名称或 LaTeX 命令').fill('积分')
