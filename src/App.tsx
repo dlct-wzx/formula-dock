@@ -376,7 +376,7 @@ export default function App() {
               latex={latex}
               scale={previewScale}
               onScaleChange={setPreviewScale}
-              onCopy={() => void copyLatex()}
+              onNotify={notify}
             />
           </div>
 

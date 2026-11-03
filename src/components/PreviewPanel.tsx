@@ -1,16 +1,18 @@
-import { Copy, Check, Minus, Plus, Gauge, ShieldCheck } from 'lucide-react'
+import { Check, Minus, Plus, Gauge, ShieldCheck } from 'lucide-react'
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { useI18n } from '../i18n/I18nContext'
 import { DisplayMath } from './MathMarkup'
+import { ImageExportButton } from './ImageExportButton'
+import type { ToastTone } from '../types'
 
 interface PreviewPanelProps {
   latex: string
   scale: number
   onScaleChange: (scale: number) => void
-  onCopy: () => void
+  onNotify: (message: string, tone?: ToastTone) => void
 }
 
-export function PreviewPanel({ latex, scale, onScaleChange, onCopy }: PreviewPanelProps) {
+export function PreviewPanel({ latex, scale, onScaleChange, onNotify }: PreviewPanelProps) {
   const { t } = useI18n()
   const mathRef = useRef<HTMLDivElement>(null)
   const [horizontalOverflow, setHorizontalOverflow] = useState(false)
@@ -72,10 +74,7 @@ export function PreviewPanel({ latex, scale, onScaleChange, onCopy }: PreviewPan
               <Plus size={14} aria-hidden="true" />
             </button>
           </div>
-          <button type="button" className="button button--ghost button--small" onClick={onCopy}>
-            <Copy size={14} aria-hidden="true" />
-            {t('preview.copy')}
-          </button>
+          <ImageExportButton targetRef={mathRef} disabled={!latex.trim()} onNotify={onNotify} />
         </div>
       </header>
 
@@ -91,7 +90,9 @@ export function PreviewPanel({ latex, scale, onScaleChange, onCopy }: PreviewPan
             tabIndex={horizontalOverflow ? 0 : -1}
             aria-label={horizontalOverflow ? t('preview.horizontalScroll') : undefined}
           >
-            <DisplayMath latex={latex} />
+            <span className="preview-export-source">
+              <DisplayMath latex={latex} />
+            </span>
           </div>
         ) : (
           <div className="preview-empty">

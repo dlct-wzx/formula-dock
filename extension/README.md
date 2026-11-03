@@ -12,7 +12,7 @@ npm run build:extension
 Outputs:
 
 - `extension-dist/` — load unpacked for local testing.
-- `release/formuladock-extension-v0.5.0.zip` — upload/package artifact.
+- `release/formuladock-extension-v0.6.0.zip` — upload/package artifact.
 
 ## Install locally
 
@@ -75,3 +75,7 @@ The settings page supports Chinese and English interfaces, 90/100/110/140/160% i
 ## Category hover previews
 
 Both quick-tool and formula-template categories open a shared blue-highlighted preview flyout on hover. Categories are not expandable or selectable by click; users insert items directly from the hover panel or search results.
+
+## Formula image export
+
+The Output card provides an Output image menu for `.svg`, `.png`, and `.jpg` downloads. Copy LaTeX remains available from the editor toolbar.

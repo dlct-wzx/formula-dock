@@ -236,6 +236,20 @@ try {
     path: path.resolve('artifacts/extension-wide-formula.png'),
   })
 
+  await page.getByRole('button', { name: 'Export image', exact: true }).click()
+  const extensionDownloadPromise = page.waitForEvent('download', { timeout: 15_000 })
+  await page.getByRole('menuitem', { name: 'Export as PNG', exact: true }).click()
+  const extensionDownload = await extensionDownloadPromise
+  assert.match(extensionDownload.suggestedFilename(), /\.png$/)
+  const extensionExportPath = path.resolve('artifacts/extension-formula-export.png')
+  await extensionDownload.saveAs(extensionExportPath)
+  const extensionExportBytes = fs.readFileSync(extensionExportPath)
+  assert.deepEqual(
+    [...extensionExportBytes.subarray(0, 8)],
+    [137, 80, 78, 71, 13, 10, 26, 10],
+    'Extension PNG export does not have a PNG signature.',
+  )
+
   const migrated = await page.evaluate(() =>
     chrome.storage.local.get([
       'formuladock:extension-settings',
@@ -275,6 +289,7 @@ try {
         categoryClickExpansion: false,
         templateHoverPanel: true,
         wideFormulaHorizontalScroll: true,
+        imageExportPng: true,
         conditionalHorizontalScrollHint: true,
         settingsAlwaysOpensSimpleDialog: true,
         toolPanelInternalScroll: false,
@@ -287,6 +302,7 @@ try {
           'artifacts/extension-template-hover.png',
           'artifacts/extension-options.png',
           'artifacts/extension-wide-formula.png',
+          'artifacts/extension-formula-export.png',
         ],
       },
       null,

@@ -6,6 +6,28 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-03
+
+### Added
+
+- Replaced the output-card Copy LaTeX action with an Output image menu.
+- Added SVG, PNG, and JPG formula downloads in both the web workspace and browser extension.
+- Added high-resolution DOM rendering with a consistent white background for SVG, PNG, and JPG exports.
+- Added download success and failure feedback.
+
+### Changed
+
+- Kept LaTeX copy functionality in the editor toolbar.
+- Added responsive export-menu behavior for desktop and mobile layouts.
+- Updated the extension manifest to version 0.6.0.
+
+### Verified
+
+- `npm run verify` passes.
+- Browser regression downloads all three formats.
+- SVG contains an embedded rendered image; PNG and JPG signatures and visible formula pixels are validated.
+- Extension regression confirms PNG download from the side panel.
+
 ## [0.5.0] - 2026-11-03
 
 ### Changed

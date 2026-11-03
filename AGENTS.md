@@ -67,6 +67,8 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - The web workspace must keep Input and Output in a single vertical column at every viewport width.
 - The tool panel and output preview must keep content-driven height; do not reintroduce fixed-height internal vertical scrolling.
 - Wide formulas may scroll horizontally inside the output preview. Do not solve width overflow by clipping the formula or forcing page-level horizontal scrolling.
+- The output-card primary action is an Output image menu for SVG, PNG, and JPG. Keep LaTeX copy available in the editor toolbar.
+- Formula image exports must preserve KaTeX rendering and produce non-empty image content.
 - Quick-tool and formula-template categories must use the same responsive block-card layout.
 - Category content opens only on hover and uses a blue hover state. Do not restore click-to-expand or click-to-select category state.
 - Interface text-size presets are 90, 100, 110, 140, and 160 percent, independent from the LaTeX editor font size.

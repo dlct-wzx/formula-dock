@@ -11,6 +11,7 @@ This project includes or depends on the following third-party software. All list
 | katex | 0.19.1 | MIT | https://katex.org |
 | lucide-react | 1.66.0 | ISC | https://lucide.dev |
 | fflate | 0.8.3 | MIT | https://101arrowz.github.io/fflate |
+| html2canvas | 1.4.1 | MIT | https://html2canvas.hertzen.com/ |
 
 MinerU is accessed as an external service through its documented HTTP API. Its SDK or server source is not bundled in this repository.
 
@@ -197,6 +198,33 @@ SOFTWARE.
 
 Vite, TypeScript, Playwright, concurrently, and related development tools are used to build and verify the project but are not vendored as runtime dependencies. Their licenses are listed above and remain with their respective npm packages.
 
+### html2canvas 1.4.1
+
+License: MIT
+
+```text
+MIT License
+
+Copyright (c) 2012 Niklas von Hertzen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 ## KaTeX fonts
 
 KaTeX ships the font files used by its formula renderer with the KaTeX package. The KaTeX package license and third-party notices apply to those assets.

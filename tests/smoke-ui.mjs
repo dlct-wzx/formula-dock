@@ -153,6 +153,74 @@ try {
   await page.waitForTimeout(120)
   assert.equal(await page.locator('.preview-scroll-hint').count(), 0)
 
+  await page.mouse.move(0, 0)
+  await page.locator('.quick-hover-panel').waitFor({ state: 'detached' }).catch(() => {})
+  const exportToastClose = page.locator('.toast__close')
+  if (await exportToastClose.isVisible().catch(() => false)) await exportToastClose.click()
+  const exportButton = page.getByRole('button', { name: '输出图片', exact: true })
+  await exportButton.click()
+  await page.getByRole('menu').waitFor()
+  await page.mouse.click(20, 20)
+  await page.getByRole('menu').waitFor({ state: 'detached' })
+  await exportButton.click()
+  await page.getByRole('menu').waitFor()
+  await page.keyboard.press('Escape')
+  await page.getByRole('menu').waitFor({ state: 'detached' })
+  const exportFormats = [
+    { format: 'svg', menuName: '导出为 SVG', signature: 'svg' },
+    { format: 'png', menuName: '导出为 PNG', signature: 'png' },
+    { format: 'jpg', menuName: '导出为 JPG', signature: 'jpg' },
+  ]
+  for (const [index, item] of exportFormats.entries()) {
+    await exportButton.click()
+    await page.getByRole('menu').waitFor()
+    if (index === 0) {
+      await page.screenshot({
+        path: path.join(artifactsDir, 'smoke-image-export-menu.png'),
+        fullPage: true,
+      })
+    }
+    const downloadPromise = page.waitForEvent('download', { timeout: 15_000 })
+    await page.getByRole('menuitem', { name: item.menuName, exact: true }).click()
+    const download = await downloadPromise
+    assert.match(download.suggestedFilename(), new RegExp(`\\.${item.format}$`))
+    const exportPath = path.join(artifactsDir, `formula-export.${item.format}`)
+    await download.saveAs(exportPath)
+    const bytes = fs.readFileSync(exportPath)
+    assert.ok(bytes.length > 1_000, `${item.format.toUpperCase()} export is unexpectedly small.`)
+    if (item.signature === 'svg') {
+      const svg = bytes.toString('utf8')
+      assert.match(svg, /<svg[\s>]/i)
+      assert.match(svg, /data:image\/png;base64,/i)
+    } else {
+      if (item.signature === 'png') {
+        assert.deepEqual([...bytes.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10])
+      } else {
+        assert.deepEqual([...bytes.subarray(0, 2)], [255, 216])
+      }
+      const imageFormat = item.signature === 'jpg' ? 'jpeg' : 'png'
+      const dataUrl = `data:image/${imageFormat};base64,${bytes.toString('base64')}`
+      const visiblePixels = await page.evaluate(async (source) => {
+        const image = new Image()
+        image.src = source
+        await image.decode()
+        const canvas = document.createElement('canvas')
+        canvas.width = image.naturalWidth
+        canvas.height = image.naturalHeight
+        const context = canvas.getContext('2d')
+        if (!context) return 0
+        context.drawImage(image, 0, 0)
+        const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data
+        let count = 0
+        for (let offset = 0; offset < pixels.length; offset += 4) {
+          if (pixels[offset] < 245 || pixels[offset + 1] < 245 || pixels[offset + 2] < 245) count += 1
+        }
+        return count
+      }, dataUrl)
+      assert.ok(visiblePixels > 100, `${item.format.toUpperCase()} export contains no visible formula pixels.`)
+    }
+  }
+
   await page.getByRole('tab', { name: /公式模板/ }).click()
   await page.getByPlaceholder('搜索公式名称、标签或描述').fill('高斯')
   await page.locator('.template-card').filter({ hasText: '高斯积分' }).waitFor()
@@ -307,6 +375,7 @@ try {
         wideFormulaHorizontalScroll: true,
         conditionalHorizontalScrollHint: true,
         webWorkspaceStacked: true,
+        imageExportFormats: ['svg', 'png', 'jpg'],
         darkTheme: true,
         screenshots: [
           path.join(artifactsDir, 'smoke-quick-tools.png'),
@@ -314,6 +383,10 @@ try {
           path.join(artifactsDir, 'smoke-template-hover.png'),
           path.join(artifactsDir, 'smoke-wide-formula.png'),
           path.join(artifactsDir, 'smoke-ocr-extension-notice.png'),
+          path.join(artifactsDir, 'smoke-image-export-menu.png'),
+          path.join(artifactsDir, 'formula-export.svg'),
+          path.join(artifactsDir, 'formula-export.png'),
+          path.join(artifactsDir, 'formula-export.jpg'),
           path.join(artifactsDir, 'smoke-desktop.png'),
           path.join(artifactsDir, 'smoke-dark.png'),
           path.join(artifactsDir, 'smoke-mobile.png'),

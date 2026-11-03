@@ -39,7 +39,9 @@ const requiredFiles = [
   '.agents/decisions/0009-hover-only-and-extension-scope.md',
   '.agents/decisions/0010-stacked-web-and-formula-scroll.md',
   '.agents/decisions/0011-extension-only-ocr.md',
+  '.agents/decisions/0012-formula-image-export.md',
   '.agents/decisions/0011-extension-only-ocr.md',
+  '.agents/decisions/0012-formula-image-export.md',
   '.agents/verification/2026-11-02-open-source.yaml',
   '.agents/verification/2026-11-02-formuladock-rebrand.yaml',
   '.agents/verification/2026-11-02-ui-preferences.yaml',
@@ -47,7 +49,9 @@ const requiredFiles = [
   '.agents/verification/2026-11-03-hover-only-extension-scope.yaml',
   '.agents/verification/2026-11-03-stacked-web-formula-scroll.yaml',
   '.agents/verification/2026-11-03-extension-only-web-ocr.yaml',
+  '.agents/verification/2026-11-03-formula-image-export.yaml',
   '.agents/verification/2026-11-03-extension-only-web-ocr.yaml',
+  '.agents/verification/2026-11-03-formula-image-export.yaml',
 ]
 
 for (const file of requiredFiles) {

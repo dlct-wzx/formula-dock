@@ -1127,6 +1127,44 @@ textarea:focus-visible,
   letter-spacing: 0.04em;
 }
 .preview-controls { display: flex; align-items: center; gap: 7px; }
+.image-export { position: relative; }
+.image-export__trigger { white-space: nowrap; }
+.image-export__chevron { transition: transform 160ms ease; }
+.image-export__trigger[aria-expanded="true"] .image-export__chevron { transform: rotate(180deg); }
+.image-export__menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 24;
+  min-width: 148px;
+  display: grid;
+  gap: 3px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  box-shadow: 0 16px 36px rgb(13 25 48 / 16%);
+}
+.image-export__item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: calc(11px * var(--ui-font-scale, 1));
+  font-weight: 700;
+  text-align: left;
+}
+.image-export__item svg { color: var(--accent); }
+.image-export__item:hover,
+.image-export__item:focus-visible { background: var(--accent-soft); }
 .scale-control {
   display: inline-flex;
   align-items: center;
@@ -1197,10 +1235,17 @@ textarea:focus-visible,
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 58%, var(--border-strong));
 }
-.preview-math > .math-markup--display,
+.preview-math { text-align: center; }
+.preview-export-source {
+  display: inline-block;
+  min-width: 0;
+  max-width: none;
+  text-align: center;
+}
+.preview-export-source > .math-markup--display,
 .preview-math .katex-display {
   width: max-content;
-  min-width: 100%;
+  min-width: 0;
   margin: 0;
 }
 .preview-math .katex { text-rendering: auto; }
@@ -1427,7 +1472,7 @@ textarea:focus-visible,
   .editor-toolbar { align-items: flex-start; }
   .toolbar-meta { display: none; }
   .editor-toolbar__right .button:last-child { display: none; }
-  .preview-controls .button { display: none; }
+  .preview-controls .scale-control { display: none; }
   .preview-surface { min-height: 330px; margin-top: 12px; padding: 20px 12px; }
   .output-footer { gap: 10px; }
   .output-footer__chars { display: none; }
