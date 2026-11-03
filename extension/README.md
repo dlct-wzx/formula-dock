@@ -12,7 +12,7 @@ npm run build:extension
 Outputs:
 
 - `extension-dist/` — load unpacked for local testing.
-- `release/formuladock-extension-v0.4.0.zip` — upload/package artifact.
+- `release/formuladock-extension-v0.4.1.zip` — upload/package artifact.
 
 ## Install locally
 
@@ -70,7 +70,7 @@ The extension source and packaged build are distributed under the Apache License
 
 ## Interface preferences
 
-The settings page supports Chinese and English interfaces, 90/100/110/140/160% interface text-size presets, and an independent 10–24 px LaTeX editor font size. These values are stored with the extension settings and applied to the side panel immediately after saving.
+The settings page supports Chinese and English interfaces, 90/100/110/140/160% interface text-size presets, and an independent 10–24 px LaTeX editor font size. These values are stored with the extension settings and applied to the side panel immediately after saving. Output formulas grow vertically with their content and use horizontal scrolling only when wider than the preview.
 
 ## Category hover previews
 

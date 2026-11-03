@@ -1,5 +1,5 @@
 import { Copy, Check, Minus, Plus, Gauge, ShieldCheck } from 'lucide-react'
-import type { CSSProperties } from 'react'
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { useI18n } from '../i18n/I18nContext'
 import { DisplayMath } from './MathMarkup'
 
@@ -12,8 +12,32 @@ interface PreviewPanelProps {
 
 export function PreviewPanel({ latex, scale, onScaleChange, onCopy }: PreviewPanelProps) {
   const { t } = useI18n()
+  const mathRef = useRef<HTMLDivElement>(null)
+  const [horizontalOverflow, setHorizontalOverflow] = useState(false)
   const decrease = () => onScaleChange(Math.max(0.7, Math.round((scale - 0.1) * 10) / 10))
   const increase = () => onScaleChange(Math.min(1.5, Math.round((scale + 0.1) * 10) / 10))
+
+  useLayoutEffect(() => {
+    const element = mathRef.current
+    if (!element) {
+      setHorizontalOverflow(false)
+      return
+    }
+
+    const updateOverflow = () => {
+      setHorizontalOverflow(element.scrollWidth > element.clientWidth + 1)
+    }
+    updateOverflow()
+
+    const resizeObserver = new ResizeObserver(updateOverflow)
+    resizeObserver.observe(element)
+    if (element.firstElementChild) resizeObserver.observe(element.firstElementChild)
+    window.addEventListener('resize', updateOverflow)
+    return () => {
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', updateOverflow)
+    }
+  }, [latex, scale])
 
   return (
     <section className="workspace-card output-card" aria-labelledby="output-title">
@@ -61,8 +85,11 @@ export function PreviewPanel({ latex, scale, onScaleChange, onCopy }: PreviewPan
         </div>
         {latex.trim() ? (
           <div
-            className="preview-math"
+            ref={mathRef}
+            className={`preview-math ${horizontalOverflow ? 'preview-math--overflowing' : ''}`}
             style={{ '--preview-scale': String(scale) } as CSSProperties}
+            tabIndex={horizontalOverflow ? 0 : -1}
+            aria-label={horizontalOverflow ? t('preview.horizontalScroll') : undefined}
           >
             <DisplayMath latex={latex} />
           </div>
@@ -76,6 +103,11 @@ export function PreviewPanel({ latex, scale, onScaleChange, onCopy }: PreviewPan
               {t('preview.localOnly')}
             </div>
           </div>
+        )}
+        {horizontalOverflow && (
+          <span className="preview-scroll-hint" aria-hidden="true">
+            ↔ {t('preview.horizontalScroll')}
+          </span>
         )}
       </div>
 

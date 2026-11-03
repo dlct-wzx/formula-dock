@@ -213,6 +213,29 @@ try {
   await page.getByRole('button', { name: 'Close settings' }).click()
   await page.locator('.preferences-dialog').waitFor({ state: 'detached' })
 
+  await page.mouse.move(0, 0)
+  await page.locator('.quick-hover-panel').waitFor({ state: 'detached' }).catch(() => {})
+  const wideFormula = Array.from(
+    { length: 16 },
+    (_, index) => `\\frac{x_{${index + 1}}}{y_{${index + 1}}}`,
+  ).join('+')
+  await page.locator('.latex-editor').fill(wideFormula)
+  await page.waitForTimeout(120)
+  const widePreview = await page.locator('.preview-math').evaluate((element) => ({
+    overflowX: getComputedStyle(element).overflowX,
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+  }))
+  assert.equal(widePreview.overflowX, 'scroll')
+  assert.ok(
+    widePreview.scrollWidth > widePreview.clientWidth,
+    `Expected extension formula overflow: ${widePreview.scrollWidth}px <= ${widePreview.clientWidth}px`,
+  )
+  await page.getByText('Scroll horizontally to view the full formula').waitFor()
+  await page.locator('.preview-surface').screenshot({
+    path: path.resolve('artifacts/extension-wide-formula.png'),
+  })
+
   const migrated = await page.evaluate(() =>
     chrome.storage.local.get([
       'formuladock:extension-settings',
@@ -251,6 +274,8 @@ try {
         quickToolHoverPanel: true,
         categoryClickExpansion: false,
         templateHoverPanel: true,
+        wideFormulaHorizontalScroll: true,
+        conditionalHorizontalScrollHint: true,
         settingsAlwaysOpensSimpleDialog: true,
         toolPanelInternalScroll: false,
         outputInternalScroll: false,
@@ -261,6 +286,7 @@ try {
           'artifacts/extension-template-categories.png',
           'artifacts/extension-template-hover.png',
           'artifacts/extension-options.png',
+          'artifacts/extension-wide-formula.png',
         ],
       },
       null,

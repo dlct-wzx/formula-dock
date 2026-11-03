@@ -66,7 +66,9 @@ Run `npm run verify` before declaring implementation work complete. Run `npm run
 - Provider-specific response handling belongs in provider modules, not UI components.
 - The browser extension does not inject content scripts, read the active page, or insert LaTeX into websites.
 - Do not add `activeTab`, `scripting`, `tabs`, `<all_urls>`, or optional webpage host permissions.
+- The web workspace must keep Input and Output in a single vertical column at every viewport width.
 - The tool panel and output preview must keep content-driven height; do not reintroduce fixed-height internal vertical scrolling.
+- Wide formulas may scroll horizontally inside the output preview. Do not solve width overflow by clipping the formula or forcing page-level horizontal scrolling.
 - Quick-tool and formula-template categories must use the same responsive block-card layout.
 - Category content opens only on hover and uses a blue hover state. Do not restore click-to-expand or click-to-select category state.
 - Interface text-size presets are 90, 100, 110, 140, and 160 percent, independent from the LaTeX editor font size.

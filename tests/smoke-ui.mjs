@@ -49,6 +49,20 @@ try {
   await page.goto(BASE_URL, { waitUntil: 'networkidle' })
   await page.getByRole('heading', { name: /公式，不止于/ }).waitFor()
   assert.equal((await page.locator('.site-footer').innerText()).includes('.agents/'), false)
+  const workspaceLayout = await page.evaluate(() => {
+    const grid = document.querySelector('.workspace-grid')
+    const input = document.querySelector('.input-card')
+    const output = document.querySelector('.output-card')
+    if (!(grid instanceof HTMLElement) || !(input instanceof HTMLElement) || !(output instanceof HTMLElement)) {
+      return null
+    }
+    return {
+      columns: getComputedStyle(grid).gridTemplateColumns.trim().split(/\s+/).length,
+      stacked: output.getBoundingClientRect().top >= input.getBoundingClientRect().bottom - 1,
+    }
+  })
+  assert.equal(workspaceLayout?.columns, 1, 'Web workspace must use a single-column layout.')
+  assert.equal(workspaceLayout?.stacked, true, 'Output must be positioned below the input workspace.')
 
   await page.getByRole('tab', { name: /快捷工具/ }).click()
   await page.getByPlaceholder('搜索符号、名称或 LaTeX 命令').fill('积分')
@@ -97,6 +111,7 @@ try {
     'visible',
     'The output preview must not create an internal scrollbar.',
   )
+  assert.equal(await page.locator('.preview-scroll-hint').count(), 0)
   const shortPreviewHeight = await page.locator('.preview-surface').evaluate((element) => element.clientHeight)
   const alignedRows = Array.from({ length: 28 }, (_, index) => `x_{${index + 1}} &= ${index + 1}`).join('\\\\')
   await editor.fill(`\\begin{aligned}${alignedRows}\\end{aligned}`)
@@ -107,7 +122,34 @@ try {
     tallPreviewHeight > shortPreviewHeight,
     `Expected output content to grow the preview (${shortPreviewHeight}px -> ${tallPreviewHeight}px).`,
   )
+  const wideFormula = Array.from(
+    { length: 64 },
+    (_, index) => `\\frac{x_{${index + 1}}}{y_{${index + 1}}}`,
+  ).join('+')
+  await editor.fill(wideFormula)
+  await page.waitForTimeout(120)
+  const horizontalOverflow = await page.locator('.preview-math').evaluate((element) => ({
+    overflowX: getComputedStyle(element).overflowX,
+    clientWidth: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+    canScroll: (() => {
+      element.scrollLeft = element.scrollWidth
+      return element.scrollLeft > 0
+    })(),
+  }))
+  assert.equal(horizontalOverflow.overflowX, 'scroll')
+  assert.ok(
+    horizontalOverflow.scrollWidth > horizontalOverflow.clientWidth,
+    `Expected wide formula overflow: ${horizontalOverflow.scrollWidth}px <= ${horizontalOverflow.clientWidth}px`,
+  )
+  assert.equal(horizontalOverflow.canScroll, true, 'Wide formula should support horizontal scrolling.')
+  await page.getByText('左右滑动查看完整公式').waitFor()
+  await page.locator('.preview-surface').screenshot({
+    path: path.join(artifactsDir, 'smoke-wide-formula.png'),
+  })
   await editor.fill('x^2')
+  await page.waitForTimeout(120)
+  assert.equal(await page.locator('.preview-scroll-hint').count(), 0)
 
   await page.getByRole('tab', { name: /公式模板/ }).click()
   await page.getByPlaceholder('搜索公式名称、标签或描述').fill('高斯')
@@ -256,11 +298,15 @@ try {
         independentInterfaceAndEditorFontSizes: true,
         previewInternalScroll: false,
         previewGrowsWithContent: true,
+        wideFormulaHorizontalScroll: true,
+        conditionalHorizontalScrollHint: true,
+        webWorkspaceStacked: true,
         darkTheme: true,
         screenshots: [
           path.join(artifactsDir, 'smoke-quick-tools.png'),
           path.join(artifactsDir, 'smoke-templates.png'),
           path.join(artifactsDir, 'smoke-template-hover.png'),
+          path.join(artifactsDir, 'smoke-wide-formula.png'),
           path.join(artifactsDir, 'smoke-desktop.png'),
           path.join(artifactsDir, 'smoke-dark.png'),
           path.join(artifactsDir, 'smoke-mobile.png'),

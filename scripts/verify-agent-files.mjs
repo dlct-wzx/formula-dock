@@ -37,11 +37,13 @@ const requiredFiles = [
   '.agents/decisions/0007-interface-preferences.md',
   '.agents/decisions/0008-site-access-and-adaptive-tools.md',
   '.agents/decisions/0009-hover-only-and-extension-scope.md',
+  '.agents/decisions/0010-stacked-web-and-formula-scroll.md',
   '.agents/verification/2026-11-02-open-source.yaml',
   '.agents/verification/2026-11-02-formuladock-rebrand.yaml',
   '.agents/verification/2026-11-02-ui-preferences.yaml',
   '.agents/verification/2026-11-02-extension-bugfixes.yaml',
   '.agents/verification/2026-11-03-hover-only-extension-scope.yaml',
+  '.agents/verification/2026-11-03-stacked-web-formula-scroll.yaml',
 ]
 
 for (const file of requiredFiles) {

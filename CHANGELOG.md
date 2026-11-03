@@ -6,6 +6,22 @@ The format follows Keep a Changelog, and the project uses semantic versioning.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-03
+
+### Changed
+
+- The web workspace now stacks the input and output cards vertically at every viewport width.
+- Wide formulas now use horizontal scrolling inside the output preview instead of overflowing or spreading beyond the card.
+- Vertical output growth remains content-driven; the preview does not introduce a vertical scrollbar.
+- Updated the extension manifest to version 0.4.1.
+
+### Verified
+
+- `npm run verify` passes.
+- Web regression confirms a one-column workspace with the output below the input.
+- Web regression renders a 64-term formula and confirms horizontal overflow plus successful scrolling.
+- Existing mobile, hover, typography, OCR, dark-theme, and extension regressions pass.
+
 ## [0.4.0] - 2026-11-03
 
 ### Removed

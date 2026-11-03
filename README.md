@@ -7,7 +7,7 @@
 - **图片识别**：上传、拖拽、剪贴板粘贴，接入 MinerU 精准解析 API。
 - **浏览器扩展**：Manifest V3 侧边栏，直接复用快捷工具、公式模板和 MinerU 图片识别。
 
-支持浅色/深色主题和响应式布局。
+网页版输入与输出采用上下布局；超宽公式支持横向滚动。支持浅色/深色主题和响应式布局。
 
 ## 技术栈
 
@@ -68,7 +68,7 @@ npm run build:extension
 产物：
 
 - `extension-dist/`：Chrome/Edge“加载已解压的扩展程序”目录。
-- `release/formuladock-extension-v0.4.0.zip`：安装/发布 ZIP。
+- `release/formuladock-extension-v0.4.1.zip`：安装/发布 ZIP。
 
 安装：
 
@@ -203,6 +203,10 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 ![公式模板悬停预览](docs/screenshots/extension-template-hover.png)
 
 
+### 长公式横向滚动
+
+![长公式横向滚动](docs/screenshots/extension-wide-formula.png)
+
 ### 扩展设置
 
 ![扩展设置](docs/screenshots/extension-options.png)
@@ -214,6 +218,6 @@ Web 端、扩展侧边栏、设置页和扩展打包均已验证。扩展端真�
 截图中的 MinerU Token 为测试占位值，不包含真实凭据。
 
 
-FormulaDock 0.4.0 removes the active-page LaTeX insertion feature and its website permissions. Quick-tool and formula-template categories now show their contents only on hover, highlight in blue while active, and no longer expand or stay selected after a click. The output preview grows with its content without an internal scrollbar, and interface text size now supports 90/100/110/140/160% presets independently from the 10–24 px LaTeX editor font size.
+FormulaDock 0.4.1 places the web input and output cards in a vertical stack and adds horizontal scrolling only when a rendered formula is wider than the preview. FormulaDock 0.4.0 removed active-page insertion and its website permissions; categories remain hover-only with blue highlighting, the output grows vertically with content, and interface text supports 90/100/110/140/160% presets independently from the 10–24 px LaTeX editor font size.
 
-快捷工具和公式模板分类现在只通过鼠标悬停打开内容预览；离开后自动关闭，不保留点击展开或选中状态。需要较大文字时可在设置中选择 140% 或 160%。
+网页版现在将输入区与输出区上下排列，长公式超出显示宽度时可横向滑动。快捷工具和公式模板分类仍只通过鼠标悬停打开内容预览；需要较大文字时可在设置中选择 140% 或 160%。
